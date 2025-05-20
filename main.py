@@ -7,6 +7,9 @@ from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from database import Database
 import asyncio
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Инициализация
 TOKEN = '8017768385:AAGlDmiTX5RBHPvbf-AWPhMBsAUWZ2a8VsA'
@@ -18,6 +21,7 @@ db = Database()
 # Состояния
 class RegistrationStates(StatesGroup):
     waiting_for_mini_app = State()
+    confirmation = State()
     waiting_for_data = State()
     confirmation = State()
     signing_contract = State()
@@ -735,7 +739,7 @@ async def point_view_payments(callback: types.CallbackQuery):
         )
     await callback.answer()
 
-@dp.message(lambda message: message.web_app_data, RegistrationStates.waiting_for_mini_app)
+@dp.message(F.web_app_data, RegistrationStates.waiting_for_mini_app)
 async def handle_agent_mini_app_data(message: types.Message, state: FSMContext):
     print("WebApp data received:", message.web_app_data)
     try:
