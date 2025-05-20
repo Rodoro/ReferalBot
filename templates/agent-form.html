@@ -97,8 +97,16 @@
                 </select>
             </div>
             <div class="input-group">
-                <label for="bank_details">Реквизиты:</label>
-                <textarea id="bank_details" name="bank_details" required></textarea>
+                <label for="bik">БИК банка:</label>
+                <input type="text" id="bik" name="bik" required>
+                <div id="bankInfo" class="bank-info" style="display: none;">
+                    <p><strong>Название банка:</strong> <span id="bankName"></span></p>
+                    <p><strong>Корр. счет:</strong> <span id="bankKs"></span></p>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="account">Расчетный счет:</label>
+                <input type="text" id="account" name="account" required>
             </div>
             <button type="submit">Отправить данные</button>
         </form>
@@ -108,14 +116,42 @@
     <script>
         const tg = window.Telegram.WebApp;
 
+        // Обработчик изменения БИК
+        document.getElementById("bik").addEventListener("change", async function () {
+            const bik = this.value.trim();
+            if (bik.length === 9) {
+                try {
+                    const response = await fetch(`https://bik-info.ru/api.html?type=json&bik=${bik}`);
+                    const data = await response.json();
+
+                    if (data.name && data.ks) {
+                        document.getElementById("bankName").textContent = data.name;
+                        document.getElementById("bankKs").textContent = data.ks;
+                        document.getElementById("bankInfo").style.display = "block";
+                    } else {
+                        alert("Банк с таким БИК не найден");
+                        document.getElementById("bankInfo").style.display = "none";
+                    }
+                } catch (error) {
+                    console.error("Ошибка при получении данных банка:", error);
+                    document.getElementById("bankInfo").style.display = "none";
+                }
+            } else {
+                document.getElementById("bankInfo").style.display = "none";
+            }
+        });
+
         document.getElementById("agentForm").addEventListener("submit", function (e) {
             e.preventDefault();
 
             const formData = new FormData(this);
             const data = Object.fromEntries(formData.entries());
 
-            console.log("Отправляемые данные:", data);
+            const bankName = document.getElementById("bankName").textContent;
+            const bankKs = document.getElementById("bankKs").textContent;
+            data.bank_details = `Банк: ${bankName}\nБИК: ${data.bik}\nКорр. счет: ${bankKs}\nРасчетный счет: ${data.account}`;
 
+            console.log("Отправляемые данные:", data);
             tg.sendData(JSON.stringify(data));
         });
     </script>

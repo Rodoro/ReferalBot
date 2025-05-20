@@ -9,6 +9,7 @@ from aiogram.enums.content_type import ContentType
 from database import Database
 import asyncio
 import logging
+import json
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,6 +27,7 @@ class RegistrationStates(StatesGroup):
     waiting_for_data = State()
     confirmation = State()
     signing_contract = State()
+    handle_agent_mini_app_data = State()
 
 class SalesPointStates(StatesGroup):
     waiting_for_mini_app = State()
@@ -180,15 +182,16 @@ async def start_registration(callback: types.CallbackQuery, state: FSMContext):
     mini_app_url = "https://giftsong.online/agent-form"
     web_app = types.WebAppInfo(url=mini_app_url)
     
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
-        [types.InlineKeyboardButton(
-            text="Заполнить форму регистрации",
-            web_app=web_app
-        )]
-    ])
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=[
+            [types.KeyboardButton(text='Заполнить форму регистрации', web_app=web_app)]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
     
     await callback.message.answer(
-        "Пожалуйста, заполните форму регистрации:",
+        "Пожалуйста, заполните форму регистрации точки продаж:",
         reply_markup=keyboard
     )
     
@@ -260,6 +263,10 @@ async def confirm_data(callback: types.CallbackQuery, state: FSMContext):
         user_data['inn'],
         user_data['phone'],
         user_data['business_type'],
+        user_data['bik'],
+        user_data['account'],
+        user_data.get('bank_name', ''),
+        user_data.get('bank_ks', ''),
         user_data['bank_details'],
         False,  # Флаг одобрения
         ''
@@ -273,12 +280,15 @@ async def confirm_data(callback: types.CallbackQuery, state: FSMContext):
 ИНН: {user_data['inn']}
 Телефон: {user_data['phone']}
 ИП/самозанятый: {user_data['business_type']}
-Банковские реквизиты: {user_data['bank_details']}"""
+
+<b>Банковские реквизиты:</b>
+{user_data['bank_details']}"""
     
     await bot.send_message(
         chat_id=CHANNEL_ID,
         text=application_text,
-        reply_markup=admin_decision_keyboard(callback.from_user.id)
+        reply_markup=admin_decision_keyboard(callback.from_user.id),
+        parse_mode=ParseMode.HTML
     )
     
     try:
@@ -288,7 +298,6 @@ async def confirm_data(callback: types.CallbackQuery, state: FSMContext):
     
     await state.clear()
     await callback.answer()
-
 # Обработчики для администратора
 @dp.callback_query(lambda c: c.data.startswith("approve_"))
 async def approve_application(callback: types.CallbackQuery):
@@ -416,16 +425,19 @@ async def start_sales_point_registration(callback: types.CallbackQuery, state: F
     mini_app_url = "https://giftsong.online/sales-point-form"
     web_app = types.WebAppInfo(url=mini_app_url)
     
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
-        [types.InlineKeyboardButton(
-            text="Заполнить форму регистрации",
-            web_app=web_app
-        )]
-    ])
+    # keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
+    #     [types.InlineKeyboardButton(
+    #         text="Заполнить форму регистрации",
+    #         web_app=web_app
+    #     )]
+    # ])
+
+    builder = ReplyKeyboardBuilder()
+    builder.add(types.KeyboardButton(text='Заполнить форму регистрации', web_app=web_app))
     
     await callback.message.answer(
         "Пожалуйста, заполните форму регистрации точки продаж:",
-        reply_markup=keyboard
+        reply_markup=builder.as_markup()
     )
     
     await state.set_state(SalesPointStates.waiting_for_mini_app)
@@ -740,40 +752,52 @@ async def point_view_payments(callback: types.CallbackQuery):
         )
     await callback.answer()
 
-@dp.message(F.web_app_data == ContentType.WEB_APP_DATA)
-async def handle_agent_mini_app_data(message: types.Message):
+@dp.message(F.content_type == ContentType.WEB_APP_DATA)
+async def handle_agent_mini_app_data(message: types.Message, state: FSMContext):
     print("WebApp data received:", message.web_app_data)
     try:
         data = json.loads(message.web_app_data.data)
-        await message.answer(data)
 
+        required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bik', 'account']
+        if not all(field in data for field in required_fields):
+            await message.answer("Не все обязательные поля заполнены. Пожалуйста, попробуйте еще раз.")
+            return
         
-#         required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bank_details']
-#         if not all(field in data for field in required_fields):
-#             await message.answer("Не все обязательные поля заполнены. Пожалуйста, попробуйте еще раз.")
-#             return
+        # Формируем данные для сохранения
+        await state.update_data({
+            'full_name': data['full_name'],
+            'city': data['city'],
+            'inn': data['inn'],
+            'phone': data['phone'],
+            'business_type': data['business_type'],
+            'bik': data['bik'],
+            'account': data['account'],
+            'bank_details': data['bank_details']  # Это поле формируется в форме
+        })
         
-#         await state.update_data({
-#             'full_name': data['full_name'],
-#             'city': data['city'],
-#             'inn': data['inn'],
-#             'phone': data['phone'],
-#             'business_type': data['business_type'],
-#             'bank_details': data['bank_details']
-#         })
+        confirmation_text = f"""Проверьте введенные данные:
         
-#         confirmation_text = f"""Проверьте введенные данные:
-        
-# ФИО: {data['full_name']}
-# Город: {data['city']}
-# ИНН: {data['inn']}
-# Телефон: {data['phone']}
-# ИП/самозанятый: {data['business_type']}
-# Банковские реквизиты: {data['bank_details']}"""
+ФИО: {data['full_name']}
+Город: {data['city']}
+ИНН: {data['inn']}
+Телефон: {data['phone']}
+ИП/самозанятый: {data['business_type']}
 
-#         await message.answer(confirmation_text, reply_markup=confirmation_inline_keyboard())
-#         await state.set_state(RegistrationStates.confirmation)
+<b>Банковские реквизиты:</b>
+{data['bank_details']}"""
+
+        await message.answer(
+            "Данные получены", 
+            reply_markup=types.ReplyKeyboardRemove()
+        )
         
+        await message.answer(
+            confirmation_text, 
+            reply_markup=confirmation_inline_keyboard(),
+            parse_mode=ParseMode.HTML
+        )
+        await state.set_state(RegistrationStates.confirmation)
+
     except Exception as e:
         await message.answer(f"Произошла ошибка при обработке данных: {str(e)}")
 
@@ -809,7 +833,15 @@ async def handle_sales_point_mini_app_data(message: types.Message, state: FSMCon
 ИП/самозанятый: {data['business_type']}
 Банковские реквизиты: {data['bank_details']}"""
 
-        await message.answer(confirmation_text, reply_markup=confirmation_inline_keyboard())
+        await message.answer(
+            "Данные получены", 
+            reply_markup=types.ReplyKeyboardRemove()
+        )
+        
+        await message.answer(
+            confirmation_text, 
+            reply_markup=confirmation_inline_keyboard()
+        )
         await state.set_state(SalesPointStates.confirmation)
         
     except Exception as e:

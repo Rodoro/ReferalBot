@@ -26,6 +26,10 @@ class Database:
                     inn TEXT NOT NULL,
                     phone TEXT NOT NULL,
                     business_type TEXT NOT NULL,
+                    bik TEXT,
+                    account TEXT,
+                    bank_name TEXT,
+                    bank_ks TEXT,
                     bank_details TEXT NOT NULL,
                     approved BOOLEAN DEFAULT FALSE,
                     contract_signed BOOLEAN DEFAULT FALSE,
@@ -45,6 +49,10 @@ class Database:
                     inn TEXT NOT NULL,
                     phone TEXT NOT NULL,
                     business_type TEXT NOT NULL,
+                    bik TEXT,
+                    account TEXT,
+                    bank_name TEXT,
+                    bank_ks TEXT,
                     bank_details TEXT NOT NULL,
                     approved BOOLEAN DEFAULT FALSE,
                     contract_signed BOOLEAN DEFAULT FALSE,
@@ -60,8 +68,9 @@ class Database:
         with self.connection:
             query = """
                 INSERT INTO agents 
-                (user_id, full_name, city, inn, phone, business_type, bank_details, approved, referral_code) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (user_id, full_name, city, inn, phone, business_type, 
+                bik, account, bank_name, bank_ks, bank_details, approved, referral_code) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (user_id) DO NOTHING
             """
             self.cursor.execute(query, data)
@@ -112,8 +121,9 @@ class Database:
         with self.connection:
             query = """
                 INSERT INTO sales_points 
-                (user_id, agent_id, full_name, city, inn, phone, business_type, bank_details, approved, referral_code) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (user_id, agent_id, full_name, city, inn, phone, business_type, 
+                bik, account, bank_name, bank_ks, bank_details, approved, referral_code) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (user_id) DO NOTHING
             """
             self.cursor.execute(query, data)
@@ -146,7 +156,8 @@ class Database:
         """Возвращает данные агента"""
         with self.connection:
             self.cursor.execute("""
-                SELECT full_name, city, inn, phone, business_type, bank_details, referral_code 
+                SELECT full_name, city, inn, phone, business_type, 
+                    bik, account, bank_name, bank_ks, bank_details, referral_code 
                 FROM agents 
                 WHERE user_id = %s
             """, (user_id,))
@@ -158,8 +169,12 @@ class Database:
                     'inn': result[2],
                     'phone': result[3],
                     'business_type': result[4],
-                    'bank_details': result[5],
-                    'referral_code': result[6]
+                    'bik': result[5],
+                    'account': result[6],
+                    'bank_name': result[7],
+                    'bank_ks': result[8],
+                    'bank_details': result[9],
+                    'referral_code': result[10]
                 }
             return None
 
