@@ -10,18 +10,20 @@ import asyncio
 
 # Инициализация
 TOKEN = '8017768385:AAGlDmiTX5RBHPvbf-AWPhMBsAUWZ2a8VsA'
-CHANNEL_ID  = -4727328007
+CHANNEL_ID  = -4955772742
 bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher(storage=MemoryStorage())
 db = Database()
 
 # Состояния
 class RegistrationStates(StatesGroup):
+    waiting_for_mini_app = State()
     waiting_for_data = State()
     confirmation = State()
     signing_contract = State()
 
 class SalesPointStates(StatesGroup):
+    waiting_for_mini_app = State()
     waiting_for_data = State()
     confirmation = State()
     signing_contract = State()
@@ -115,6 +117,8 @@ def back_to_point_profile_keyboard():
     return builder.as_markup()
 
 # Обработчики
+
+
 @dp.message(lambda message: message.text == "/start")
 async def start_command(message: types.Message):
     if db.check_sales_point(message.from_user.id):
@@ -167,20 +171,23 @@ async def start_registration(callback: types.CallbackQuery, state: FSMContext):
         await callback.answer("Вы уже зарегистрированы!", show_alert=True)
         return
         
-    instruction_text = """Введите свои данные (каждое с новой строки):
-ФИО
-Город
-ИНН
-Телефон
-ИП или самозанятый?
-Банковские реквизиты"""
+    # Ссылка на Mini App для агента
+    mini_app_url = "https://giftsong.online/agent-form"
+    web_app = types.WebAppInfo(url=mini_app_url)
     
-    try:
-        await callback.message.edit_text(instruction_text, reply_markup=None)
-    except:
-        await callback.message.answer(instruction_text)
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
+        [types.InlineKeyboardButton(
+            text="Заполнить форму регистрации",
+            web_app=web_app
+        )]
+    ])
     
-    await state.set_state(RegistrationStates.waiting_for_data)
+    await callback.message.answer(
+        "Пожалуйста, заполните форму регистрации:",
+        reply_markup=keyboard
+    )
+    
+    await state.set_state(RegistrationStates.waiting_for_mini_app)
     await callback.answer()
 
 @dp.message(RegistrationStates.waiting_for_data)
@@ -400,20 +407,23 @@ async def start_sales_point_registration(callback: types.CallbackQuery, state: F
         await callback.answer("Ошибка: не найден агент", show_alert=True)
         return
         
-    instruction_text = """Введите данные точки продаж (каждое с новой строки):
-ФИО
-Город
-ИНН
-Телефон
-ИП или самозанятый?
-Банковские реквизиты"""
+    # Ссылка на Mini App для точки продаж
+    mini_app_url = "https://giftsong.online/sales-point-form"
+    web_app = types.WebAppInfo(url=mini_app_url)
     
-    try:
-        await callback.message.edit_text(instruction_text, reply_markup=None)
-    except:
-        await callback.message.answer(instruction_text)
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
+        [types.InlineKeyboardButton(
+            text="Заполнить форму регистрации",
+            web_app=web_app
+        )]
+    ])
     
-    await state.set_state(SalesPointStates.waiting_for_data)
+    await callback.message.answer(
+        "Пожалуйста, заполните форму регистрации точки продаж:",
+        reply_markup=keyboard
+    )
+    
+    await state.set_state(SalesPointStates.waiting_for_mini_app)
     await callback.answer()
 
 @dp.message(SalesPointStates.waiting_for_data)
@@ -724,6 +734,78 @@ async def point_view_payments(callback: types.CallbackQuery):
             reply_markup=back_to_point_profile_keyboard()
         )
     await callback.answer()
+
+@dp.message(lambda message: message.web_app_data, RegistrationStates.waiting_for_mini_app)
+async def handle_agent_mini_app_data(message: types.Message, state: FSMContext):
+    try:
+        data = json.loads(message.web_app_data.data)
+        
+        required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bank_details']
+        if not all(field in data for field in required_fields):
+            await message.answer("Не все обязательные поля заполнены. Пожалуйста, попробуйте еще раз.")
+            return
+        
+        await state.update_data({
+            'full_name': data['full_name'],
+            'city': data['city'],
+            'inn': data['inn'],
+            'phone': data['phone'],
+            'business_type': data['business_type'],
+            'bank_details': data['bank_details']
+        })
+        
+        confirmation_text = f"""Проверьте введенные данные:
+        
+ФИО: {data['full_name']}
+Город: {data['city']}
+ИНН: {data['inn']}
+Телефон: {data['phone']}
+ИП/самозанятый: {data['business_type']}
+Банковские реквизиты: {data['bank_details']}"""
+
+        await message.answer(confirmation_text, reply_markup=confirmation_inline_keyboard())
+        await state.set_state(RegistrationStates.confirmation)
+        
+    except Exception as e:
+        await message.answer(f"Произошла ошибка при обработке данных: {str(e)}")
+
+@dp.message(lambda message: message.web_app_data, SalesPointStates.waiting_for_mini_app)
+async def handle_sales_point_mini_app_data(message: types.Message, state: FSMContext):
+    try:
+        data = json.loads(message.web_app_data.data)
+        
+        required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bank_details']
+        if not all(field in data for field in required_fields):
+            await message.answer("Не все обязательные поля заполнены. Пожалуйста, попробуйте еще раз.")
+            return
+        
+        state_data = await state.get_data()
+        agent_id = state_data['agent_id']
+        
+        await state.update_data({
+            'full_name': data['full_name'],
+            'city': data['city'],
+            'inn': data['inn'],
+            'phone': data['phone'],
+            'business_type': data['business_type'],
+            'bank_details': data['bank_details'],
+            'agent_id': agent_id
+        })
+        
+        confirmation_text = f"""Проверьте введенные данные:
+        
+ФИО: {data['full_name']}
+Город: {data['city']}
+ИНН: {data['inn']}
+Телефон: {data['phone']}
+ИП/самозанятый: {data['business_type']}
+Банковские реквизиты: {data['bank_details']}"""
+
+        await message.answer(confirmation_text, reply_markup=confirmation_inline_keyboard())
+        await state.set_state(SalesPointStates.confirmation)
+        
+    except Exception as e:
+        await message.answer(f"Произошла ошибка при обработке данных: {str(e)}")
 
 async def main():
     await dp.start_polling(bot)

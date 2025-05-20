@@ -48,7 +48,7 @@ class Database:
                     bank_details TEXT NOT NULL,
                     approved BOOLEAN DEFAULT FALSE,
                     contract_signed BOOLEAN DEFAULT FALSE,
-                    referral_code TEXT UNIQUE,
+                    referral_code TEXT,
                     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
