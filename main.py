@@ -1,10 +1,11 @@
-from aiogram import Bot, types
+from aiogram import Bot, types, Dispatcher, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from aiogram.enums.content_type import ContentType
 from database import Database
 import asyncio
 import logging
@@ -739,38 +740,39 @@ async def point_view_payments(callback: types.CallbackQuery):
         )
     await callback.answer()
 
-@dp.message(F.web_app_data, RegistrationStates.waiting_for_mini_app)
-async def handle_agent_mini_app_data(message: types.Message, state: FSMContext):
+@dp.message(F.web_app_data == ContentType.WEB_APP_DATA)
+async def handle_agent_mini_app_data(message: types.Message):
     print("WebApp data received:", message.web_app_data)
     try:
         data = json.loads(message.web_app_data.data)
-        print("Parsed data:", data)
-        
-        required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bank_details']
-        if not all(field in data for field in required_fields):
-            await message.answer("Не все обязательные поля заполнены. Пожалуйста, попробуйте еще раз.")
-            return
-        
-        await state.update_data({
-            'full_name': data['full_name'],
-            'city': data['city'],
-            'inn': data['inn'],
-            'phone': data['phone'],
-            'business_type': data['business_type'],
-            'bank_details': data['bank_details']
-        })
-        
-        confirmation_text = f"""Проверьте введенные данные:
-        
-ФИО: {data['full_name']}
-Город: {data['city']}
-ИНН: {data['inn']}
-Телефон: {data['phone']}
-ИП/самозанятый: {data['business_type']}
-Банковские реквизиты: {data['bank_details']}"""
+        await message.answer(data)
 
-        await message.answer(confirmation_text, reply_markup=confirmation_inline_keyboard())
-        await state.set_state(RegistrationStates.confirmation)
+        
+#         required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bank_details']
+#         if not all(field in data for field in required_fields):
+#             await message.answer("Не все обязательные поля заполнены. Пожалуйста, попробуйте еще раз.")
+#             return
+        
+#         await state.update_data({
+#             'full_name': data['full_name'],
+#             'city': data['city'],
+#             'inn': data['inn'],
+#             'phone': data['phone'],
+#             'business_type': data['business_type'],
+#             'bank_details': data['bank_details']
+#         })
+        
+#         confirmation_text = f"""Проверьте введенные данные:
+        
+# ФИО: {data['full_name']}
+# Город: {data['city']}
+# ИНН: {data['inn']}
+# Телефон: {data['phone']}
+# ИП/самозанятый: {data['business_type']}
+# Банковские реквизиты: {data['bank_details']}"""
+
+#         await message.answer(confirmation_text, reply_markup=confirmation_inline_keyboard())
+#         await state.set_state(RegistrationStates.confirmation)
         
     except Exception as e:
         await message.answer(f"Произошла ошибка при обработке данных: {str(e)}")

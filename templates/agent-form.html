@@ -108,9 +108,6 @@
     <script>
         const tg = window.Telegram.WebApp;
 
-        // Расширяем WebApp на весь экран
-        tg.expand();
-
         document.getElementById("agentForm").addEventListener("submit", function (e) {
             e.preventDefault();
 
@@ -120,7 +117,6 @@
             console.log("Отправляемые данные:", data);
 
             tg.sendData(JSON.stringify(data));
-            tg.close();
         });
     </script>
 </body>
