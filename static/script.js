@@ -5,9 +5,19 @@ document.getElementById("agentForm")?.addEventListener("submit", function (e) {
 });
 
 // Обработка формы точки продаж
-document.getElementById("salesPointForm")?.addEventListener("submit", function (e) {
+document.getElementById("agentForm").addEventListener("submit", function (e) {
     e.preventDefault();
-    sendFormData("sales_point");
+
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+
+    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.sendData) {
+        Telegram.WebApp.sendData(JSON.stringify(data));
+        Telegram.WebApp.close();
+    } else {
+        alert("Данные отправлены в бота!");
+        console.log("Form data:", data);
+    }
 });
 
 function sendFormData(formType) {

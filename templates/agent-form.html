@@ -15,30 +15,30 @@
         <form id="agentForm">
             <div class="input-group">
                 <label for="full_name">ФИО:</label>
-                <input type="text" id="full_name" required>
+                <input type="text" id="full_name" name="full_name" required>
             </div>
             <div class="input-group">
                 <label for="city">Город:</label>
-                <input type="text" id="city" required>
+                <input type="text" id="city" name="city" required>
             </div>
             <div class="input-group">
                 <label for="inn">ИНН:</label>
-                <input type="text" id="inn" required>
+                <input type="text" id="inn" name="inn" required>
             </div>
             <div class="input-group">
                 <label for="phone">Телефон:</label>
-                <input type="tel" id="phone" required>
+                <input type="tel" id="phone" name="phone" required>
             </div>
             <div class="input-group">
                 <label for="business_type">Тип:</label>
-                <select id="business_type" required>
+                <select id="business_type" name="business_type" required>
                     <option value="ИП">ИП</option>
                     <option value="Самозанятый">Самозанятый</option>
                 </select>
             </div>
             <div class="input-group">
                 <label for="bank_details">Реквизиты:</label>
-                <textarea id="bank_details" required></textarea>
+                <textarea id="bank_details" name="bank_details" required></textarea>
             </div>
             <button type="submit">Отправить</button>
         </form>

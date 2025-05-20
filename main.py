@@ -737,8 +737,10 @@ async def point_view_payments(callback: types.CallbackQuery):
 
 @dp.message(lambda message: message.web_app_data, RegistrationStates.waiting_for_mini_app)
 async def handle_agent_mini_app_data(message: types.Message, state: FSMContext):
+    print("WebApp data received:", message.web_app_data)
     try:
         data = json.loads(message.web_app_data.data)
+        print("Parsed data:", data)
         
         required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bank_details']
         if not all(field in data for field in required_fields):
