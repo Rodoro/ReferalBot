@@ -478,9 +478,9 @@ async def start_sales_point_registration(callback: types.CallbackQuery, state: F
         await callback.answer("Ошибка: не найден агент", show_alert=True)
         return
         
-    print(428, data)
+    print(481, data['agent_id'])
     # Ссылка на Mini App для точки продаж
-    mini_app_url = "https://giftsong.online/sales-point-form?ref="+data
+    mini_app_url = "https://giftsong.online/sales-point-form?ref="+str(data['agent_id'])
     web_app = types.WebAppInfo(url=mini_app_url)
     
     keyboard = types.ReplyKeyboardMarkup(
