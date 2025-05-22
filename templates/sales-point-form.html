@@ -4,46 +4,301 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Регистрация точки продаж</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>Регистрация агента</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            color: var(--tg-theme-text-color);
+            background: var(--tg-theme-bg-color);
+            padding: 20px;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--tg-theme-secondary-bg-color);
+            border-radius: 5px;
+            background: var(--tg-theme-section-bg-color);
+            color: var(--tg-theme-text-color);
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 0.8em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-error {
+            border-color: #ff4444 !important;
+        }
+    </style>
 </head>
 
 <body>
     <div class="form-container">
-        <h1>Регистрация точки продаж</h1>
-        <form id="salesPointForm">
+        <h1>Регистрация точки продажи</h1>
+        <form id="agentForm">
             <div class="input-group">
                 <label for="full_name">ФИО:</label>
-                <input type="text" id="full_name" required>
+                <input type="text" id="full_name" name="full_name" required>
+                <div id="full_name_error" class="error-message">Пожалуйста, введите ФИО (минимум 3 символа)</div>
             </div>
             <div class="input-group">
                 <label for="city">Город:</label>
-                <input type="text" id="city" required>
+                <input type="text" id="city" name="city" required>
+                <div id="city_error" class="error-message">Пожалуйста, введите город</div>
             </div>
             <div class="input-group">
                 <label for="inn">ИНН:</label>
-                <input type="text" id="inn" required>
+                <input type="text" id="inn" name="inn" required>
+                <div id="inn_error" class="error-message">ИНН должен содержать 10 или 12 цифр</div>
             </div>
             <div class="input-group">
                 <label for="phone">Телефон:</label>
-                <input type="tel" id="phone" required>
+                <input type="tel" id="phone" name="phone" required>
+                <div id="phone_error" class="error-message">Введите корректный номер телефона (например, +79991234567)
+                </div>
             </div>
             <div class="input-group">
                 <label for="business_type">Тип:</label>
-                <select id="business_type" required>
+                <select id="business_type" name="business_type" required>
+                    <option value="">Выберите тип</option>
                     <option value="ИП">ИП</option>
                     <option value="Самозанятый">Самозанятый</option>
                 </select>
+                <div id="business_type_error" class="error-message">Пожалуйста, выберите тип</div>
             </div>
             <div class="input-group">
-                <label for="bank_details">Реквизиты:</label>
-                <textarea id="bank_details" required></textarea>
+                <label for="bik">БИК банка:</label>
+                <input type="text" id="bik" name="bik" required>
+                <div id="bik_error" class="error-message">БИК должен содержать 9 цифр</div>
+                <div id="bankInfo" class="bank-info" style="display: none;">
+                    <p><strong>Название банка:</strong> <span id="bankName"></span></p>
+                    <p><strong>Корр. счет:</strong> <span id="bankKs"></span></p>
+                </div>
             </div>
-            <button type="submit">Отправить</button>
+            <div class="input-group">
+                <label for="account">Расчетный счет:</label>
+                <input type="text" id="account" name="account" required>
+                <div id="account_error" class="error-message">Расчетный счет должен содержать 20 цифр</div>
+            </div>
+            <button type="submit">Отправить данные</button>
         </form>
     </div>
-    <script src="/static/script.js"></script>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        const tg = window.Telegram.WebApp;
+
+        // Функция для проверки ФИО
+        function validateFullName(fullName) {
+            return fullName.length >= 3;
+        }
+
+        // Функция для проверки города
+        function validateCity(city) {
+            return city.trim() !== '';
+        }
+
+        // Функция для проверки ИНН
+        function validateInn(inn) {
+            const innRegex = /^\d{10}$|^\d{12}$/;
+            return innRegex.test(inn);
+        }
+
+        // Функция для проверки телефона
+        function validatePhone(phone) {
+            const phoneRegex = /^\+?\d{11,15}$/;
+            return phoneRegex.test(phone);
+        }
+
+        // Функция для проверки типа бизнеса
+        function validateBusinessType(businessType) {
+            return businessType !== '';
+        }
+
+        // Функция для проверки БИК
+        function validateBik(bik) {
+            const bikRegex = /^\d{9}$/;
+            return bikRegex.test(bik);
+        }
+
+        // Функция для проверки расчетного счета
+        function validateAccount(account) {
+            const accountRegex = /^\d{20}$/;
+            return accountRegex.test(account);
+        }
+
+        // Функция для отображения ошибки
+        function showError(inputId, errorId, show) {
+            const input = document.getElementById(inputId);
+            const error = document.getElementById(errorId);
+
+            if (show) {
+                input.classList.add('input-error');
+                error.style.display = 'block';
+            } else {
+                input.classList.remove('input-error');
+                error.style.display = 'none';
+            }
+        }
+
+        // Обработчики событий для валидации при вводе
+        document.getElementById("full_name").addEventListener("input", function () {
+            showError('full_name', 'full_name_error', !validateFullName(this.value));
+        });
+
+        document.getElementById("city").addEventListener("input", function () {
+            showError('city', 'city_error', !validateCity(this.value));
+        });
+
+        document.getElementById("inn").addEventListener("input", function () {
+            showError('inn', 'inn_error', !validateInn(this.value));
+        });
+
+        document.getElementById("phone").addEventListener("input", function () {
+            showError('phone', 'phone_error', !validatePhone(this.value));
+        });
+
+        document.getElementById("business_type").addEventListener("change", function () {
+            showError('business_type', 'business_type_error', !validateBusinessType(this.value));
+        });
+
+        document.getElementById("bik").addEventListener("input", function () {
+            const isValid = validateBik(this.value);
+            showError('bik', 'bik_error', !isValid);
+
+            // Если БИК валиден, проверяем его через API
+            if (isValid && this.value.length === 9) {
+                checkBik(this.value);
+            } else {
+                document.getElementById("bankInfo").style.display = "none";
+            }
+        });
+
+        document.getElementById("account").addEventListener("input", function () {
+            showError('account', 'account_error', !validateAccount(this.value));
+        });
+
+        // Функция для проверки БИК через API
+        async function checkBik(bik) {
+            try {
+                const response = await fetch(`https://bik-info.ru/api.html?type=json&bik=${bik}`);
+                const data = await response.json();
+
+                if (data.name && data.ks) {
+                    document.getElementById("bankName").textContent = data.name;
+                    document.getElementById("bankKs").textContent = data.ks;
+                    document.getElementById("bankInfo").style.display = "block";
+                } else {
+                    document.getElementById("bankInfo").style.display = "none";
+                    showError('bik', 'bik_error', true);
+                }
+            } catch (error) {
+                console.error("Ошибка при получении данных банка:", error);
+                document.getElementById("bankInfo").style.display = "none";
+            }
+        }
+
+        // Обработчик отправки формы
+        document.getElementById("agentForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            // Получаем значения полей
+            const fullName = document.getElementById("full_name").value;
+            const city = document.getElementById("city").value;
+            const inn = document.getElementById("inn").value;
+            const phone = document.getElementById("phone").value;
+            const businessType = document.getElementById("business_type").value;
+            const bik = document.getElementById("bik").value;
+            const account = document.getElementById("account").value;
+
+            // Проверяем все поля
+            const isFullNameValid = validateFullName(fullName);
+            const isCityValid = validateCity(city);
+            const isInnValid = validateInn(inn);
+            const isPhoneValid = validatePhone(phone);
+            const isBusinessTypeValid = validateBusinessType(businessType);
+            const isBikValid = validateBik(bik);
+            const isAccountValid = validateAccount(account);
+
+            // Показываем ошибки, если есть
+            showError('full_name', 'full_name_error', !isFullNameValid);
+            showError('city', 'city_error', !isCityValid);
+            showError('inn', 'inn_error', !isInnValid);
+            showError('phone', 'phone_error', !isPhoneValid);
+            showError('business_type', 'business_type_error', !isBusinessTypeValid);
+            showError('bik', 'bik_error', !isBikValid);
+            showError('account', 'account_error', !isAccountValid);
+
+            // Если все поля валидны, отправляем форму
+            if (isFullNameValid && isCityValid && isInnValid && isPhoneValid &&
+                isBusinessTypeValid && isBikValid && isAccountValid) {
+
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+
+                const bankName = document.getElementById("bankName").textContent;
+                const bankKs = document.getElementById("bankKs").textContent;
+                data.bank_details = `Банк: ${bankName}\nБИК: ${data.bik}\nКорр. счет: ${bankKs}\nРасчетный счет: ${data.account}`;
+
+                console.log("Отправляемые данные:", data);
+                tg.sendData(JSON.stringify(data));
+            } else {
+                // Прокручиваем к первой ошибке
+                const firstError = document.querySelector('.input-error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

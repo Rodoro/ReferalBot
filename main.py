@@ -1,3 +1,4 @@
+import secrets
 from aiogram import Bot, types, Dispatcher, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -14,6 +15,7 @@ import json
 logging.basicConfig(level=logging.INFO)
 
 # Инициализация
+SECRETS = '6A3C3FFB'
 TOKEN = '8017768385:AAGlDmiTX5RBHPvbf-AWPhMBsAUWZ2a8VsA'
 CHANNEL_ID  = -4955772742
 bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
@@ -70,7 +72,7 @@ def confirmation_inline_keyboard():
     builder = InlineKeyboardBuilder()
     builder.add(types.InlineKeyboardButton(
         text="Исправить",
-        callback_data="correct_data"))
+        callback_data="start_registration"))
     builder.add(types.InlineKeyboardButton(
         text="Все верно",
         callback_data="confirm_data"))
@@ -124,7 +126,12 @@ def back_to_point_profile_keyboard():
     return builder.as_markup()
 
 # Обработчики
+@dp.message(lambda message: message.text and message.text.startswith("/start secret_" + SECRETS))
+async def start_command(message: types.Message):
+    welcome_text = """Здравствуйте, вы попали в бот регистрации Агентов сервиса "Подари Песню".
 
+Если вы по адресу, нажмите кнопку "Старт" ниже."""
+    await message.answer(welcome_text, reply_markup=start_inline_keyboard())
 
 @dp.message(lambda message: message.text == "/start")
 async def start_command(message: types.Message):
@@ -166,11 +173,6 @@ https://t.me/TestBotReferalSystemBot?start=ref_{agent_data['referral_code']}
             
             await message.answer(profile_text, reply_markup=agent_main_keyboard())
             return
-    
-    welcome_text = """Здравствуйте, вы попали в бот регистрации Агентов сервиса "Подари Песню".
-
-Если вы по адресу, нажмите кнопку "Старт" ниже."""
-    await message.answer(welcome_text, reply_markup=start_inline_keyboard())
 
 @dp.callback_query(lambda c: c.data == "start_registration")
 async def start_registration(callback: types.CallbackQuery, state: FSMContext):
@@ -191,7 +193,7 @@ async def start_registration(callback: types.CallbackQuery, state: FSMContext):
     )
     
     await callback.message.answer(
-        "Пожалуйста, заполните форму регистрации точки продаж:",
+        "Пожалуйста, заполните форму регистрации агента:",
         reply_markup=keyboard
     )
     
@@ -367,7 +369,9 @@ async def sign_contract(callback: types.CallbackQuery):
 Ваша реферальная ссылка для приглашения точек продаж:
 {referral_link}
 
-Поделитесь этой ссылкой с вашими точками продаж.""",
+Поделитесь этой ссылкой с вашими точками продаж.
+
+Что бы просмотреть профиль, пропишите /start""",
                 reply_markup=None
             )
         else:
@@ -425,19 +429,17 @@ async def start_sales_point_registration(callback: types.CallbackQuery, state: F
     mini_app_url = "https://giftsong.online/sales-point-form"
     web_app = types.WebAppInfo(url=mini_app_url)
     
-    # keyboard = types.InlineKeyboardMarkup(inline_keyboard=[
-    #     [types.InlineKeyboardButton(
-    #         text="Заполнить форму регистрации",
-    #         web_app=web_app
-    #     )]
-    # ])
-
-    builder = ReplyKeyboardBuilder()
-    builder.add(types.KeyboardButton(text='Заполнить форму регистрации', web_app=web_app))
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=[
+            [types.KeyboardButton(text='Заполнить форму регистрации', web_app=web_app)]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
     
     await callback.message.answer(
         "Пожалуйста, заполните форму регистрации точки продаж:",
-        reply_markup=builder.as_markup()
+        reply_markup=keyboard
     )
     
     await state.set_state(SalesPointStates.waiting_for_mini_app)
