@@ -288,6 +288,10 @@
                 const bankKs = document.getElementById("bankKs").textContent;
                 data.bank_details = `Банк: ${bankName}\nБИК: ${data.bik}\nКорр. счет: ${bankKs}\nРасчетный счет: ${data.account}`;
 
+                // Получаем параметр ref из URL
+                const refParam = getUrlParameter('ref');
+                data.isSales = refParam || ''; // если refParam есть - используем его, иначе пустую строку
+
                 console.log("Отправляемые данные:", data);
                 tg.sendData(JSON.stringify(data));
             } else {

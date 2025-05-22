@@ -257,7 +257,12 @@ async def correct_data(callback: types.CallbackQuery, state: FSMContext):
 async def confirm_data(callback: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     
-    # Сохраняем данные в ожидании подтверждения
+    # Проверяем, не является ли это точкой продаж
+    if 'isSales' in user_data and user_data['isSales']:
+        await callback.answer("Ошибка: неверный тип регистрации", show_alert=True)
+        return
+    
+    # Сохраняем данные как агента
     db.add_agent((
         callback.from_user.id,
         user_data['full_name'],
@@ -265,17 +270,17 @@ async def confirm_data(callback: types.CallbackQuery, state: FSMContext):
         user_data['inn'],
         user_data['phone'],
         user_data['business_type'],
-        user_data['bik'],
-        user_data['account'],
+        user_data.get('bik', ''),
+        user_data.get('account', ''),
         user_data.get('bank_name', ''),
         user_data.get('bank_ks', ''),
         user_data['bank_details'],
         False,  # Флаг одобрения
-        ''
+        ''      # Реферальный код (будет сгенерирован после одобрения)
     ))
     
     # Отправляем заявку администратору
-    application_text = f"""📄 Новая заявка от @{callback.from_user.username} (ID: {callback.from_user.id})
+    application_text = f"""📄 Новая заявка АГЕНТА от @{callback.from_user.username} (ID: {callback.from_user.id})
     
 ФИО: {user_data['full_name']}
 Город: {user_data['city']}
@@ -294,10 +299,58 @@ async def confirm_data(callback: types.CallbackQuery, state: FSMContext):
     )
     
     try:
-        await callback.message.edit_text("Отлично, мы получили вашу заявку, ждите одобрения", reply_markup=None)
+        await callback.message.edit_text("Отлично, мы получили вашу заявку как агент, ждите одобрения", reply_markup=None)
     except:
-        await callback.message.answer("Отлично, мы получили вашу заявку, ждите одобрения")
+        await callback.message.answer("Отлично, мы получили вашу заявку как агент, ждите одобрения")
     
+    await state.clear()
+    await callback.answer()
+
+@dp.callback_query(SalesPointStates.confirmation, lambda c: c.data == "confirm_data")
+async def confirm_sales_point_data(callback: types.CallbackQuery, state: FSMContext):
+    user_data = await state.get_data()
+
+    # Проверяем, что это действительно точка продаж
+    if 'agent_id' not in user_data:
+        await callback.answer("Ошибка: не указан агент для точки продаж", show_alert=True)
+        return
+
+    # Сохраняем данные как точку продаж
+    db.add_sales_point((
+        callback.from_user.id,
+        user_data['agent_id'],
+        user_data['full_name'],
+        user_data['city'],
+        user_data['inn'],
+        user_data['phone'],
+        user_data['business_type'],
+        user_data['bank_details'],
+        False,  # Флаг одобрения
+        ''      # Подпись договора
+    ))
+
+    application_text = f"""📄 Новая заявка ТОЧКИ ПРОДАЖ от @{callback.from_user.username} (ID: {callback.from_user.id})
+    
+ФИО: {user_data['full_name']}
+Город: {user_data['city']}
+ИНН: {user_data['inn']}
+Телефон: {user_data['phone']}
+ИП/самозанятый: {user_data['business_type']}
+Банковские реквизиты: {user_data['bank_details']}
+
+<b>Приглашающий агент:</b> {db.get_agent_name(user_data['agent_id'])}"""
+
+    await bot.send_message(
+        chat_id=CHANNEL_ID,
+        text=application_text,
+        reply_markup=admin_decision_keyboard(callback.from_user.id)
+    )
+
+    try:
+        await callback.message.edit_text("Отлично, мы получили вашу заявку как точка продаж, ждите одобрения", reply_markup=None)
+    except:
+        await callback.message.answer("Отлично, мы получили вашу заявку как точка продаж, ждите одобрения")
+
     await state.clear()
     await callback.answer()
 # Обработчики для администратора
@@ -425,8 +478,9 @@ async def start_sales_point_registration(callback: types.CallbackQuery, state: F
         await callback.answer("Ошибка: не найден агент", show_alert=True)
         return
         
+    print(428, data)
     # Ссылка на Mini App для точки продаж
-    mini_app_url = "https://giftsong.online/sales-point-form"
+    mini_app_url = "https://giftsong.online/sales-point-form?ref="+data
     web_app = types.WebAppInfo(url=mini_app_url)
     
     keyboard = types.ReplyKeyboardMarkup(
@@ -755,30 +809,73 @@ async def point_view_payments(callback: types.CallbackQuery):
     await callback.answer()
 
 @dp.message(F.content_type == ContentType.WEB_APP_DATA)
-async def handle_agent_mini_app_data(message: types.Message, state: FSMContext):
+async def handle_mini_app_data(message: types.Message, state: FSMContext):
     print("WebApp data received:", message.web_app_data)
     try:
         data = json.loads(message.web_app_data.data)
 
-        required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bik', 'account']
-        if not all(field in data for field in required_fields):
-            await message.answer("Не все обязательные поля заполнены. Пожалуйста, попробуйте еще раз.")
-            return
+        # Проверяем, является ли пользователь точкой продаж
+        is_sales_point = 'isSales' in data and data['isSales']
         
-        # Формируем данные для сохранения
-        await state.update_data({
-            'full_name': data['full_name'],
-            'city': data['city'],
-            'inn': data['inn'],
-            'phone': data['phone'],
-            'business_type': data['business_type'],
-            'bik': data['bik'],
-            'account': data['account'],
-            'bank_details': data['bank_details']  # Это поле формируется в форме
-        })
-        
-        confirmation_text = f"""Проверьте введенные данные:
-        
+        if is_sales_point:
+            # Обработка для точки продаж
+            required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bank_details', 'isSales']
+            if not all(field in data for field in required_fields):
+                await message.answer("Не все обязательные поля заполнены. Пожалуйста, попробуйте еще раз.")
+                return
+            
+            agent_id = data['isSales']  # isSales содержит ID агента для точки продаж
+            
+            await state.update_data({
+                'full_name': data['full_name'],
+                'city': data['city'],
+                'inn': data['inn'],
+                'phone': data['phone'],
+                'business_type': data['business_type'],
+                'bank_details': data['bank_details'],
+                'agent_id': agent_id
+            })
+            
+            confirmation_text = f"""Проверьте введенные данные (точка продаж):
+            
+ФИО: {data['full_name']}
+Город: {data['city']}
+ИНН: {data['inn']}
+Телефон: {data['phone']}
+ИП/самозанятый: {data['business_type']}
+Банковские реквизиты: {data['bank_details']}"""
+            
+            await message.answer(
+                "Данные получены", 
+                reply_markup=types.ReplyKeyboardRemove()
+            )
+            
+            await message.answer(
+                confirmation_text, 
+                reply_markup=confirmation_inline_keyboard()
+            )
+            await state.set_state(SalesPointStates.confirmation)
+            
+        else:
+            # Обработка для агента
+            required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bik', 'account']
+            if not all(field in data for field in required_fields):
+                await message.answer("Не все обязательные поля заполнены. Пожалуйста, попробуйте еще раз.")
+                return
+            
+            await state.update_data({
+                'full_name': data['full_name'],
+                'city': data['city'],
+                'inn': data['inn'],
+                'phone': data['phone'],
+                'business_type': data['business_type'],
+                'bik': data['bik'],
+                'account': data['account'],
+                'bank_details': data['bank_details']
+            })
+            
+            confirmation_text = f"""Проверьте введенные данные (агент):
+            
 ФИО: {data['full_name']}
 Город: {data['city']}
 ИНН: {data['inn']}
@@ -788,64 +885,18 @@ async def handle_agent_mini_app_data(message: types.Message, state: FSMContext):
 <b>Банковские реквизиты:</b>
 {data['bank_details']}"""
 
-        await message.answer(
-            "Данные получены", 
-            reply_markup=types.ReplyKeyboardRemove()
-        )
-        
-        await message.answer(
-            confirmation_text, 
-            reply_markup=confirmation_inline_keyboard(),
-            parse_mode=ParseMode.HTML
-        )
-        await state.set_state(RegistrationStates.confirmation)
+            await message.answer(
+                "Данные получены", 
+                reply_markup=types.ReplyKeyboardRemove()
+            )
+            
+            await message.answer(
+                confirmation_text, 
+                reply_markup=confirmation_inline_keyboard(),
+                parse_mode=ParseMode.HTML
+            )
+            await state.set_state(RegistrationStates.confirmation)
 
-    except Exception as e:
-        await message.answer(f"Произошла ошибка при обработке данных: {str(e)}")
-
-@dp.message(lambda message: message.web_app_data, SalesPointStates.waiting_for_mini_app)
-async def handle_sales_point_mini_app_data(message: types.Message, state: FSMContext):
-    try:
-        data = json.loads(message.web_app_data.data)
-        
-        required_fields = ['full_name', 'city', 'inn', 'phone', 'business_type', 'bank_details']
-        if not all(field in data for field in required_fields):
-            await message.answer("Не все обязательные поля заполнены. Пожалуйста, попробуйте еще раз.")
-            return
-        
-        state_data = await state.get_data()
-        agent_id = state_data['agent_id']
-        
-        await state.update_data({
-            'full_name': data['full_name'],
-            'city': data['city'],
-            'inn': data['inn'],
-            'phone': data['phone'],
-            'business_type': data['business_type'],
-            'bank_details': data['bank_details'],
-            'agent_id': agent_id
-        })
-        
-        confirmation_text = f"""Проверьте введенные данные:
-        
-ФИО: {data['full_name']}
-Город: {data['city']}
-ИНН: {data['inn']}
-Телефон: {data['phone']}
-ИП/самозанятый: {data['business_type']}
-Банковские реквизиты: {data['bank_details']}"""
-
-        await message.answer(
-            "Данные получены", 
-            reply_markup=types.ReplyKeyboardRemove()
-        )
-        
-        await message.answer(
-            confirmation_text, 
-            reply_markup=confirmation_inline_keyboard()
-        )
-        await state.set_state(SalesPointStates.confirmation)
-        
     except Exception as e:
         await message.answer(f"Произошла ошибка при обработке данных: {str(e)}")
 
