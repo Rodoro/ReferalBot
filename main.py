@@ -324,6 +324,10 @@ async def confirm_sales_point_data(callback: types.CallbackQuery, state: FSMCont
         user_data['inn'],
         user_data['phone'],
         user_data['business_type'],
+        '',
+        '',
+        '',
+        '',
         user_data['bank_details'],
         False,  # Флаг одобрения
         ''      # Подпись договора
@@ -336,9 +340,7 @@ async def confirm_sales_point_data(callback: types.CallbackQuery, state: FSMCont
 ИНН: {user_data['inn']}
 Телефон: {user_data['phone']}
 ИП/самозанятый: {user_data['business_type']}
-Банковские реквизиты: {user_data['bank_details']}
-
-<b>Приглашающий агент:</b> {db.get_agent_name(user_data['agent_id'])}"""
+Банковские реквизиты: {user_data['bank_details']}"""
 
     await bot.send_message(
         chat_id=CHANNEL_ID,
