@@ -456,9 +456,9 @@ async def sign_contract(callback: types.CallbackQuery):
 @dp.message(lambda message: message.text and message.text.startswith("/start ref_"))
 async def start_with_referral(message: types.Message, state: FSMContext):
     referral_code = message.text.split("ref_")[1].strip()
-    agent_id = db.get_agent_by_referral(referral_code)
+    agent_info = db.get_agent_info_by_referral(referral_code)
     
-    if not agent_id:
+    if not agent_info:
         await message.answer("Неверная реферальная ссылка.")
         return
     
@@ -466,11 +466,11 @@ async def start_with_referral(message: types.Message, state: FSMContext):
         await message.answer("Вы уже зарегистрированы в системе!")
         return
         
-    welcome_text = """Здравствуйте! Вы перешли по реферальной ссылке агента.
+    welcome_text = f"""Здравствуйте! Вы перешли по ссылке агента {agent_info['full_name']}
     
-Для регистрации как точка продаж нажмите кнопку "Старт" ниже."""
+Для регистрации в качестве точки продаж нажмите кнопку "Старт" ниже."""
     
-    await state.update_data(agent_id=agent_id)
+    await state.update_data(agent_id=agent_info['user_id'])
     await message.answer(welcome_text, reply_markup=start_ref_inline_keyboard())
 
 @dp.callback_query(lambda c: c.data == "start_registration_ref")

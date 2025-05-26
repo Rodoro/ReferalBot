@@ -102,7 +102,7 @@
             <div class="input-group">
                 <label for="phone">Телефон:</label>
                 <input type="tel" id="phone" name="phone" required>
-                <div id="phone_error" class="error-message">Введите корректный номер телефона (например, +79991234567)
+                <div id="phone_error" class="error-message">Введите корректный номер телефона (например, 79991234567)
                 </div>
             </div>
             <div class="input-group">
@@ -126,7 +126,7 @@
             <div class="input-group">
                 <label for="account">Расчетный счет:</label>
                 <input type="text" id="account" name="account" required>
-                <div id="account_error" class="error-message">Расчетный счет должен содержать 20 цифр</div>
+                <div id="account_error" class="error-message">Расчетный счет должен содержать 20 цифр и быть расчетным счетом, не корр. счет</div>
             </div>
             <button type="submit">Отправить данные</button>
         </form>
@@ -163,7 +163,7 @@
 
         // Функция для проверки телефона
         function validatePhone(phone) {
-            const phoneRegex = /^\+?\d{11,15}$/;
+            const phoneRegex = /^\d{11}$/;
             return phoneRegex.test(phone);
         }
 
@@ -180,7 +180,7 @@
 
         // Функция для проверки расчетного счета
         function validateAccount(account) {
-            const accountRegex = /^\d{20}$/;
+            const accountRegex = /^(?!301)\d{20}$/;
             return accountRegex.test(account);
         }
 
@@ -242,7 +242,7 @@
                 const data = await response.json();
 
                 if (data.name && data.ks) {
-                    document.getElementById("bankName").textContent = data.name;
+                    document.getElementById("bankName").textContent = data.name.replace(/&quot;/g, '"');
                     document.getElementById("bankKs").textContent = data.ks;
                     document.getElementById("bankInfo").style.display = "block";
                 } else {

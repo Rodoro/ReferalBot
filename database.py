@@ -7,7 +7,7 @@ class Database:
             database='bot',
             user='root',
             password='123456',
-            host='localhost',
+            host='109.73.203.43',
             port='5433'
         )
         self.cursor = self.connection.cursor()
@@ -109,12 +109,14 @@ class Database:
             self.connection.commit()
             return result[0] if result else None
             
-    def get_agent_by_referral(self, referral_code):
-        """Находит агента по реферальному коду"""
+    def get_agent_info_by_referral(self, referral_code):
+        """Находит агента по реферальному коду и возвращает его данные"""
         with self.connection:
-            self.cursor.execute("SELECT user_id FROM agents WHERE referral_code = %s", (referral_code,))
+            self.cursor.execute("SELECT user_id, full_name FROM agents WHERE referral_code = %s", (referral_code,))
             result = self.cursor.fetchone()
-            return result[0] if result else None
+            if result:
+                return {'user_id': result[0], 'full_name': result[1]}
+            return None
             
     def add_sales_point(self, data):
         """Добавляет точку продаж"""
