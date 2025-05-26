@@ -1,3 +1,4 @@
+import os
 import secrets
 from aiogram import Bot, types, Dispatcher, F
 from aiogram.fsm.context import FSMContext
@@ -11,6 +12,7 @@ from database import Database
 import asyncio
 import logging
 import json
+from image_processor import ImageProcessor
 
 logging.basicConfig(level=logging.INFO)
 
@@ -21,6 +23,8 @@ CHANNEL_ID  = -4955772742
 bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher(storage=MemoryStorage())
 db = Database()
+
+image_processor = ImageProcessor()
 
 # Состояния
 class RegistrationStates(StatesGroup):
@@ -430,10 +434,33 @@ async def sign_contract(callback: types.CallbackQuery):
                 reply_markup=None
             )
         else:
+            referral_code = db.generate_referral_code_sales(user_id)
+            referral_link = f"https://t.me/podaripesnyu_bot?start=ref_{referral_code}"
+
+            output_image_path = image_processor.process_and_save_image(
+                qr_data=referral_link,
+                output_path=f"temp_qr_{user_id}.png",
+            )
+
             await callback.message.answer(
-                text="✅ Вы успешно подписали договор. Теперь вы официальная точка продаж!",
+                text=f"""✅ Вы успешно подписали договор. Теперь вы официальная точка продаж!
+
+Ваша реферальная ссылка для приглашения пользователей:
+{referral_link}
+Поделитесь этой ссылкой с вашими точками продаж.
+
+Что бы просмотреть профиль, пропишите /start
+                """,
                 reply_markup=None
             )
+
+            await callback.message.answer_document(
+                document=types.FSInputFile(output_image_path),
+                caption="Ваша реферальная ссылка в виде QR-кода"
+            )
+            
+            # Удаляем временный файл
+            os.remove(output_image_path)
         
         try:
             await bot.delete_message(

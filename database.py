@@ -108,6 +108,18 @@ class Database:
             result = self.cursor.fetchone()
             self.connection.commit()
             return result[0] if result else None
+        
+    def generate_referral_code_sales(self, user_id):
+        """Генерирует и сохраняет реферальный код для агента"""
+        import secrets
+        referral_code = secrets.token_hex(4).upper()  # 8-символьный код
+        
+        with self.connection:
+            query = "UPDATE sales_points SET referral_code = %s WHERE user_id = %s RETURNING referral_code"
+            self.cursor.execute(query, (referral_code, user_id))
+            result = self.cursor.fetchone()
+            self.connection.commit()
+            return result[0] if result else None
             
     def get_agent_info_by_referral(self, referral_code):
         """Находит агента по реферальному коду и возвращает его данные"""
