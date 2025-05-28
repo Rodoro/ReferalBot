@@ -12,7 +12,7 @@ from database import Database
 import asyncio
 import logging
 import json
-from image_processor import ImageProcessor
+from image_processor import CSVImageProcessor
 
 logging.basicConfig(level=logging.INFO)
 
@@ -24,7 +24,9 @@ bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher(storage=MemoryStorage())
 db = Database()
 
-image_processor = ImageProcessor()
+processor = CSVImageProcessor(
+    csv_url="https://docs.google.com/spreadsheets/d/e/2PACX-1vQVklH6BWvGZ5YfRgS0EUKCTZVhashT8eFs7rHfU7eEH23k4e7AAJPjmV86Od-6BVuEUMs__7PAtj7_/pub?gid=0&single=true&output=csv"
+)
 
 # Состояния
 class RegistrationStates(StatesGroup):
@@ -437,7 +439,7 @@ async def sign_contract(callback: types.CallbackQuery):
             referral_code = db.generate_referral_code_sales(user_id)
             referral_link = f"https://t.me/podaripesnyu_bot?start=ref_{referral_code}"
 
-            output_image_path = image_processor.process_and_save_image(
+            output_image_path = processor.process_and_save_image(
                 qr_data=referral_link,
                 output_path=f"temp_qr_{user_id}.png",
             )

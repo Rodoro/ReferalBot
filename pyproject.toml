@@ -11,5 +11,6 @@ dependencies = [
     "pillow>=11.2.1",
     "psycopg2>=2.9.10",
     "qrcode>=8.2",
+    "requests>=2.32.3",
     "uvicorn>=0.34.2",
 ]
