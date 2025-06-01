@@ -6,6 +6,7 @@ from aiogram.types import ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeybo
 from newBot.config import settings
 from newBot.db import SessionLocal
 from newBot.repositories.agent_repository import AgentRepository
+from newBot.services.agent_service import AgentService
 from newBot.services.sales_point_service import SalesPointService
 from newBot.services.agent_service import AgentService
 
@@ -32,28 +33,43 @@ def sp_confirmation_keyboard():
 # Команда /start ref_<agent_id>
 async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
     """
-    Ловит запуск по глубокой ссылке вида /start ref_<referral_code>.
-    По referral_code находит агента, получает его id и full_name, 
-    сохраняет в state и показывает кнопку «Старт регистрации».
+    Ловим /start ref_<код_агента> → проверяем, не зарегистрирован ли уже
+    пользователь как агент или как точка. Если всё OK, выводим кнопку.
     """
-    # TODO: Регистрация если есть уже
     text = message.text or ""
     if not text.startswith("/start ref_"):
-        return  # не наш случай
-
-    # Вытащим чисто код после "ref_"
-    try:
-        _, ref_code = text.split("ref_", maxsplit=1)
-        ref_code = ref_code.strip()
-        if not ref_code:
-            raise ValueError()
-    except (ValueError, IndexError):
-        await message.answer("Неверная ссылка регистрации точки продаж.")
         return
+
+    user_id = message.from_user.id
 
     db = SessionLocal()
     try:
-        # Найдём агента по referral_code
+        # 1) Если этот user_id уже агент — запрещаем регаться как СП
+        agent_svc = AgentService(db)
+        agent_profile = agent_svc.get_agent_profile(user_id)
+        if agent_profile:
+            await message.answer(
+                "⚠️ Вы уже зарегистрированы как агент и не можете стать точкой продаж."
+            )
+            return
+
+        # 2) Если этот user_id уже точка продаж — снова запрещаем
+        sp_svc = SalesPointService(db)
+        sp_profile = sp_svc.get_sales_point_profile(user_id)
+        if sp_profile:
+            await message.answer(
+                "⚠️ Вы уже зарегистрированы как точка продаж."
+            )
+            return
+
+        # 3) Проверяем корректность ссылки агента: найдём agent по коду
+        try:
+            _, ref_code = text.split("ref_", maxsplit=1)
+            ref_code = ref_code.strip()
+        except Exception:
+            await message.answer("Неверная ссылка регистрации точки продаж.")
+            return
+
         agent_repo = AgentRepository(db)
         agent = agent_repo.get_by_referral_code(ref_code)
         if not agent:
@@ -62,15 +78,16 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
 
         agent_id = agent.user_id
         agent_name = agent.full_name
+
     finally:
         db.close()
 
-    # Сохраним в state реальные значения
+    # Сохраняем agent_id и далее показываем кнопку «Старт регистрации точки продаж»
     await state.update_data(agent_id=agent_id, agent_name=agent_name)
     await state.set_state(SalesPointRegistrationStates.waiting_for_start)
 
     welcome_text = (
-        f"Здравствуйте! Вы пришли по приглашению агента “{agent_name}”.\n\n"
+        f"Здравствуйте! Вы пришли по приглашению агента «{agent_name}».\n\n"
         "Чтобы продолжить регистрацию точки продаж, нажмите кнопку ниже."
     )
     await message.answer(welcome_text, reply_markup=sp_start_inline_keyboard())
@@ -120,8 +137,6 @@ async def handle_sp_webapp_data(message: types.Message, state: FSMContext):
     except Exception:
         await message.answer("Ошибка: некорректные данные от формы.")
         return
-    
-    print(data)
 
     # Поля, которые обязательно должны прийти
     required = [

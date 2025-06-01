@@ -32,7 +32,7 @@ async def main():
     dp.message.register(
         handle_sp_webapp_data,
         lambda msg: msg.web_app_data
-            and payload_sales_id(msg.web_app_data.data, "isSales") is not None
+            and payload_sales_id(msg.web_app_data.data) is not None
     )
     dp.callback_query.register(sp_confirm_data, lambda c: c.data == "sp_confirm_data")
     dp.callback_query.register(sp_correct_data, lambda c: c.data == "sp_correct_data")
@@ -44,7 +44,7 @@ async def main():
     dp.message.register(
         handle_agent_webapp_data,
         lambda msg: msg.web_app_data
-            and payload_sales_id(msg.web_app_data.data, "isSales") is None
+            and payload_sales_id(msg.web_app_data.data) is None
     )
     dp.callback_query.register(agent_confirm_data, lambda c: c.data == "agent_confirm_data")
     dp.callback_query.register(agent_correct_data, lambda c: c.data == "agent_correct_data")

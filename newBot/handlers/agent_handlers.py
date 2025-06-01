@@ -12,6 +12,7 @@ from newBot.services.agent_service import AgentService
 from ..config import settings
 from ..db import get_db
 from ..services.agent_service import AgentService
+from newBot.services.sales_point_service import SalesPointService
 from aiogram import Bot
 
 class AgentRegistrationStates(StatesGroup):
@@ -32,6 +33,34 @@ def agent_confirmation_keyboard():
 
 # /start secret_<ADMIN_SECRET> для агента
 async def cmd_start_agent_secret(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+
+    db = SessionLocal()
+    try:
+        # 1) Проверяем, зарегистрирован ли уже как агент
+        agent_svc = AgentService(db)
+        agent_profile = agent_svc.get_agent_profile(user_id)
+        if agent_profile:
+            await message.answer(
+                "⚠️ Вы уже зарегистрированы как агент.\n\n"
+                "Если нужно посмотреть свой профиль или реферальную ссылку, используйте команду /start."
+            )
+            return
+
+        # 2) Проверяем, зарегистрирован ли уже как точка продаж
+        sp_svc = SalesPointService(db)
+        sp_profile = sp_svc.get_sales_point_profile(user_id)
+        if sp_profile:
+            await message.answer(
+                "⚠️ Вы уже зарегистрированы как точка продаж.\n\n"
+                "Если нужно посмотреть свой профиль или QR-баннер, используйте команду /start."
+            )
+            return
+
+    finally:
+        db.close()
+
+    # Если здесь — значит ни агентом, ни точкой ещё не были
     await message.answer(
         "👤 Регистрация Агента.\n\nЧтобы начать, нажмите кнопку «Старт регистрации агента»",
         reply_markup=agent_start_inline_keyboard()
