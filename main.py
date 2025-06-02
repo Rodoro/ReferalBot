@@ -1,4 +1,5 @@
 import os
+import re
 import secrets
 from aiogram import Bot, types, Dispatcher, F
 from aiogram.fsm.context import FSMContext
@@ -276,13 +277,13 @@ async def confirm_data(callback: types.CallbackQuery, state: FSMContext):
         user_data['inn'],
         user_data['phone'],
         user_data['business_type'],
-        user_data.get('bik', ''),
-        user_data.get('account', ''),
-        user_data.get('bank_name', ''),
-        user_data.get('bank_ks', ''),
+        user_data['bik'],
+        user_data['account'],
+        user_data['bank_name'],
+        user_data['bank_ks'],
         user_data['bank_details'],
-        False,  # Флаг одобрения
-        ''      # Реферальный код (будет сгенерирован после одобрения)
+        False,
+        ''
     ))
     
     # Отправляем заявку администратору
@@ -330,10 +331,10 @@ async def confirm_sales_point_data(callback: types.CallbackQuery, state: FSMCont
         user_data['inn'],
         user_data['phone'],
         user_data['business_type'],
-        '',
-        '',
-        '',
-        '',
+        user_data['bik'],
+        user_data['account'],
+        user_data['bank_name'],
+        user_data['bank_ks'],
         user_data['bank_details'],
         False,  # Флаг одобрения
         ''      # Подпись договора
@@ -839,6 +840,15 @@ async def point_view_payments(callback: types.CallbackQuery):
         )
     await callback.answer()
 
+def parse_bank_details(details: str):
+    details = details.replace('&quot;', '"')
+    return {
+        'bank_name': re.search(r'Банк:\s*(.*)', details),
+        'bik': re.search(r'БИК:\s*(\d+)', details),
+        'bank_ks': re.search(r'Корр\.? счет:\s*(\d+)', details),
+        'account': re.search(r'Расчетный счет:\s*(\d+)', details),
+    }
+
 @dp.message(F.content_type == ContentType.WEB_APP_DATA)
 async def handle_mini_app_data(message: types.Message, state: FSMContext):
     print("WebApp data received:", message.web_app_data)
@@ -865,6 +875,15 @@ async def handle_mini_app_data(message: types.Message, state: FSMContext):
                 'business_type': data['business_type'],
                 'bank_details': data['bank_details'],
                 'agent_id': agent_id
+            })
+
+            parsed = parse_bank_details(data.get("bank_details", ""))
+            await state.update_data({
+                'bank_name': parsed['bank_name'].group(1) if parsed['bank_name'] else '',
+                'bik': data.get('bik') or (parsed['bik'].group(1) if parsed['bik'] else ''),
+                'account': data.get('account') or (parsed['account'].group(1) if parsed['account'] else ''),
+                'bank_ks': parsed['bank_ks'].group(1) if parsed['bank_ks'] else '',
+                'bank_details': data.get("bank_details", "")
             })
             
             confirmation_text = f"""Проверьте введенные данные (точка продаж):
@@ -903,6 +922,15 @@ async def handle_mini_app_data(message: types.Message, state: FSMContext):
                 'bik': data['bik'],
                 'account': data['account'],
                 'bank_details': data['bank_details']
+            })
+
+            parsed = parse_bank_details(data.get("bank_details", ""))
+            await state.update_data({
+                'bank_name': parsed['bank_name'].group(1) if parsed['bank_name'] else '',
+                'bik': data.get('bik') or (parsed['bik'].group(1) if parsed['bik'] else ''),
+                'account': data.get('account') or (parsed['account'].group(1) if parsed['account'] else ''),
+                'bank_ks': parsed['bank_ks'].group(1) if parsed['bank_ks'] else '',
+                'bank_details': data.get("bank_details", "")
             })
             
             confirmation_text = f"""Проверьте введенные данные (агент):
