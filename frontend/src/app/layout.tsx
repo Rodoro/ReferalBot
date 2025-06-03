@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SidebarProvider } from "@/shared/ui/layout/sidebar";
+import { Toaster } from "@/shared/ui/overlay/sonner";
 
 // TODO: SEO
 
@@ -19,7 +20,10 @@ export default function RootLayout({
       <body
         className={`antialiased`}
       >
-        {children}
+        <SidebarProvider>
+          <Toaster />
+          {children}
+        </SidebarProvider>
       </body>
     </html>
   );
