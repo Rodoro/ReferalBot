@@ -1,8 +1,10 @@
 from sqlalchemy.orm import Session
+
 from ..repositories.sales_point_repository import SalesPointRepository
 from ..repositories.agent_repository import AgentRepository
 from ..models.sales_point import SalesPoint
 from newBot.config import settings
+from newBot.lib.image_processor import CSVImageProcessor
 
 class SalesPointService:
     def __init__(self, db: Session):
@@ -35,12 +37,24 @@ class SalesPointService:
     def approve_sales_point(self, user_id: int) -> bool:
         return self.sp_repo.approve(user_id)
 
-    def sign_sales_point_contract(self, user_id: int) -> str:
+    def sign_sales_point_contract(self, user_id: int) -> tuple[str, str]:
+        """\
+        Помечает договор подписанным и генерирует баннер с QR-кодом.
+
+        Возвращает путь к сохранённому изображению и реферальную ссылку.
+        """
         ok = self.sp_repo.sign_contract(user_id)
         if not ok:
             raise ValueError("SalesPoint not found or not approved")
+
         code = self.sp_repo.generate_referral_code(user_id)
-        return f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
+        referral_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
+
+        processor = CSVImageProcessor(settings.CSV_URL)
+        output_path = f"sp_qr_{user_id}.png"
+        processor.process_and_save_image(referral_link, output_path)
+
+        return output_path, referral_link
 
     def get_sales_point_profile(self, user_id: int) -> dict:
         sp = self.sp_repo.get_by_user_id(user_id)

@@ -1,4 +1,5 @@
 import json
+import os
 from aiogram import types, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -319,7 +320,7 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
     try:
         sp_svc = SalesPointService(db)
         try:
-            banner_path = sp_svc.sign_sales_point_contract(user_id)
+            banner_path, referral_link = sp_svc.sign_sales_point_contract(user_id)
         except Exception as e:
             await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
             return
@@ -329,15 +330,21 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
     # Убираем кнопку «Подписать договор»
     await callback.message.edit_reply_markup(reply_markup=None)
 
-    # Отправляем точке продаж баннер с QR-кодом
+    # Отправляем точке продаж баннер с QR-кодом и ссылку
     await bot.send_message(
         chat_id=user_id,
         text=(
             "✅ Вы успешно подписали договор как точка продаж!\n\n"
+            f"Ваша реферальная ссылка:\n{referral_link}\n\n"
             "Ниже ваш баннер с QR-кодом. Сохраните или поделитесь им для привлечения клиентов."
         )
     )
-    # TODO: Картинка
+    await bot.send_document(
+        chat_id=user_id,
+        document=types.FSInputFile(banner_path),
+        caption="Ваш баннер с QR-кодом"
+    )
+    os.remove(banner_path)
     # TODO: Проверить на отмену заявки и на отмену данных
 
     # Уведомляем админ-канал, что договор подписан
