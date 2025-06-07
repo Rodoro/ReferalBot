@@ -118,7 +118,7 @@ class CSVImageProcessor:
             pos_y = int(record['Координата Y'])
             qr_size = int(record.get('Размер QR', DEFAULT_QR_SIZE))
 
-            print(pos_x, pos_y, qr_size)
+            # print(pos_x, pos_y, qr_size)
             
             # Загружаем изображение
             base_image = self.download_image(image_url)

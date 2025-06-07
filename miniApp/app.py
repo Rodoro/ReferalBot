@@ -7,8 +7,7 @@ import uvicorn
 
 app = FastAPI(title="Telegram MiniApp Forms")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="miniApp/templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
@@ -16,11 +15,11 @@ async def home(request: Request):
 
 @app.get("/agent-form", response_class=HTMLResponse)
 async def agent_form(request: Request):
-    return FileResponse("templates/agent-form.html")
+    return FileResponse("miniApp/templates/agent-form.html")
 
 @app.get("/sales-point-form", response_class=HTMLResponse)
 async def sales_point_form(request: Request):
-    return FileResponse("templates/sales-point-form.html")
+    return FileResponse("miniApp/templates/sales-point-form.html")
 
 if __name__ == "__main__":
     uvicorn.run(
