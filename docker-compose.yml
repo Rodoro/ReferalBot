@@ -15,9 +15,36 @@ services:
             - postgres_data:/var/lib/postgresql/data
         networks:
             - bot-backend
+    redis:
+        container_name: redis-bot
+        image: redis:6.0
+        restart: always
+        ports:
+        - 6379:6379
+        command: redis-server --requirepass ${REDIS_PASSWORD}
+        volumes:
+        - redis_data:/data
+        networks:
+        - bot-backend
+    minio:
+        image: minio/minio
+        container_name: minio-bot
+        ports:
+        - "9000:9000"
+        - "9001:9001"
+        environment:
+        MINIO_ACCESS_KEY: minio
+        MINIO_SECRET_KEY: minio123
+        command: server /data --console-address ":9001"
+        volumes:
+        - minio_data:/data
+        networks:
+        - bot-backend
             
 volumes:
     postgres_data:
+    redis_data:
+    minio_data:
 
 networks:
     bot-backend:

@@ -1,0 +1,96 @@
+generator client {
+    provider = "prisma-client-js"
+    output   = "./generated"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("POSTGRES_URI")
+}
+
+model Agent {
+    id               Int      @id @default(autoincrement())
+    userId           BigInt   @unique @map("user_id")
+    fullName         String   @map("full_name")
+    city             String
+    inn              String
+    phone            String
+    businessType     String   @map("business_type")
+    bik              String?
+    account          String?
+    bankName         String?  @map("bank_name")
+    bankKs           String?  @map("bank_ks")
+    bankDetails      String   @map("bank_details")
+    approved         Boolean  @default(false)
+    contractSigned   Boolean  @default(false) @map("contract_signed")
+    referralCode     String?  @unique @map("referral_code")
+    registrationDate DateTime @default(now()) @map("registration_date")
+
+    salesPoints SalesPoint[]
+
+    @@map("agents")
+}
+
+model Poet {
+    id               Int      @id @default(autoincrement())
+    userId           BigInt   @unique @map("user_id")
+    fullName         String   @map("full_name")
+    city             String
+    inn              String
+    phone            String
+    businessType     String   @map("business_type")
+    bik              String?
+    account          String?
+    bankName         String?  @map("bank_name")
+    bankKs           String?  @map("bank_ks")
+    bankDetails      String   @map("bank_details")
+    approved         Boolean  @default(false)
+    contractSigned   Boolean  @default(false) @map("contract_signed")
+    registrationDate DateTime @default(now()) @map("registration_date")
+
+    @@map("poets")
+}
+
+model SalesPoint {
+    id               Int      @id @default(autoincrement())
+    userId           BigInt   @unique @map("user_id")
+    agentId          BigInt   @map("agent_id")
+    fullName         String   @map("full_name")
+    city             String
+    inn              String
+    phone            String
+    businessType     String   @map("business_type")
+    bik              String?
+    account          String?
+    bankName         String?  @map("bank_name")
+    bankKs           String?  @map("bank_ks")
+    bankDetails      String   @map("bank_details")
+    approved         Boolean  @default(false)
+    contractSigned   Boolean  @default(false) @map("contract_signed")
+    referralCode     String?  @map("referral_code")
+    registrationDate DateTime @default(now()) @map("registration_date")
+
+    agent Agent @relation(fields: [agentId], references: [userId], onDelete: Cascade)
+
+    @@map("sales_points")
+}
+
+model VideoEditor {
+    id               Int      @id @default(autoincrement())
+    userId           BigInt   @unique @map("user_id")
+    fullName         String   @map("full_name")
+    city             String
+    inn              String
+    phone            String
+    businessType     String   @map("business_type")
+    bik              String?
+    account          String?
+    bankName         String?  @map("bank_name")
+    bankKs           String?  @map("bank_ks")
+    bankDetails      String   @map("bank_details")
+    approved         Boolean  @default(false)
+    contractSigned   Boolean  @default(false) @map("contract_signed")
+    registrationDate DateTime @default(now()) @map("registration_date")
+
+    @@map("video_editors")
+}

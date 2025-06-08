@@ -345,7 +345,6 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
         caption="Ваш баннер с QR-кодом"
     )
     os.remove(banner_path)
-    # TODO: Проверить на отмену заявки и на отмену данных
 
     # Уведомляем админ-канал, что договор подписан
     await bot.send_message(chat_id=settings.CHANNEL_ID, text=f"➡️ Точка продаж {user_id} подписала договор.")
