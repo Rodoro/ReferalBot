@@ -94,3 +94,14 @@ model VideoEditor {
 
     @@map("video_editors")
 }
+
+model Banner {
+    id           Int      @id @default(autoincrement())
+    imageUrl     String   @map("image_url")
+    qrTopOffset  Int      @default(0) @map("qr_top_offset")
+    qrLeftOffset Int      @default(0) @map("qr_left_offset")
+    qrSize       Int      @default(100) @map("qr_size")
+    createdAt    DateTime @default(now()) @map("created_at")
+
+    @@map("banners")
+}
