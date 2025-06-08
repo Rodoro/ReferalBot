@@ -63,7 +63,7 @@ async def main():
     # --- Поэт ---
     dp.message.register(
         cmd_start_poet_secret,
-        lambda msg: msg.text and msg.text.startswith(f"/start poet_{settings.ADMIN_SECRET}")
+        lambda msg: msg.text and msg.text.startswith(f"/start poet_{settings.POET_SECRET}")
     )
     dp.callback_query.register(start_poet_registration, lambda c: c.data == "start_poet_registration")
     dp.message.register(
