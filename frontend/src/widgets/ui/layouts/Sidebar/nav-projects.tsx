@@ -1,16 +1,18 @@
 "use client"
 
 import {
-  type LucideIcon,
+  Copy,
 } from "lucide-react"
 
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/shared/ui/layout/sidebar"
+import { JSX } from "react"
 
 export function NavProjects({
   projects,
@@ -18,10 +20,9 @@ export function NavProjects({
   projects: {
     name: string
     url: string
-    icon: LucideIcon
+    icon: JSX.Element
   }[]
 }) {
-  // const { isMobile } = useSidebar()
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -31,37 +32,16 @@ export function NavProjects({
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
               <a href={item.url}>
-                <item.icon />
+                {item.icon}
                 <span>{item.name}</span>
               </a>
             </SidebarMenuButton>
-            {/* <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuAction showOnHover>
-                  <MoreHorizontal />
-                  <span className="sr-only">More</span>
-                </SidebarMenuAction>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-48 rounded-lg"
-                side={isMobile ? "bottom" : "right"}
-                align={isMobile ? "end" : "start"}
-              >
-                <DropdownMenuItem>
-                  <Folder className="text-muted-foreground" />
-                  <span>View Project</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Forward className="text-muted-foreground" />
-                  <span>Share Project</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Trash2 className="text-muted-foreground" />
-                  <span>Delete Project</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu> */}
+            <SidebarMenuAction showOnHover className="cursor-pointer" onClick={() => {
+              navigator.clipboard.writeText(item.url)
+            }}>
+              <Copy />
+              <span className="sr-only">More</span>
+            </SidebarMenuAction>
           </SidebarMenuItem>
         ))}
         {/* <SidebarMenuItem>

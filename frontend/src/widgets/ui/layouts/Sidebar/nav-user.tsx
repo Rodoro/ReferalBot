@@ -1,11 +1,11 @@
 "use client"
 
 import {
-  BadgeCheck,
-  Bell,
+  // BadgeCheck,
+  // Bell,
   ChevronsUpDown,
   LogOut,
-  Settings
+  // Settings
 } from "lucide-react"
 
 import {
@@ -16,7 +16,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
+  // DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -29,7 +29,7 @@ import {
   useSidebar,
 } from "@/shared/ui/layout/sidebar"
 // import { useLogout } from "@/entites/Auth/lib/hooks/useLogout"
-import Link from "next/link"
+// import Link from "next/link"
 // import { getMediaSource } from "@/shared/lib/utils/get-media-source"
 // import { useCurrentStaff } from "@/entites/Staff/lib/hooks/useCurrentStaff"
 
@@ -80,7 +80,7 @@ export function NavUser() {
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            {/* <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <Link href={"/settings/account"} className='flex w-full items-center gap-2'>
@@ -100,7 +100,7 @@ export function NavUser() {
                   Уведомления
                 </Link>
               </DropdownMenuItem>
-            </DropdownMenuGroup>
+            </DropdownMenuGroup> */}
             <DropdownMenuSeparator />
             {/* <DropdownMenuItem onClick={() => logout()} className="cursor-pointer"> */}
             <DropdownMenuItem className="cursor-pointer">

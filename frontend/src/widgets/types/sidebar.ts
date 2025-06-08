@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react"
+import { JSX } from "react"
 
 export interface NavItem {
     title: string
@@ -14,7 +15,7 @@ export interface NavItem {
 export interface ProjectItem {
     name: string
     url: string
-    icon: LucideIcon
+    icon: JSX.Element
 }
 
 export interface TeamContent {

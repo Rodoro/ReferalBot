@@ -1,33 +1,33 @@
 // content/sidebar-content.ts
 import {
     BookOpen,
-    HardDrive,
     SquareTerminal,
     Send,
-    MessageCircleWarning,
     AreaChart,
     Music2
 } from "lucide-react"
 import { Team, TeamContent } from "../types/sidebar"
+import { FaBookBookmark, FaUserSecret } from "react-icons/fa6";
+import { IoIosMusicalNotes } from "react-icons/io";
 
 // Меню над авой
 export const commonSidebarContent = {
     navSecondary: [
         {
-            title: "Ссылка куданибудь",
-            url: "https://example.com",
-            icon: HardDrive,
-        },
-        {
-            title: "Ссылка в телеграмм канал проекта",
-            url: "https://example.com",
+            title: "Рефиральный Bot",
+            url: "https://t.me/TestBotReferalSystemBot",
             icon: Send,
         },
         {
-            title: "Ссылка например на чат с гпт по проекту",
-            url: "https://example.com",
-            icon: MessageCircleWarning,
-        }
+            title: "Подари песню Bot",
+            url: "https://t.me/podaripesnyu_bot",
+            icon: Send,
+        },
+        // {
+        //     title: "Ссылка например на чат с гпт по проекту",
+        //     url: "https://example.com",
+        //     icon: MessageCircleWarning,
+        // }
     ],
 }
 
@@ -68,14 +68,19 @@ const adminchikContent: TeamContent = {
     ],
     projects: [
         {
-            name: "Referal bot",
-            url: "https://example.com",
-            icon: Send,
+            name: "Агент",
+            url: "https://t.me/TestBotReferalSystemBot?start=secret_6A3C3FFB",
+            icon: <FaUserSecret />,
         },
         {
-            name: "Подари песню bot",
-            url: "https://example.com",
-            icon: Send,
+            name: "Поэта",
+            url: "https://t.me/TestBotReferalSystemBot?start=poet_6A3C3BBB",
+            icon: <FaBookBookmark />,
+        },
+        {
+            name: "Видеомантажер",
+            url: "https://t.me/TestBotReferalSystemBot?start=ve_6A3C3AAA",
+            icon: <IoIosMusicalNotes />,
         },
     ],
 }
