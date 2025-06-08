@@ -2,12 +2,13 @@ import Header from '@/widgets/ui/layouts/Header/Header'
 import BannerForm from '@/features/BannerForm/ui/BannerForm'
 import { bannerApi } from '@/entites/Banner/lib/api/banner-api'
 
-interface PageProps { params: { id: string } }
-
 export const metadata = { title: 'Редактировать баннер' }
 
-export default async function Page({ params }: PageProps) {
-    const banner = await bannerApi.get(Number(params.id))
+export default async function Page({ params }: {
+    params: Promise<{ id: string }>
+}) {
+    const { id } = await params
+    const banner = await bannerApi.get(Number(id))
     return (
         <>
             <Header breadcrumbs={[{ label: 'Файлы', href: '/files' }, { label: 'Баннеры', href: '/files/banners' }, { label: 'Редактировать', isCurrent: true }]} />

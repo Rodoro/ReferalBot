@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
+import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { bannerSchema, BannerFormValues } from '../model/schema'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/shared/ui/form/form'
@@ -18,7 +19,10 @@ interface BannerFormProps {
 }
 
 export default function BannerForm({ initialValues, bannerId }: BannerFormProps) {
+    const scaleImg = 6
+
     const router = useRouter()
+    const [imageSize, setImageSize] = useState({ width: 500, height: 300 })
     const form = useForm<BannerFormValues>({
         resolver: zodResolver(bannerSchema),
         defaultValues: initialValues ?? {
@@ -33,6 +37,8 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
     const qrTop = form.watch('qrTopOffset')
     const qrLeft = form.watch('qrLeftOffset')
     const qrSize = form.watch('qrSize')
+
+    // const scale = imageSize.width ? 500 / imageSize.width : 1
 
     async function onSubmit(data: BannerFormValues) {
         if (bannerId) {
@@ -72,7 +78,13 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
                             <FormItem>
                                 <FormLabel>Отступ сверху: {field.value}px</FormLabel>
                                 <FormControl>
-                                    <Slider min={0} max={500} step={1} value={[field.value]} onValueChange={v => field.onChange(v[0])} />
+                                    <Slider
+                                        min={0}
+                                        max={imageSize.height}
+                                        step={10}
+                                        value={[field.value]}
+                                        onValueChange={v => field.onChange(v[0])}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -85,7 +97,13 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
                             <FormItem>
                                 <FormLabel>Отступ слева: {field.value}px</FormLabel>
                                 <FormControl>
-                                    <Slider min={0} max={500} step={1} value={[field.value]} onValueChange={v => field.onChange(v[0])} />
+                                    <Slider
+                                        min={0}
+                                        max={imageSize.width}
+                                        step={10}
+                                        value={[field.value]}
+                                        onValueChange={v => field.onChange(v[0])}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -98,7 +116,13 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
                             <FormItem>
                                 <FormLabel>Размер: {field.value}px</FormLabel>
                                 <FormControl>
-                                    <Slider min={50} max={300} step={1} value={[field.value]} onValueChange={v => field.onChange(v[0])} />
+                                    <Slider
+                                        min={50}
+                                        max={Math.min(imageSize.width, imageSize.height)}
+                                        step={10}
+                                        value={[field.value]}
+                                        onValueChange={v => field.onChange(v[0])}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -106,11 +130,19 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
                     />
                 </div>
                 {imageUrl && (
-                    <div className="relative border p-2 w-fit">
-                        <Image src={imageUrl} alt="preview" width={500} height={300} />
+                    <div className="relative border p-2 flex" style={{ width: imageSize.width / scaleImg, height: imageSize.height / scaleImg }}>
+                        <Image
+                            src={imageUrl}
+                            alt="preview"
+                            width={100000}
+                            height={100000}
+
+                            className='w-full h-full object-contain'
+                            onLoadingComplete={img => setImageSize({ width: img.naturalWidth, height: img.naturalHeight })}
+                        />
                         <div
                             className="bg-black/50 text-white flex items-center justify-center"
-                            style={{ position: 'absolute', top: qrTop, left: qrLeft, width: qrSize, height: qrSize }}
+                            style={{ position: 'absolute', top: qrTop / scaleImg, left: qrLeft / scaleImg, width: qrSize / scaleImg, height: qrSize / scaleImg }}
                         >
                             QR
                         </div>
