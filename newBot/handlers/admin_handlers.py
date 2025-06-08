@@ -11,6 +11,7 @@ from newBot.repositories.poet_repository import PoetRepository
 from newBot.services.agent_service import AgentService
 from newBot.services.sales_point_service import SalesPointService
 from newBot.services.poet_service import PoetService
+from newBot.services.video_editor_service import VideoEditorService
 
 from ..services.agent_service import AgentService
 from ..services.sales_point_service import SalesPointService
@@ -21,6 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 AGENT_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "agent_contract.docx")
 SP_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "sales_point_contract.docx")
 POET_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "poet_contract.docx")
+VE_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "video_editor_contract.docx")
 
 
 async def handle_approve_user(
@@ -61,9 +63,11 @@ async def handle_approve_user(
             ok = svc.approve_poet(user_id)
             contract_path = POET_CONTRACT_PATH
             sign_prefix = "sign_contract_poet"
-        # elif role == "ve":
-        #     svc = VideoEditorService(db)
-        #     ok = svc.approve_video_editor(user_id)
+        elif role == "ve":
+            svc = VideoEditorService(db)
+            ok = svc.approve_video_editor(user_id)
+            contract_path = VE_CONTRACT_PATH
+            sign_prefix = "sign_contract_ve"
         else:
             await callback.answer("Неизвестная роль.", show_alert=True)
             return
@@ -130,8 +134,8 @@ async def handle_reject_user_callback(
             exists = SalesPointService(db).get_sales_point_profile(user_id)
         elif role == "poet":
             exists = PoetService(db).get_poet_profile(user_id)
-        # elif role == "ve":
-        #     exists = VideoEditorService(db).get_video_editor_profile(user_id)
+        elif role == "ve":
+            exists = VideoEditorService(db).get_video_editor_profile(user_id)
         else:
             exists = None
 
@@ -179,6 +183,10 @@ async def process_reject_reason(
             deleted = repo.delete_by_user_id(user_id)
         elif role == "poet":
             repo = PoetRepository(db)
+            deleted = repo.delete_by_user_id(user_id)
+        elif role == "ve":
+            from newBot.repositories.video_editor_repository import VideoEditorRepository
+            repo = VideoEditorRepository(db)
             deleted = repo.delete_by_user_id(user_id)
         else:
             deleted = False

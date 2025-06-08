@@ -25,6 +25,10 @@ async def sales_point_form(request: Request):
 async def poet_form(request: Request):
     return FileResponse("miniApp/templates/poet-form.html")
 
+@app.get("/video-editor-form", response_class=HTMLResponse)
+async def video_editor_form(request: Request):
+    return FileResponse("miniApp/templates/video-editor-form.html")
+
 if __name__ == "__main__":
     uvicorn.run(
         app,

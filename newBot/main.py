@@ -20,6 +20,11 @@ from newBot.handlers.poet_handlers import (
     poet_confirm_data, poet_correct_data, handle_poet_sign_contract,
     PoetRegistrationStates,
 )
+from newBot.handlers.video_editor_handlers import (
+    cmd_start_ve, start_ve_registration, handle_ve_webapp_data,
+    ve_confirm_data, ve_correct_data, handle_ve_sign_contract,
+    VideoEditorRegistrationStates,
+)
 from newBot.handlers.admin_handlers import (
     handle_approve_user,
     handle_reject_user_callback,
@@ -78,12 +83,23 @@ async def main():
     dp.callback_query.register(poet_correct_data, lambda c: c.data == "poet_correct_data")
     dp.callback_query.register(handle_poet_sign_contract, lambda c: c.data and c.data.startswith("poet_sign_contract_"))
 
-    # # --- Видеомонтажёр ---
-    # dp.message.register(cmd_start_ve, lambda msg: msg.text and msg.text == "/start_ve")
-    # dp.callback_query.register(start_ve_registration, lambda c: c.data == "start_ve_registration")
-    # dp.message.register(handle_ve_webapp_data, content_types=types.ContentType.WEB_APP_DATA)
-    # dp.callback_query.register(ve_confirm_data, lambda c: c.data == "ve_confirm_data")
-    # dp.callback_query.register(ve_correct_data, lambda c: c.data == "ve_correct_data")
+    # --- Видеомонтажёр ---
+    dp.message.register(
+        cmd_start_ve,
+        lambda msg: msg.text and msg.text.startswith(f"/start ve_{settings.VE_SECRET}")
+    )
+    dp.callback_query.register(start_ve_registration, lambda c: c.data == "start_ve_registration")
+    dp.message.register(
+        handle_ve_webapp_data,
+        StateFilter(VideoEditorRegistrationStates.waiting_for_mini_app),
+        lambda msg: (
+            msg.web_app_data
+            and payload_form_type(msg.web_app_data.data) == "video_editor"
+        )
+    )
+    dp.callback_query.register(ve_confirm_data, lambda c: c.data == "ve_confirm_data")
+    dp.callback_query.register(ve_correct_data, lambda c: c.data == "ve_correct_data")
+    dp.callback_query.register(handle_ve_sign_contract, lambda c: c.data and c.data.startswith("ve_sign_contract_"))
 
     # --- Админка: approve/reject для всех ролей ---
     dp.callback_query.register(handle_approve_user,lambda c: c.data and c.data.startswith("approve_"))

@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     BOT_TOKEN: str = Field(..., env="BOT_TOKEN")
     ADMIN_SECRET: str = Field(..., env="ADMIN_SECRET")
     POET_SECRET: str = Field(..., env="POET_SECRET")
+    VE_SECRET: str = Field(..., env="VE_SECRET")
     CHANNEL_ID: int = Field(..., env="CHANNEL_ID")
 
     BOT_USERNAME: str = Field(..., env="BOT_USERNAME")
