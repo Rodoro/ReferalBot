@@ -7,8 +7,10 @@ from sqlalchemy.orm import Session
 from newBot.db import SessionLocal
 from newBot.repositories.agent_repository import AgentRepository
 from newBot.repositories.sales_point_repository import SalesPointRepository
+from newBot.repositories.poet_repository import PoetRepository
 from newBot.services.agent_service import AgentService
 from newBot.services.sales_point_service import SalesPointService
+from newBot.services.poet_service import PoetService
 
 from ..services.agent_service import AgentService
 from ..services.sales_point_service import SalesPointService
@@ -18,6 +20,7 @@ pending_rejections: Dict[int, Tuple[str, int]] = {}
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 AGENT_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "agent_contract.docx")
 SP_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "sales_point_contract.docx")
+POET_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "poet_contract.docx")
 
 
 async def handle_approve_user(
@@ -53,9 +56,11 @@ async def handle_approve_user(
             ok = svc.approve_sales_point(user_id)
             contract_path = SP_CONTRACT_PATH
             sign_prefix = "sign_contract_sp"
-        # elif role == "poet":
-        #     svc = PoetService(db)
-        #     ok = svc.approve_poet(user_id)
+        elif role == "poet":
+            svc = PoetService(db)
+            ok = svc.approve_poet(user_id)
+            contract_path = POET_CONTRACT_PATH
+            sign_prefix = "sign_contract_poet"
         # elif role == "ve":
         #     svc = VideoEditorService(db)
         #     ok = svc.approve_video_editor(user_id)
@@ -120,11 +125,11 @@ async def handle_reject_user_callback(
     db: Session = SessionLocal()
     try:
         if role == "agent":
-            exists = AgentService(db).get_agent_profile(user_id)  # вернёт {} или словарь
+            exists = AgentService(db).get_agent_profile(user_id)  # вернёт {} или словарь␊
         elif role == "sp":
             exists = SalesPointService(db).get_sales_point_profile(user_id)
-        # elif role == "poet":
-        #     exists = PoetService(db).get_poet_profile(user_id)
+        elif role == "poet":
+            exists = PoetService(db).get_poet_profile(user_id)
         # elif role == "ve":
         #     exists = VideoEditorService(db).get_video_editor_profile(user_id)
         else:
@@ -171,6 +176,9 @@ async def process_reject_reason(
             deleted = repo.delete_by_user_id(user_id)
         elif role == "sp":
             repo = SalesPointRepository(db)
+            deleted = repo.delete_by_user_id(user_id)
+        elif role == "poet":
+            repo = PoetRepository(db)
             deleted = repo.delete_by_user_id(user_id)
         else:
             deleted = False

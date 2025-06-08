@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     # Telegram Bot
     BOT_TOKEN: str = Field(..., env="BOT_TOKEN")
     ADMIN_SECRET: str = Field(..., env="ADMIN_SECRET")
+    POET_SECRET: str = Field(..., env="POET_SECRET")
     CHANNEL_ID: int = Field(..., env="CHANNEL_ID")
 
     BOT_USERNAME: str = Field(..., env="BOT_USERNAME")
