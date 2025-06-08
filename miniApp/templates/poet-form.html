@@ -289,6 +289,7 @@
                 const bankKs = document.getElementById("bankKs").textContent;
                 data.bank_details = `Банк: ${bankName}\nБИК: ${data.bik}\nКорр. счет: ${bankKs}\nРасчетный счет: ${data.account}`;
                 data.isSales = ''
+                data.form_type = 'poet'
                 console.log("Отправляемые данные:", data);
                 tg.sendData(JSON.stringify(data));
             } else {

@@ -8,7 +8,8 @@ from aiogram.filters import StateFilter
 from  newBot.config import settings
 from newBot.handlers.agent_handlers import (
     cmd_start_agent_secret, start_agent_registration, handle_agent_webapp_data,
-    agent_confirm_data, agent_correct_data, handle_agent_sign_contract
+    agent_confirm_data, agent_correct_data, handle_agent_sign_contract,
+    AgentRegistrationStates,
 )
 from newBot.handlers.sales_point_handlers import (
     cmd_start_sp_referral, start_sp_registration, handle_sp_webapp_data,
@@ -24,7 +25,7 @@ from newBot.handlers.admin_handlers import (
     handle_reject_user_callback,
     process_reject_reason
 )
-from newBot.lib.webapp_utils import payload_sales_id
+from newBot.lib.webapp_utils import payload_sales_id, payload_form_type
  
 logging.basicConfig(level=logging.INFO)
 
@@ -48,7 +49,12 @@ async def main():
     dp.callback_query.register(start_agent_registration, lambda c: c.data == "start_agent_registration")
     dp.message.register(
         handle_agent_webapp_data,
-        lambda msg: msg.web_app_data and payload_sales_id(msg.web_app_data.data) is None
+        StateFilter(AgentRegistrationStates.waiting_for_mini_app),
+        lambda msg: (
+            msg.web_app_data
+            and payload_sales_id(msg.web_app_data.data) is None
+            and payload_form_type(msg.web_app_data.data) != "poet"
+        )
     )
     dp.callback_query.register(agent_confirm_data, lambda c: c.data == "agent_confirm_data")
     dp.callback_query.register(agent_correct_data, lambda c: c.data == "agent_correct_data")
@@ -57,13 +63,16 @@ async def main():
     # --- Поэт ---
     dp.message.register(
         cmd_start_poet_secret,
-        lambda msg: msg.text and msg.text.startswith(f"/start poet_{settings.POET_SECRET}")
+        lambda msg: msg.text and msg.text.startswith(f"/start poet_{settings.ADMIN_SECRET}")
     )
     dp.callback_query.register(start_poet_registration, lambda c: c.data == "start_poet_registration")
     dp.message.register(
         handle_poet_webapp_data,
         StateFilter(PoetRegistrationStates.waiting_for_mini_app),
-        lambda msg: msg.web_app_data and payload_sales_id(msg.web_app_data.data) is None
+        lambda msg: (
+            msg.web_app_data
+            and payload_form_type(msg.web_app_data.data) == "poet"
+        )
     )
     dp.callback_query.register(poet_confirm_data, lambda c: c.data == "poet_confirm_data")
     dp.callback_query.register(poet_correct_data, lambda c: c.data == "poet_correct_data")
