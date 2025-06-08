@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
 import { BannersService } from './banners.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
@@ -27,7 +27,7 @@ export class BannersController {
         return this.bannersService.findOne(+id);
     }
 
-    @Patch(':id')
+    @Put(':id')
     @ApiOperation({ summary: 'Update banner by id' })
     update(@Param('id') id: string, @Body() updateBannerDto: UpdateBannerDto) {
         return this.bannersService.update(+id, updateBannerDto);

@@ -7,14 +7,21 @@ import { bannerSchema, BannerFormValues } from '../model/schema'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/shared/ui/form/form'
 import { Input } from '@/shared/ui/form/input'
 import { Button } from '@/shared/ui/form/button'
+import { Slider } from '@/shared/ui/form/slider'
+import { convertGoogleDriveLink } from '@/shared/lib/utils/drive-link'
 import { bannerApi } from '@/entites/Banner/lib/api/banner-api'
 import { toast } from 'sonner'
 
-export default function BannerForm() {
+interface BannerFormProps {
+    initialValues?: BannerFormValues
+    bannerId?: number
+}
+
+export default function BannerForm({ initialValues, bannerId }: BannerFormProps) {
     const router = useRouter()
     const form = useForm<BannerFormValues>({
         resolver: zodResolver(bannerSchema),
-        defaultValues: {
+        defaultValues: initialValues ?? {
             imageUrl: '',
             qrTopOffset: 0,
             qrLeftOffset: 0,
@@ -22,14 +29,19 @@ export default function BannerForm() {
         },
     })
 
-    const imageUrl = form.watch('imageUrl')
+    const imageUrl = convertGoogleDriveLink(form.watch('imageUrl'))
     const qrTop = form.watch('qrTopOffset')
     const qrLeft = form.watch('qrLeftOffset')
     const qrSize = form.watch('qrSize')
 
     async function onSubmit(data: BannerFormValues) {
-        await bannerApi.create(data)
-        toast.success('Баннер создан')
+        if (bannerId) {
+            await bannerApi.update(bannerId, data)
+            toast.success('Баннер обновлен')
+        } else {
+            await bannerApi.create(data)
+            toast.success('Баннер создан')
+        }
         router.push('/files/banners')
     }
 
@@ -43,21 +55,24 @@ export default function BannerForm() {
                         <FormItem>
                             <FormLabel>Ссылка на картинку</FormLabel>
                             <FormControl>
-                                <Input {...field} />
+                                <Input
+                                    {...field}
+                                    onBlur={() => field.onChange(convertGoogleDriveLink(field.value))}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid gap-4">
                     <FormField
                         control={form.control}
                         name="qrTopOffset"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Отступ сверху</FormLabel>
+                                <FormLabel>Отступ сверху: {field.value}px</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                                    <Slider min={0} max={500} step={1} value={[field.value]} onValueChange={v => field.onChange(v[0])} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -68,9 +83,9 @@ export default function BannerForm() {
                         name="qrLeftOffset"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Отступ слева</FormLabel>
+                                <FormLabel>Отступ слева: {field.value}px</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                                    <Slider min={0} max={500} step={1} value={[field.value]} onValueChange={v => field.onChange(v[0])} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -81,9 +96,9 @@ export default function BannerForm() {
                         name="qrSize"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Размер</FormLabel>
+                                <FormLabel>Размер: {field.value}px</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                                    <Slider min={50} max={300} step={1} value={[field.value]} onValueChange={v => field.onChange(v[0])} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
