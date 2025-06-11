@@ -9,8 +9,7 @@ import { plainToInstance } from 'class-transformer';
 import { StaffResponseDto } from '../staff/dto/staff-response.dto';
 import { getSessionMetadata } from '@/src/shared/utils/session-metadata.util';
 import { RedisService } from '@/src/core/redis/redis.service';
-import { TelegramService } from '../telegram/telegram.service';
-import { LoggingService } from '../logging/logging.service';
+// import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
 export class SessionService {
@@ -18,8 +17,7 @@ export class SessionService {
         private readonly prismaService: PrismaService,
         private readonly configService: ConfigService,
         private readonly redisService: RedisService,
-        private readonly telegramService: TelegramService,
-        private readonly loggingService: LoggingService
+        // private readonly telegramService: TelegramService,
     ) { }
 
     public async login(req: Request, loginStaffDto: LoginStaffDto, userAgent: string): Promise<StaffResponseDto> {
@@ -38,11 +36,11 @@ export class SessionService {
             throw new NotFoundException('Пользователь не найден');
         }
 
-        const isValidPassword = await verify(user.password, password);
+        // const isValidPassword = await verify(user.password, password);
 
-        if (!isValidPassword) {
-            throw new NotFoundException('Неверный пароль');
-        }
+        // if (!isValidPassword) {
+        //     throw new NotFoundException('Неверный пароль');
+        // }
 
         const metadata = getSessionMetadata(req, userAgent)
 
@@ -50,10 +48,10 @@ export class SessionService {
             user.notificationSettings?.authLogin &&
             user.telegramId
         ) {
-            await this.telegramService.sendLoginStaff(
-                user.telegramId,
-                metadata
-            )
+            // await this.telegramService.sendLoginStaff(
+            //     user.telegramId,
+            //     metadata
+            // )
         }
 
         await saveSession(req, user, metadata);

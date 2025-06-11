@@ -109,20 +109,25 @@ model Banner {
 model Staff {
     id String @id @default(uuid())
 
-    avatar      String?
-    displayName String  @map("display_name")
-
     firstName String  @map("first_name")
     midleName String? @map("midle_name")
     lastName  String  @map("last_name")
 
-    email      String  @unique
-    telegramId String @unique @map("telegram_id")
-
-    permissions String   @default("")
+    permissions String @default("")
 
     notifications        Notification[]
     notificationSettings NotificationSettings?
+}
+
+model User {
+    id String @id @default(uuid())
+
+    avatar      String?
+    displayName String  @map("display_name")
+    telegramTeg String  @map("telegram_teg")
+    telegramId  String  @unique @map("telegram_id")
+
+    role RoleType
 
     tokens Token[]
 }
@@ -137,7 +142,7 @@ model Token {
     createdAt DateTime @default(now()) @map("created_at")
     updateAt  DateTime @updatedAt @map("updated_at")
 
-    user   Staff?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId String? @map("user_id")
 
     @@map("tokens")
@@ -172,6 +177,16 @@ model NotificationSettings {
     updatedAt DateTime @updatedAt @map("updated_at")
 
     @@map("notification_settings")
+}
+
+enum RoleType {
+    STAFF
+    AGENT
+    SALES_POINT
+    POET
+    VIDEO_EDITOR
+
+    @@map("role_types")
 }
 
 enum TokenType {
