@@ -105,3 +105,83 @@ model Banner {
 
     @@map("banners")
 }
+
+model Staff {
+    id String @id @default(uuid())
+
+    avatar      String?
+    displayName String  @map("display_name")
+
+    firstName String  @map("first_name")
+    midleName String? @map("midle_name")
+    lastName  String  @map("last_name")
+
+    email      String  @unique
+    telegramId String @unique @map("telegram_id")
+
+    permissions String   @default("")
+
+    notifications        Notification[]
+    notificationSettings NotificationSettings?
+
+    tokens Token[]
+}
+
+model Token {
+    id String @id @default(uuid())
+
+    token     String    @unique
+    type      TokenType
+    expiresIn DateTime  @map("expires_in")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updateAt  DateTime @updatedAt @map("updated_at")
+
+    user   Staff?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String? @map("user_id")
+
+    @@map("tokens")
+}
+
+model Notification {
+    id String @id @default(uuid())
+
+    message String
+    type    NotificationType
+    isRead  Boolean          @default(false) @map("is_read")
+
+    user   Staff?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String? @map("user_id")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@map("notifications")
+}
+
+model NotificationSettings {
+    id String @id @default(uuid())
+
+    authLogin     Boolean @default(true) @map("auth_login")
+    passwordReset Boolean @default(true) @map("password_reset")
+
+    user   Staff  @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId String @unique @map("user_id")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@map("notification_settings")
+}
+
+enum TokenType {
+    TELEGRAM_AUTH
+
+    @@map("token_types")
+}
+
+enum NotificationType {
+    AUTH_LOGIN
+
+    @@map("notification_types")
+}

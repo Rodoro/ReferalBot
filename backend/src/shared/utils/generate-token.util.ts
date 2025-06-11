@@ -1,11 +1,11 @@
-// import { TokenType, type Staff } from "@/prisma/generated";
-// import { PrismaService } from "@/src/core/prisma/prisma.service";
+import { TokenType, type Staff } from "@/prisma/generated";
+import { PrismaService } from "@/src/core/prisma/prisma.service";
 import { v4 as uuidv4 } from 'uuid'
 
 export async function generateToken(
-    // prismaService: PrismaService,
-    // user: Staff,
-    // type: TokenType,
+    prismaService: PrismaService,
+    user: Staff,
+    type: TokenType,
     isUUID: boolean = true
 ) {
     let token: string
@@ -17,42 +17,42 @@ export async function generateToken(
     }
 
     const expiresIn = new Date(new Date().getTime() + 300000)
-    // const existingToken = await prismaService.token.findFirst({
-    //     where: {
-    //         type,
-    //         user: {
-    //             id: user.id
-    //         }
-    //     }
-    // })
+    const existingToken = await prismaService.token.findFirst({
+        where: {
+            type,
+            user: {
+                id: user.id
+            }
+        }
+    })
 
-    // if (existingToken) {
-    //     await prismaService.token.delete({
-    //         where: {
-    //             id: existingToken.id
-    //         }
-    //     })
-    // }
+    if (existingToken) {
+        await prismaService.token.delete({
+            where: {
+                id: existingToken.id
+            }
+        })
+    }
 
-    // const newToken = await prismaService.token.create({
-    //     data: {
-    //         token,
-    //         expiresIn,
-    //         type,
-    //         user: {
-    //             connect: {
-    //                 id: user.id
-    //             }
-    //         }
-    //     },
-    //     include: {
-    //         user: {
-    //             include: {
-    //                 notificationSettings: true
-    //             }
-    //         }
-    //     }
-    // })
+    const newToken = await prismaService.token.create({
+        data: {
+            token,
+            expiresIn,
+            type,
+            user: {
+                connect: {
+                    id: user.id
+                }
+            }
+        },
+        include: {
+            user: {
+                include: {
+                    notificationSettings: true
+                }
+            }
+        }
+    })
 
-    // return newToken
+    return newToken
 }

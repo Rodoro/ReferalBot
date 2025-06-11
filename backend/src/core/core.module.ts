@@ -3,6 +3,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { BannersModule } from '../modules/banners/banners.module';
 import { ConfigModule } from '@nestjs/config';
 import { IS_DEV_ENV } from '../shared/utils/is-dev.utils';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { IS_DEV_ENV } from '../shared/utils/is-dev.utils';
       isGlobal: true
     }),
     PrismaModule,
+    RedisModule,
 
     BannersModule,
   ],
