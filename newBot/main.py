@@ -30,6 +30,7 @@ from newBot.handlers.admin_handlers import (
     handle_reject_user_callback,
     process_reject_reason
 )
+from newBot.handlers.common_handlers import cmd_start
 from newBot.lib.webapp_utils import payload_sales_id, payload_form_type
  
 logging.basicConfig(level=logging.INFO)
@@ -100,6 +101,9 @@ async def main():
     dp.callback_query.register(ve_confirm_data, lambda c: c.data == "ve_confirm_data")
     dp.callback_query.register(ve_correct_data, lambda c: c.data == "ve_correct_data")
     dp.callback_query.register(handle_ve_sign_contract, lambda c: c.data and c.data.startswith("ve_sign_contract_"))
+
+    # --- Общая команда /start ---
+    dp.message.register(cmd_start, lambda msg: msg.text and msg.text.startswith("/start"))
 
     # --- Админка: approve/reject для всех ролей ---
     dp.callback_query.register(handle_approve_user,lambda c: c.data and c.data.startswith("approve_"))

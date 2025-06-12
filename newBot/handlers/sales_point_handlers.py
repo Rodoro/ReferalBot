@@ -45,22 +45,15 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
 
     db = SessionLocal()
     try:
-        # 1) Если этот user_id уже агент — запрещаем регаться как СП
-        agent_svc = AgentService(db)
-        agent_profile = agent_svc.get_agent_profile(user_id)
-        if agent_profile:
-            await message.answer(
-                "⚠️ Вы уже зарегистрированы как агент и не можете стать точкой продаж."
-            )
-            return
-
-        # 2) Если этот user_id уже точка продаж — снова запрещаем
-        sp_svc = SalesPointService(db)
-        sp_profile = sp_svc.get_sales_point_profile(user_id)
-        if sp_profile:
-            await message.answer(
-                "⚠️ Вы уже зарегистрированы как точка продаж."
-            )
+        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
+        role, profile = get_user_role(db, user_id)
+        if role:
+            if role == UserRole.SALES_POINT:
+                await send_profile(message.bot, message.chat.id, role, profile)
+            else:
+                await message.answer(
+                    f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать точкой продаж."
+                )
             return
 
         # 3) Проверяем корректность ссылки агента: найдём agent по коду

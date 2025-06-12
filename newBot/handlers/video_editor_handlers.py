@@ -29,12 +29,19 @@ async def cmd_start_ve(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     db = SessionLocal()
     try:
-        svc = VideoEditorService(db)
-        if svc.get_video_editor_profile(user_id):
-            await message.answer("⚠️ Вы уже зарегистрированы как видеомонтажёр.")
-            return
+        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
+        role, profile = get_user_role(db, user_id)
     finally:
         db.close()
+
+    if role:
+        if role == UserRole.VIDEO_EDITOR:
+            await send_profile(message.bot, message.chat.id, role, profile)
+        else:
+            await message.answer(
+                f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать видеомонтажёром."
+            )
+        return
 
     await message.answer(
         "✍️ Регистрация Видеомонтажёра.\n\nЧтобы начать, нажмите кнопку «Старт регистрации видеомонтажёра»",
@@ -45,11 +52,19 @@ async def start_ve_registration(callback: types.CallbackQuery, state: FSMContext
     user_id = callback.from_user.id
     db = SessionLocal()
     try:
-        if VideoEditorService(db).get_video_editor_profile(user_id):
-            await callback.answer("Вы уже зарегистрированы как видеомонтажёр!", show_alert=True)
-            return
+        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
+        role, profile = get_user_role(db, user_id)
     finally:
         db.close()
+
+    if role:
+        if role == UserRole.VIDEO_EDITOR:
+            await send_profile(callback.message.bot, callback.message.chat.id, role, profile)
+        else:
+            await callback.answer(
+                f"Вы уже зарегистрированы как {ROLE_NAMES[role]}!", show_alert=True
+            )
+        return
 
     mini_app_url = f"{settings.WEBAPP_URL}/video-editor-form"
     web_app = types.WebAppInfo(url=mini_app_url)
