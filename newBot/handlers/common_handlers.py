@@ -10,12 +10,12 @@ async def cmd_start(message: types.Message, bot: Bot) -> None:
     db = SessionLocal()
     try:
         role, profile = get_user_role(db, user_id)
+
+        if role:
+            await send_profile(bot, message.chat.id, role, profile, message.from_user, db)
+        else:
+            await message.answer(
+                "Вы ещё не зарегистрированы. Используйте полученную ссылку для начала регистрации."
+            )
     finally:
         db.close()
-
-    if role:
-        await send_profile(bot, message.chat.id, role, profile)
-    else:
-        await message.answer(
-            "Вы ещё не зарегистрированы. Используйте полученную ссылку для начала регистрации."
-        )

@@ -47,9 +47,10 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
     try:
         from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
         role, profile = get_user_role(db, user_id)
+        role, profile = get_user_role(db, user_id)
         if role:
             if role == UserRole.SALES_POINT:
-                await send_profile(message.bot, message.chat.id, role, profile)
+                await send_profile(message.bot, message.chat.id, role, profile, message.from_user, db)
             else:
                 await message.answer(
                     f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать точкой продаж."

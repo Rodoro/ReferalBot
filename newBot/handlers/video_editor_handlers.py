@@ -31,17 +31,16 @@ async def cmd_start_ve(message: types.Message, state: FSMContext):
     try:
         from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
         role, profile = get_user_role(db, user_id)
+        if role:
+            if role == UserRole.VIDEO_EDITOR:
+                await send_profile(message.bot, message.chat.id, role, profile, message.from_user, db)
+            else:
+                await message.answer(
+                    f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать видеомонтажёром."
+                )
+            return
     finally:
         db.close()
-
-    if role:
-        if role == UserRole.VIDEO_EDITOR:
-            await send_profile(message.bot, message.chat.id, role, profile)
-        else:
-            await message.answer(
-                f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать видеомонтажёром."
-            )
-        return
 
     await message.answer(
         "✍️ Регистрация Видеомонтажёра.\n\nЧтобы начать, нажмите кнопку «Старт регистрации видеомонтажёра»",
@@ -59,7 +58,7 @@ async def start_ve_registration(callback: types.CallbackQuery, state: FSMContext
 
     if role:
         if role == UserRole.VIDEO_EDITOR:
-            await send_profile(callback.message.bot, callback.message.chat.id, role, profile)
+            await send_profile(callback.message.bot, callback.message.chat.id, role, profile, callback.from_user, db)
         else:
             await callback.answer(
                 f"Вы уже зарегистрированы как {ROLE_NAMES[role]}!", show_alert=True

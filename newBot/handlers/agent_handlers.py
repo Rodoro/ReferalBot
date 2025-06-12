@@ -37,20 +37,19 @@ async def cmd_start_agent_secret(message: types.Message, state: FSMContext):
 
     db = SessionLocal()
     try:
-        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole
+        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
         role, profile = get_user_role(db, user_id)
+
+        if role:
+            if role == UserRole.AGENT:
+                await send_profile(message.bot, message.chat.id, role, profile, message.from_user, db)
+            else:
+                await message.answer(
+                    f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать агентом."
+                )
+            return
     finally:
         db.close()
-
-    if role:
-        from newBot.lib.user_roles import send_profile
-        if role == UserRole.AGENT:
-            await send_profile(message.bot, message.chat.id, role, profile)
-        else:
-            await message.answer(
-                f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать агентом."
-            )
-        return
 
     # Если здесь — значит ни агентом, ни точкой ещё не были
     await message.answer(
@@ -65,20 +64,18 @@ async def start_agent_registration(callback: types.CallbackQuery, state: FSMCont
     # Проверим, не зарегистрирован ли он уже
     db = SessionLocal()
     try:
-        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole
+        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
         role, profile = get_user_role(db, user_id)
+        if role:
+            if role == UserRole.AGENT:
+                await send_profile(callback.message.bot, callback.message.chat.id, role, profile, callback.from_user, db)
+            else:
+                await callback.answer(
+                    f"Вы уже зарегистрированы как {ROLE_NAMES[role]}!", show_alert=True
+                )
+            return
     finally:
         db.close()
-
-    if role:
-        if role == UserRole.AGENT:
-            from newBot.lib.user_roles import send_profile
-            await send_profile(callback.message.bot, callback.message.chat.id, role, profile)
-        else:
-            await callback.answer(
-                f"Вы уже зарегистрированы как {ROLE_NAMES[role]}!", show_alert=True
-            )
-        return
 
     # Отправляем кнопку WebApp
     mini_app_url = f"{settings.WEBAPP_URL}/agent-form"

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from sqlalchemy.orm import Session
-from aiogram import Bot
+from aiogram import Bot, types
+from aiogram.utils.keyboard import InlineKeyboardButton, InlineKeyboardMarkup
 
 from ..services.agent_service import AgentService
 from ..services.sales_point_service import SalesPointService
 from ..services.poet_service import PoetService
 from ..services.video_editor_service import VideoEditorService
+from ..services.user_service import UserService
+from ..config import settings
 
 
 class UserRole:
@@ -49,18 +52,66 @@ def get_user_role(db: Session, user_id: int) -> tuple[str | None, dict]:
     return None, {}
 
 
-async def send_profile(bot: Bot, chat_id: int, role: str, profile: dict) -> None:
-    """Send profile info to the user.\n
-    Placeholder implementation – customise for each role."""
+async def send_profile(
+    bot: Bot,
+    chat_id: int,
+    role: str,
+    profile: dict,
+    tg_user: types.User,
+    db: Session,
+) -> None:
+    """Send detailed profile to the user and provide dashboard link."""
+
+    user_svc = UserService(db)
+    user = user_svc.get_or_create_user(
+        telegram_id=tg_user.id,
+        full_name=tg_user.full_name,
+        username=tg_user.username or "",
+        role=role
+    )
+    token = user_svc.generate_token(user)
+    link = f"{settings.DASHBOARD_URL}?key={token}"
+
     if role == UserRole.AGENT:
-        # TODO: send agent profile
-        await bot.send_message(chat_id, "Профиль агента")
+        text = (
+            f"<b>Профиль агента</b>\n"
+            f"ФИО: {profile['full_name']}\n"
+            f"Город: {profile['city']}\n"
+            f"ИНН: {profile['inn']}\n"
+            f"Телефон: {profile['phone']}\n"
+            f"Тип: {profile['business_type']}\n"
+        )
     elif role == UserRole.SALES_POINT:
-        # TODO: send sales point profile
-        await bot.send_message(chat_id, "Профиль точки продаж")
+        text = (
+            f"<b>Профиль точки продаж</b>\n"
+            f"Название: {profile['full_name']}\n"
+            f"Город: {profile['city']}\n"
+            f"ИНН: {profile['inn']}\n"
+            f"Телефон: {profile['phone']}\n"
+            f"Тип: {profile['business_type']}\n"
+        )
     elif role == UserRole.POET:
-        # TODO: send poet profile
-        await bot.send_message(chat_id, "Профиль поэта")
-    elif role == UserRole.VIDEO_EDITOR:
-        # TODO: send video editor profile
-        await bot.send_message(chat_id, "Профиль видеомонтажёра")
+        text = (
+            f"<b>Профиль поэта</b>\n"
+            f"ФИО: {profile['full_name']}\n"
+            f"Город: {profile['city']}\n"
+            f"ИНН: {profile['inn']}\n"
+            f"Телефон: {profile['phone']}\n"
+            f"Тип: {profile['business_type']}\n"
+        )
+    else:
+        text = (
+            f"<b>Профиль видеомонтажёра</b>\n"
+            f"ФИО: {profile['full_name']}\n"
+            f"Город: {profile['city']}\n"
+            f"ИНН: {profile['inn']}\n"
+            f"Телефон: {profile['phone']}\n"
+            f"Тип: {profile['business_type']}\n"
+        )
+
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Открыть дашборд", url=link)]
+        ]
+    )
+    await bot.send_message(chat_id, text, reply_markup=keyboard)

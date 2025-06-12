@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     BOT_USERNAME: str = Field(..., env="BOT_USERNAME")
     MAIN_BOT_USERNAME: str = Field(..., env="MAIN_BOT_USERNAME")
     WEBAPP_URL: str = Field(..., env="WEBAPP_URL")
+    DASHBOARD_URL: str = Field(..., env="DASHBOARD_URL")
 
     # PostgreSQL
     DB_HOST: str = Field(..., env="POSTGRES_HOST")

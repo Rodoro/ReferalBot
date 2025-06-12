@@ -31,17 +31,16 @@ async def cmd_start_poet_secret(message: types.Message, state: FSMContext):
     try:
         from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
         role, profile = get_user_role(db, user_id)
+        if role:
+            if role == UserRole.POET:
+                await send_profile(message.bot, message.chat.id, role, profile, message.from_user, db)
+            else:
+                await message.answer(
+                    f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать поэтом."
+                )
+            return
     finally:
         db.close()
-
-    if role:
-        if role == UserRole.POET:
-            await send_profile(message.bot, message.chat.id, role, profile)
-        else:
-            await message.answer(
-                f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать поэтом."
-            )
-        return
 
     await message.answer(
         "✍️ Регистрация Поэта.\n\nЧтобы начать, нажмите кнопку «Старт регистрации поэта»",
@@ -54,17 +53,16 @@ async def start_poet_registration(callback: types.CallbackQuery, state: FSMConte
     try:
         from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
         role, profile = get_user_role(db, user_id)
+        if role:
+            if role == UserRole.POET:
+                await send_profile(callback.message.bot, callback.message.chat.id, role, profile, callback.from_user, db)
+            else:
+                await callback.answer(
+                    f"Вы уже зарегистрированы как {ROLE_NAMES[role]}!", show_alert=True
+                )
+            return
     finally:
         db.close()
-
-    if role:
-        if role == UserRole.POET:
-            await send_profile(callback.message.bot, callback.message.chat.id, role, profile)
-        else:
-            await callback.answer(
-                f"Вы уже зарегистрированы как {ROLE_NAMES[role]}!", show_alert=True
-            )
-        return
 
     mini_app_url = f"{settings.WEBAPP_URL}/poet-form"
     web_app = types.WebAppInfo(url=mini_app_url)
