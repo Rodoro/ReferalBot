@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -18,9 +18,9 @@ class TokenType(enum.Enum):
 
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = "User"
 
-    id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True)
     avatar = Column(String, nullable=True)
     display_name = Column(String, nullable=False)
     telegram_teg = Column(String, nullable=False)
@@ -33,12 +33,12 @@ class User(Base):
 class Token(Base):
     __tablename__ = "tokens"
 
-    id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
     token = Column(String, unique=True, nullable=False)
     type = Column(Enum(TokenType), nullable=False)
     expires_in = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"))
+    user_id = Column(String, ForeignKey("User.id", ondelete="CASCADE"))
     user = relationship("User", back_populates="tokens")
