@@ -70,7 +70,7 @@ async def send_profile(
         role=role
     )
     token = user_svc.generate_token(user)
-    link = f"{settings.DASHBOARD_URL}?key={token}"
+    link = f"{settings.DASHBOARD_URL}login?key={token}"
 
     if role == UserRole.AGENT:
         text = (

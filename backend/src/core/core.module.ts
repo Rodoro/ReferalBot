@@ -4,6 +4,8 @@ import { BannersModule } from '../modules/banners/banners.module';
 import { ConfigModule } from '@nestjs/config';
 import { IS_DEV_ENV } from '../shared/utils/is-dev.utils';
 import { RedisModule } from './redis/redis.module';
+import { SessionModule } from '../modules/session/session.module';
+import { UserModule } from '../modules/user/user.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { RedisModule } from './redis/redis.module';
     RedisModule,
 
     BannersModule,
+    SessionModule,
+    UserModule
   ],
 })
 export class CoreModule { }

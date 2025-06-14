@@ -13,6 +13,7 @@ export const apiClient = {
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}${url}`, {
                 ...config,
                 headers,
+                credentials: 'include'
             })
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null)

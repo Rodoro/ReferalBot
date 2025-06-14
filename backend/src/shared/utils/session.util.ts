@@ -1,4 +1,4 @@
-import type { Staff } from "@/prisma/generated";
+import type { User } from "@/prisma/generated";
 import type { Request } from "express";
 import { InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -6,7 +6,7 @@ import { SessionMetadata } from "../types/session-metadata.types";
 
 export function saveSession(
     req: Request,
-    user: Staff,
+    user: User,
     metadata: SessionMetadata
 ) {
     return new Promise((resolve, reject) => {

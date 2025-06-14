@@ -45,13 +45,13 @@ export async function generateToken(
                 }
             }
         },
-        include: {
-            user: {
-                include: {
-                    notificationSettings: true
-                }
-            }
-        }
+        // include: {
+        //     user: {
+        //         include: {
+        //             // notificationSettings: true
+        //         }
+        //     }
+        // }
     })
 
     return newToken

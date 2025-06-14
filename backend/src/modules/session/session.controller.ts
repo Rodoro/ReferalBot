@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { SessionService } from './session.service';
 import { LoginStaffDto } from './dto/login-staff.dto';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -14,31 +14,41 @@ import { SessionDto } from './dto/session.dto';
 export class SessionController {
     constructor(private readonly sessionService: SessionService) { }
 
-    @Post('login')
-    @ApiOperation({ summary: 'Staff login' })
-    @ApiBody({ type: LoginStaffDto })
-    @ApiResponse({
-        status: 200,
-        description: 'Successfully logged in',
-        type: StaffResponseDto
-    })
-    @ApiResponse({
-        status: 400,
-        description: 'Ошибки валидации',
-        type: ErrorResponseDto
-    })
-    @ApiResponse({
-        status: 401,
-        description: 'Неверные учетные данные',
-        type: ErrorResponseDto
-    })
-    @ApiResponse({ status: 404, description: 'User not found or invalid password' })
-    async login(
+    // @Post('login')
+    // @ApiOperation({ summary: 'Staff login' })
+    // @ApiBody({ type: LoginStaffDto })
+    // @ApiResponse({
+    //     status: 200,
+    //     description: 'Successfully logged in',
+    //     type: StaffResponseDto
+    // })
+    // @ApiResponse({
+    //     status: 400,
+    //     description: 'Ошибки валидации',
+    //     type: ErrorResponseDto
+    // })
+    // @ApiResponse({
+    //     status: 401,
+    //     description: 'Неверные учетные данные',
+    //     type: ErrorResponseDto
+    // })
+    // @ApiResponse({ status: 404, description: 'User not found or invalid password' })
+    // async login(
+    //     @Req() req: Request,
+    //     @Body() loginStaffDto: LoginStaffDto,
+    //     @UserAgent() UserAgent: string
+    // ) {
+    //     return this.sessionService.login(req, loginStaffDto, UserAgent);
+    // }
+
+    @Get('login-telegram')
+    @ApiOperation({ summary: 'User login by telegram token' })
+    async loginByToken(
         @Req() req: Request,
-        @Body() loginStaffDto: LoginStaffDto,
-        @UserAgent() UserAgent: string
+        @Query('token') token: string,
+        @UserAgent() userAgent: string
     ) {
-        return this.sessionService.login(req, loginStaffDto, UserAgent);
+        return this.sessionService.loginByToken(req, token, userAgent);
     }
 
     @Post('logout')

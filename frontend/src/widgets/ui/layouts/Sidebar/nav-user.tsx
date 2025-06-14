@@ -28,15 +28,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/shared/ui/layout/sidebar"
-// import { useLogout } from "@/entites/Auth/lib/hooks/useLogout"
-// import Link from "next/link"
-// import { getMediaSource } from "@/shared/lib/utils/get-media-source"
-// import { useCurrentStaff } from "@/entites/Staff/lib/hooks/useCurrentStaff"
+import { useLogout } from "@/entites/Auth/lib/hooks/useLogout"
+import { useCurrentUser } from "@/entites/User/lib/hooks/useCurrentUser"
 
 export function NavUser() {
   const { isMobile } = useSidebar()
-  // const logout = useLogout()
-  // const { staff } = useCurrentStaff()
+  const logout = useLogout()
+  const { user } = useCurrentUser()
 
   return (
     <SidebarMenu>
@@ -49,13 +47,13 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 {/* <AvatarImage src={getMediaSource(staff?.avatar)} alt={staff?.email} /> */}
-                <AvatarFallback className="rounded-lg bg-blue-400 text-white">Д</AvatarFallback>
+                <AvatarFallback className="rounded-lg bg-blue-400 text-white">{user?.displayName ? (user?.displayName as string)[0] : 'U'}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                {/* <span className="truncate font-medium">{staff?.displayName}</span>
-                <span className="truncate text-xs">{staff?.email}</span> */}
-                <span className="truncate font-medium">Даня</span>
-                <span className="truncate text-xs">@danya213411</span>
+                <span className="truncate font-medium">{user?.displayName}</span>
+                <span className="truncate text-xs">{user?.telegramTeg}</span>
+                {/* <span className="truncate font-medium">Даня</span>
+                <span className="truncate text-xs">@danya213411</span> */}
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -70,13 +68,13 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   {/* <AvatarImage src={getMediaSource(staff?.avatar)} alt={staff?.email} /> */}
-                  <AvatarFallback className="rounded-lg bg-blue-400 text-white">Д</AvatarFallback>
+                  <AvatarFallback className="rounded-lg bg-blue-400 text-white">{user?.displayName ? (user?.displayName as string)[0] : 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  {/* <span className="truncate font-medium">{staff?.displayName}</span>
-                <span className="truncate text-xs">{staff?.email}</span> */}
-                  <span className="truncate font-medium">Даня</span>
-                  <span className="truncate text-xs">@danya213411</span>
+                  <span className="truncate font-medium">{user?.displayName}</span>
+                  <span className="truncate text-xs">{user?.telegramTeg}</span>
+                  {/* <span className="truncate font-medium">Даня</span>
+                  <span className="truncate text-xs">@danya213411</span> */}
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -102,8 +100,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup> */}
             <DropdownMenuSeparator />
-            {/* <DropdownMenuItem onClick={() => logout()} className="cursor-pointer"> */}
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
               <LogOut />
               Выйти
             </DropdownMenuItem>

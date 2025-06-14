@@ -3,7 +3,7 @@ import type { SessionMetadata } from './session-metadata.types'
 
 declare module 'express-session' {
     interface SessionData {
-        staffId?: string
+        staffId?: number
         createdAt?: Date | string
         metadata: SessionMetadata
     }

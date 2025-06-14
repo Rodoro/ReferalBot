@@ -13,7 +13,7 @@ export class HttpAuthGuard implements CanActivate {
             throw new UnauthorizedException('Пользователь не авторизован');
         }
 
-        const user = await this.prismaService.staff.findUnique({
+        const user = await this.prismaService.user.findUnique({
             where: { id: request.session.staffId }
         });
 

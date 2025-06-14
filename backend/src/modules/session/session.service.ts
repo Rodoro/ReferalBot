@@ -9,6 +9,7 @@ import { plainToInstance } from 'class-transformer';
 import { StaffResponseDto } from '../staff/dto/staff-response.dto';
 import { getSessionMetadata } from '@/src/shared/utils/session-metadata.util';
 import { RedisService } from '@/src/core/redis/redis.service';
+import { UserResponseDto } from '../user/dto/user-response.dto';
 // import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
@@ -20,42 +21,28 @@ export class SessionService {
         // private readonly telegramService: TelegramService,
     ) { }
 
-    public async login(req: Request, loginStaffDto: LoginStaffDto, userAgent: string): Promise<StaffResponseDto> {
-        const { email, password } = loginStaffDto;
-
-        const user = await this.prismaService.staff.findFirst({
+    public async loginByToken(req: Request, tokenValue: string, userAgent: string) {
+        const record = await this.prismaService.token.findFirst({
             where: {
-                email,
+                token: tokenValue,
+                type: 'TELEGRAM_AUTH'
             },
             include: {
-                notificationSettings: true
+                user: true
             }
-        });
+        })
 
-        if (!user) {
-            throw new NotFoundException('Пользователь не найден');
+        if (!record || record.expiresIn < new Date()) {
+            throw new NotFoundException('Ссылка для регистрации не действительна')
         }
-
-        // const isValidPassword = await verify(user.password, password);
-
-        // if (!isValidPassword) {
-        //     throw new NotFoundException('Неверный пароль');
-        // }
 
         const metadata = getSessionMetadata(req, userAgent)
 
-        if (
-            user.notificationSettings?.authLogin &&
-            user.telegramId
-        ) {
-            // await this.telegramService.sendLoginStaff(
-            //     user.telegramId,
-            //     metadata
-            // )
-        }
+        await saveSession(req, record.user as any, metadata)
 
-        await saveSession(req, user, metadata);
-        return plainToInstance(StaffResponseDto, user);
+        await this.prismaService.token.delete({ where: { id: record.id } })
+
+        return plainToInstance(UserResponseDto, record.user)
     }
 
     public async logout(req: Request): Promise<{ success: boolean }> {
