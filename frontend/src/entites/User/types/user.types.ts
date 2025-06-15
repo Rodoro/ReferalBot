@@ -9,4 +9,10 @@ export interface User {
     role: RoleType
 }
 
-export enum RoleType { 'STAFF', 'AGENT', 'SALES_POINT', 'POET', 'VIDEO_EDITOR' }
+export enum RoleType {
+    STAFF = 'STAFF',
+    AGENT = 'AGENT',
+    SALES_POINT = 'SALES_POINT',
+    POET = 'POET',
+    VIDEO_EDITOR = 'VIDEO_EDITOR'
+}

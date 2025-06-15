@@ -1,3 +1,4 @@
+import { sessionApi } from '@/entites/Session/lib/api/session.api'
 import { toast } from 'sonner'
 
 export const apiClient = {
@@ -15,6 +16,11 @@ export const apiClient = {
                 headers,
                 credentials: 'include'
             })
+            if (response.status === 401 || response.status === 403) {
+                sessionApi.terminateAll()
+                window.location.href = '/login'
+                throw new Error('Session expired. Please login again.')
+            }
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null)
                 throw new Error(errorData?.message || response.statusText)

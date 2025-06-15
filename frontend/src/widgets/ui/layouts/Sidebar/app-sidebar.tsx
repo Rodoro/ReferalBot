@@ -14,21 +14,32 @@ import {
 } from "@/shared/ui/layout/sidebar"
 import { NavSecondary } from "./nav-secondary"
 import { usePathname } from "next/navigation"
-import { appSidebarContent, commonSidebarContent } from "@/widgets/content/sidebar-content"
+import { getSidebarContent, commonSidebarContent } from "@/widgets/content/sidebar-content"
+import { useCurrentUser } from "@/entites/User/lib/hooks/useCurrentUser"
+import { useEffect } from "react"
+import { RoleType } from "@/entites/User/types/user.types"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
+  const { user } = useCurrentUser()
 
-  const activeTeam = appSidebarContent.teams.find(team =>
+  const sidebarContent = getSidebarContent(user?.role as RoleType)
+
+  useEffect(() => {
+    console.log(user?.role)
+    console.log(getSidebarContent(user?.role))
+  }, [user])
+
+  const activeTeam = sidebarContent.teams.find(team =>
     pathname.startsWith(team.url)
-  ) ?? appSidebarContent.teams[0]
+  ) ?? sidebarContent.teams[0]
 
   const teamContent = activeTeam.content
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={appSidebarContent.teams} />
+        <TeamSwitcher teams={sidebarContent.teams} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={teamContent.navMain} />

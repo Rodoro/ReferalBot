@@ -9,6 +9,7 @@ import {
 import { Team, TeamContent } from "../types/sidebar"
 import { FaBookBookmark, FaUserSecret } from "react-icons/fa6";
 import { IoIosMusicalNotes } from "react-icons/io";
+import { RoleType } from "@/entites/User/types/user.types";
 
 // Меню над авой
 export const commonSidebarContent = {
@@ -85,16 +86,49 @@ const adminchikContent: TeamContent = {
     ],
 }
 
-export const appSidebarContent: {
-    teams: Team[]
-} = {
+const staffSidebarContent: { teams: Team[] } = {
     teams: [
         {
             name: "Подари песню",
             logo: Music2,
             plan: "Админ панель",
             url: "/",
-            content: adminchikContent
+            content: adminchikContent,
         },
     ],
+}
+
+const agentSidebarContent: { teams: Team[] } = {
+    teams: [
+        {
+            name: "Подари песню",
+            logo: Music2,
+            plan: "Агент",
+            url: "/",
+            content: {
+                navMain: [
+                    {
+                        title: "Файлы",
+                        url: "/files",
+                        icon: BookOpen,
+                        isActive: true,
+                        items: [{ title: "Баннеры", url: "/files/banners" }],
+                    },
+                ],
+                projects: [],
+            },
+        },
+    ],
+}
+
+export const sidebarContentByRole: Record<RoleType, { teams: Team[] }> = {
+    [RoleType.STAFF]: staffSidebarContent,
+    [RoleType.AGENT]: agentSidebarContent,
+    [RoleType.SALES_POINT]: agentSidebarContent,
+    [RoleType.POET]: agentSidebarContent,
+    [RoleType.VIDEO_EDITOR]: agentSidebarContent,
+}
+
+export function getSidebarContent(role: RoleType = RoleType.AGENT) {
+    return sidebarContentByRole[role] || agentSidebarContent
 }
