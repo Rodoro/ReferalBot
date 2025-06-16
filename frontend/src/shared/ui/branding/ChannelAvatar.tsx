@@ -1,7 +1,6 @@
 import { type VariantProps, cva } from 'class-variance-authority'
-import { Avatar, AvatarFallback, AvatarImage } from './avatar'
+import { Avatar, AvatarFallback } from './avatar'
 import { cn } from '@/shared/lib/utils/utils'
-import { getMediaSource } from '@/shared/lib/utils/get-media-source'
 
 
 const avatarSizes = cva('', {
@@ -35,10 +34,10 @@ export function ChannelAvatar({ size, channel, isLive }: ChannelAvatarProps) {
 					isLive && 'ring-2 ring-rose-500'
 				)}
 			>
-				<AvatarImage
+				{/* <AvatarImage
 					src={getMediaSource(channel.avatar)}
 					className='object-cover'
-				/>
+				/> */}
 				<AvatarFallback
 					className={cn(
 						size === 'xl' && 'text-4xl',

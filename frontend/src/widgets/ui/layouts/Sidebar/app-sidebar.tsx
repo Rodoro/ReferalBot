@@ -16,7 +16,6 @@ import { NavSecondary } from "./nav-secondary"
 import { usePathname } from "next/navigation"
 import { getSidebarContent, commonSidebarContent } from "@/widgets/content/sidebar-content"
 import { useCurrentUser } from "@/entites/User/lib/hooks/useCurrentUser"
-import { useEffect } from "react"
 import { RoleType } from "@/entites/User/types/user.types"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -25,10 +24,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const sidebarContent = getSidebarContent(user?.role as RoleType)
 
-  useEffect(() => {
-    console.log(user?.role)
-    console.log(getSidebarContent(user?.role))
-  }, [user])
+  // useEffect(() => {
+  //   console.log(user?.role)
+  //   console.log(getSidebarContent(user?.role))
+  // }, [user])
 
   const activeTeam = sidebarContent.teams.find(team =>
     pathname.startsWith(team.url)
