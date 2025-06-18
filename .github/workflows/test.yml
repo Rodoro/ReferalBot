@@ -4,11 +4,13 @@ on:
   workflow_dispatch:
   push:
     branches: [ master ]
-    paths-ignore: [ .github/workflows/** ]
+    # paths-ignore: [ .github/workflows/** ]
 
 jobs:
-  test:
-    name: 'Test project'
+  test-backend:
+    name: 'Test backend'
     uses: 'rodoro/ReferalBot/.github/workflows/test-backend.yml@master'
+
+  test-frontend:
+    name: 'Test frontend'
     uses: 'rodoro/ReferalBot/.github/workflows/test-frontend.yml@master'
-    
