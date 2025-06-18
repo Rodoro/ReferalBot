@@ -14,3 +14,7 @@ jobs:
   test-frontend:
     name: 'Test frontend'
     uses: 'rodoro/ReferalBot/.github/workflows/test-frontend.yml@master'
+
+  test-miniApp:
+    name: 'Test miniApp'
+    uses: 'rodoro/ReferalBot/.github/workflows/test-miniapp.yml@master'
