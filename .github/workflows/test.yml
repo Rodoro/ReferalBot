@@ -1,0 +1,14 @@
+name: Dev Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+    paths-ignore: [ .github/workflows/** ]
+
+jobs:
+  test:
+    name: 'Test project'
+    uses: 'rodoro/ReferalBot/.github/workflows/test-backend.yml@master'
+    uses: 'rodoro/ReferalBot/.github/workflows/test-frontend.yml@master'
+    

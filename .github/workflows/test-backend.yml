@@ -1,0 +1,42 @@
+name: Test Backend
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  backend:
+    name: Test backend
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: |
+          cd backend
+          npm ci
+      - name: Build backend
+        run: |
+          cd backend
+          npm run build
+      - name: Start backend (best effort)
+        env:
+          APP_PORT: 4000
+          ALLOWED_ORIGIN: http://localhost:3000
+          COOKIES_SECRET: secret
+          SESSION_SECRET: secret
+          SESSION_NAME: session
+          SESSION_DOMAIN: localhost
+        run: |
+          cd backend
+          npm run start:prod &
+          echo $! > ../backend.pid
+      - name: Wait for backend to start
+        run: |
+          sleep 10s
+          kill $(cat backend.pid) || true
