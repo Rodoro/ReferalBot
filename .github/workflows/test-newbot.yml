@@ -1,0 +1,33 @@
+name: Test newBot
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  newbot:
+    name: Test newBot
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+      - name: Load dev environment
+        run: |
+          cat .env.dev >> "$GITHUB_ENV"
+          echo "APP_ENV=dev" >> "$GITHUB_ENV"
+      - name: Start newBot
+        env:
+          BOT_TOKEN: dummy
+        run: |
+          uv run -m newBot.main &
+          echo $! > newbot.pid
+      - name: Wait for newBot to start
+        run: |
+          sleep 10s
+          kill $(cat newbot.pid) || true

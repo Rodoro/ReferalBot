@@ -108,11 +108,13 @@ const agentSidebarContent: { teams: Team[] } = {
             content: {
                 navMain: [
                     {
-                        title: "Файлы",
-                        url: "/files",
-                        icon: BookOpen,
+                        title: "Метрики",
+                        url: "/metrics",
+                        icon: AreaChart,
                         isActive: true,
-                        items: [{ title: "Баннеры", url: "/files/banners" }],
+                        items: [
+                            { title: "Статистика", url: "/metrics/statistics" },
+                        ],
                     },
                 ],
                 projects: [],
