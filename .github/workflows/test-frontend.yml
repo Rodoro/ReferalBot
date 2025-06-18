@@ -34,6 +34,6 @@ jobs:
       - name: Check the application availability after a 10 seconds
         run: |
           sleep 10s
-          HTTP_STATUS=$(curl --write-out '%{http_code}' --silent --output /dev/null http://127.0.0.1:5000)
+          HTTP_STATUS=$(curl --write-out '%{http_code}' --silent --output /dev/null http://127.0.0.1:5000/login)
           kill $(cat frontend.pid)
           if [[ "$HTTP_STATUS" -ne 200 ]]; then exit 1; fi
