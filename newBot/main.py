@@ -50,7 +50,7 @@ async def main():
     dp.callback_query.register(sp_correct_data, lambda c: c.data == "sp_correct_data")
     dp.callback_query.register(handle_sp_sign_contract,lambda c: c.data and c.data.startswith("sp_sign_contract_"))
 
-    # --- Агент ---
+    # --- Консультант ---
     dp.message.register(cmd_start_agent_secret, lambda msg: msg.text and msg.text.startswith(f"/start secret_{settings.ADMIN_SECRET}"))
     dp.callback_query.register(start_agent_registration, lambda c: c.data == "start_agent_registration")
     dp.message.register(

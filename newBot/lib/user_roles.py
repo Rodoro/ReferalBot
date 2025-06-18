@@ -20,7 +20,7 @@ class UserRole:
 
 
 ROLE_NAMES = {
-    UserRole.AGENT: "агент",
+    UserRole.AGENT: "консультант",
     UserRole.SALES_POINT: "точка продаж",
     UserRole.POET: "поэт",
     UserRole.VIDEO_EDITOR: "видеомонтажёр",
@@ -74,7 +74,7 @@ async def send_profile(
 
     if role == UserRole.AGENT:
         text = (
-            f"<b>Профиль агента</b>\n"
+            f"<b>Профиль консультанта</b>\n"
             f"ФИО: {profile['full_name']}\n"
             f"Город: {profile['city']}\n"
             f"ИНН: {profile['inn']}\n"

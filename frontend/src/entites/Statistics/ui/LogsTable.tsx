@@ -118,14 +118,14 @@ export function ServiceStatsPanel() {
         return false;
     }
 
-    // 5) Список уникальных агентов для селектора
+    // 5) Список уникальных консультантов для селектора
     const agentOptions = useMemo(() => {
         const setAgents = new Set<string>();
         rawData.forEach((row) => setAgents.add(row.agentName));
         return Array.from(setAgents).sort();
     }, [rawData]);
 
-    // 6) Отфильтрованные события по периоду, агенту и поиску
+    // 6) Отфильтрованные события по периоду, консультанту и поиску
     const filteredEvents = useMemo(() => {
         return rawData.filter((row) => {
             if (!isInPeriod(row.date, selectedPeriod)) return false;
@@ -231,7 +231,7 @@ export function ServiceStatsPanel() {
         () => [
             {
                 accessorKey: "agentName",
-                header: "Агент",
+                header: "Консультант",
                 cell: (info) => <span>{info.getValue<string>()}</span>,
             },
             {
@@ -413,7 +413,7 @@ export function ServiceStatsPanel() {
     return (
         <>
             <CardContent>
-                {/* === Блок фильтров: период, агент, поиск, процент === */}
+                {/* === Блок фильтров: период, консультанты, поиск, процент === */}
                 <div className="grid grid-cols-4 gap-4 mb-6">
                     {/* Период */}
                     <Select
@@ -431,16 +431,16 @@ export function ServiceStatsPanel() {
                         </SelectContent>
                     </Select>
 
-                    {/* Агент */}
+                    {/* Консультант */}
                     <Select
                         value={selectedAgent}
                         onValueChange={(v) => setSelectedAgent(v)}
                     >
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Агент" />
+                            <SelectValue placeholder="Консультант" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
-                            <SelectItem value="all">Все агенты</SelectItem>
+                            <SelectItem value="all">Все консультанты</SelectItem>
                             {agentOptions.map((agent) => (
                                 <SelectItem key={agent} value={agent}>
                                     {agent}
@@ -451,7 +451,7 @@ export function ServiceStatsPanel() {
 
                     {/* Поиск */}
                     <Input
-                        placeholder="Поиск по агенту или точке..."
+                        placeholder="Поиск по консультанту или точке..."
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
                     />
@@ -507,7 +507,7 @@ export function ServiceStatsPanel() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Агент</TableHead>
+                            <TableHead>Консультант</TableHead>
                             <TableHead>Точка продаж</TableHead>
                             <TableHead className="text-center">
                                 <Button

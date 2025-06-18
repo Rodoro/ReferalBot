@@ -68,7 +68,7 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
         agent_repo = AgentRepository(db)
         agent = agent_repo.get_by_referral_code(ref_code)
         if not agent:
-            await message.answer("Агент не найден по этой ссылке или ссылка уже устарела.")
+            await message.answer("Консультант не найден по этой ссылке или ссылка уже устарела.")
             return
 
         agent_id = agent.user_id
@@ -82,7 +82,7 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
     await state.set_state(SalesPointRegistrationStates.waiting_for_start)
 
     welcome_text = (
-        f"Здравствуйте! Вы пришли по приглашению агента «{agent_name}».\n\n"
+        f"Здравствуйте! Вы пришли по приглашению консультанта «{agent_name}».\n\n"
         "Чтобы продолжить регистрацию точки продаж, нажмите кнопку ниже."
     )
     await message.answer(welcome_text, reply_markup=sp_start_inline_keyboard())
@@ -145,7 +145,7 @@ async def handle_sp_webapp_data(message: types.Message, state: FSMContext):
     try:
         agent_id = int(data["isSales"])
     except ValueError:
-        await message.answer("Неверный ID агента в данных формы.")
+        await message.answer("Неверный ID консультанта в данных формы.")
         return
 
     # Парсим bank_details для bank_name и bank_ks (примерно так же, как у агента)

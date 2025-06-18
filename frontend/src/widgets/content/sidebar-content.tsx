@@ -41,7 +41,7 @@ const adminchikContent: TeamContent = {
             isActive: true,
             items: [
                 { title: "Сотрудники", url: "/staff" },
-                { title: "Агенты", url: "/agent" },
+                { title: "Консультанты", url: "/agent" },
                 { title: "Точки продаж", url: "/sales-point" },
                 { title: "Поэты", url: "/poets" },
                 { title: "Видеомонтажеры", url: "/video-editors" },
@@ -69,7 +69,7 @@ const adminchikContent: TeamContent = {
     ],
     projects: [
         {
-            name: "Агент",
+            name: "Консультант",
             url: "https://t.me/TestBotReferalSystemBot?start=secret_6A3C3FFB",
             icon: <FaUserSecret />,
         },
@@ -103,7 +103,7 @@ const agentSidebarContent: { teams: Team[] } = {
         {
             name: "Подари песню",
             logo: Music2,
-            plan: "Агент",
+            plan: "Консультант",
             url: "/",
             content: {
                 navMain: [
