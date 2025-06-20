@@ -5,12 +5,12 @@ generator client {
 
 datasource db {
     provider = "postgresql"
-    url      = env("POSTGRES_URI")
+    url      = "postgresql://root:123456@127.0.0.1:5433/bot"
 }
 
 model Agent {
     id               Int      @id @default(autoincrement())
-    userId           BigInt   @unique @map("user_id")
+    user User @relation(fields: [id], references: [id], onDelete: Cascade)
     fullName         String   @map("full_name")
     city             String
     inn              String
@@ -26,14 +26,14 @@ model Agent {
     referralCode     String?  @unique @map("referral_code")
     registrationDate DateTime @default(now()) @map("registration_date")
 
-    salesPoints SalesPoint[]
+    // salesPoints SalesPoint[]
 
     @@map("agents")
 }
 
 model Poet {
     id               Int      @id @default(autoincrement())
-    userId           BigInt   @unique @map("user_id")
+        user User @relation(fields: [id], references: [id], onDelete: Cascade)
     fullName         String   @map("full_name")
     city             String
     inn              String
@@ -53,7 +53,7 @@ model Poet {
 
 model SalesPoint {
     id               Int      @id @default(autoincrement())
-    userId           BigInt   @unique @map("user_id")
+        user User @relation(fields: [id], references: [id], onDelete: Cascade)
     agentId          BigInt   @map("agent_id")
     fullName         String   @map("full_name")
     city             String
@@ -70,14 +70,12 @@ model SalesPoint {
     referralCode     String?  @map("referral_code")
     registrationDate DateTime @default(now()) @map("registration_date")
 
-    agent Agent @relation(fields: [agentId], references: [userId], onDelete: Cascade)
-
     @@map("sales_points")
 }
 
 model VideoEditor {
     id               Int      @id @default(autoincrement())
-    userId           BigInt   @unique @map("user_id")
+        user User @relation(fields: [id], references: [id], onDelete: Cascade)
     fullName         String   @map("full_name")
     city             String
     inn              String
@@ -108,6 +106,7 @@ model Banner {
 
 model Staff {
     id Int @id @default(autoincrement())
+        user User @relation(fields: [id], references: [id], onDelete: Cascade)
 
     firstName String  @map("first_name")
     midleName String? @map("midle_name")
@@ -127,9 +126,13 @@ model User {
     telegramTeg String  @map("telegram_teg")
     telegramId  String  @unique @map("telegram_id")
 
-    role RoleType
-
     tokens Token[]
+
+    staff Staff?
+    agent Agent?
+    sales SalesPoint?
+    poet Poet?
+    vidio_editor VideoEditor?
 }
 
 model Token {
