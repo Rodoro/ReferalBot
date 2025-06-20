@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { plainToInstance } from "class-transformer";
 import { PrismaService } from "@/src/core/prisma/prisma.service";
 import { UserResponseDto } from "./dto/user-response.dto";
+import { CreateUserDto } from "./dto/create-user.dto";
 
 @Injectable()
 export class UserService {
@@ -21,6 +22,11 @@ export class UserService {
             throw new NotFoundException('User member not found');
         }
 
+        return plainToInstance(UserResponseDto, user);
+    }
+
+    async create(data: CreateUserDto): Promise<UserResponseDto> {
+        const user = await this.prismaService.user.create({ data });
         return plainToInstance(UserResponseDto, user);
     }
 }
