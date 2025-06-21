@@ -11,7 +11,7 @@ class UserService:
         self.client = BackendClient()
         self.token_repo = TokenRepository(db)
 
-    def get_or_create_user(self, telegram_id: int, full_name: str, username: str, role: str):
+    def get_or_create_user(self, telegram_id: int, full_name: str, username: str):
         payload = {
             "displayName": full_name,
             "telegramTeg": username or "",

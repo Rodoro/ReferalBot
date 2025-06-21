@@ -66,8 +66,7 @@ async def send_profile(
     user = user_svc.get_or_create_user(
         telegram_id=tg_user.id,
         full_name=tg_user.full_name,
-        username=tg_user.username or "",
-        role=role
+        username=tg_user.username or ""
     )
     token = user_svc.generate_token(user)
     link = f"{settings.DASHBOARD_URL}login?key={token}"

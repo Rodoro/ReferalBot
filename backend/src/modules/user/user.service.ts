@@ -17,6 +17,13 @@ export class UserService {
     async me(id: number): Promise<UserResponseDto> {
         const user = await this.prismaService.user.findUnique({
             where: { id },
+            include: {
+                staff: { include: { notificationSettings: true } },
+                agent: true,
+                sales: true,
+                poet: true,
+                vidio_editor: true,
+            },
         });
 
         if (!user) {
@@ -45,7 +52,16 @@ export class UserService {
     }
 
     async findOne(id: number): Promise<UserResponseDto> {
-        const user = await this.prismaService.user.findUnique({ where: { id } });
+        const user = await this.prismaService.user.findUnique({
+            where: { id },
+            include: {
+                staff: { include: { notificationSettings: true } },
+                agent: true,
+                sales: true,
+                poet: true,
+                vidio_editor: true,
+            },
+        });
 
         if (!user) {
             throw new NotFoundException('User member not found');

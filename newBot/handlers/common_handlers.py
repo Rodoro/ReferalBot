@@ -14,8 +14,7 @@ async def cmd_start(message: types.Message, bot: Bot) -> None:
         user_svc.get_or_create_user(
             telegram_id=user_id,
             full_name=message.from_user.full_name or "",
-            username=message.from_user.username or "",
-            role="",
+            username=message.from_user.username or ""
         )
         role, profile = get_user_role(db, user_id)
 

@@ -1,5 +1,7 @@
 import { Exclude, Expose } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger'
+import { StaffResponseDto } from '@/src/modules/staff/dto/staff-response.dto'
+import { AgentResponseDto } from '@/src/modules/agent/dto/agent-response.dto'
 
 @Exclude()
 export class UserResponseDto {
@@ -22,4 +24,12 @@ export class UserResponseDto {
     @ApiProperty()
     @Expose()
     telegramId: string
+
+    @ApiProperty({ type: () => StaffResponseDto, required: false })
+    @Expose()
+    staff?: StaffResponseDto | null
+
+    @ApiProperty({ type: () => AgentResponseDto, required: false })
+    @Expose()
+    agent?: AgentResponseDto | null
 }

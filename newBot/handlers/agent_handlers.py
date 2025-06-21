@@ -148,8 +148,7 @@ async def agent_confirm_data(callback: types.CallbackQuery, state: FSMContext, b
         user = user_svc.get_or_create_user(
             telegram_id=telegram_id,
             full_name=callback.from_user.full_name or "",
-            username=callback.from_user.username or "",
-            role="",
+            username=callback.from_user.username or ""
         )
         user_id = user.get("id")
     finally:
