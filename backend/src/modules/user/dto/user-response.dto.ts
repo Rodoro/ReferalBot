@@ -2,6 +2,7 @@ import { Exclude, Expose } from 'class-transformer'
 import { ApiProperty } from '@nestjs/swagger'
 import { StaffResponseDto } from '@/src/modules/staff/dto/staff-response.dto'
 import { AgentResponseDto } from '@/src/modules/agent/dto/agent-response.dto'
+import { SalesPointResponseDto } from '../../sales-point/dto/sales-point-response.dto'
 
 @Exclude()
 export class UserResponseDto {
@@ -32,4 +33,8 @@ export class UserResponseDto {
     @ApiProperty({ type: () => AgentResponseDto, required: false })
     @Expose()
     agent?: AgentResponseDto | null
+
+    @ApiProperty({ type: () => AgentResponseDto, required: false })
+    @Expose()
+    sales?: SalesPointResponseDto | null
 }
