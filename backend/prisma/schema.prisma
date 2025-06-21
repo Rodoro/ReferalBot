@@ -10,7 +10,7 @@ datasource db {
 
 model Agent {
     id               Int      @id @default(autoincrement())
-    user User @relation(fields: [id], references: [id], onDelete: Cascade)
+    user             User     @relation(fields: [id], references: [id], onDelete: Cascade)
     fullName         String   @map("full_name")
     city             String
     inn              String
@@ -33,7 +33,7 @@ model Agent {
 
 model Poet {
     id               Int      @id @default(autoincrement())
-        user User @relation(fields: [id], references: [id], onDelete: Cascade)
+    user             User     @relation(fields: [id], references: [id], onDelete: Cascade)
     fullName         String   @map("full_name")
     city             String
     inn              String
@@ -53,7 +53,7 @@ model Poet {
 
 model SalesPoint {
     id               Int      @id @default(autoincrement())
-        user User @relation(fields: [id], references: [id], onDelete: Cascade)
+    user             User     @relation(fields: [id], references: [id], onDelete: Cascade)
     agentId          BigInt   @map("agent_id")
     fullName         String   @map("full_name")
     city             String
@@ -75,7 +75,7 @@ model SalesPoint {
 
 model VideoEditor {
     id               Int      @id @default(autoincrement())
-        user User @relation(fields: [id], references: [id], onDelete: Cascade)
+    user             User     @relation(fields: [id], references: [id], onDelete: Cascade)
     fullName         String   @map("full_name")
     city             String
     inn              String
@@ -105,8 +105,8 @@ model Banner {
 }
 
 model Staff {
-    id Int @id @default(autoincrement())
-        user User @relation(fields: [id], references: [id], onDelete: Cascade)
+    id   Int  @id @default(autoincrement())
+    user User @relation(fields: [id], references: [id], onDelete: Cascade)
 
     firstName String  @map("first_name")
     midleName String? @map("midle_name")
@@ -128,10 +128,10 @@ model User {
 
     tokens Token[]
 
-    staff Staff?
-    agent Agent?
-    sales SalesPoint?
-    poet Poet?
+    staff        Staff?
+    agent        Agent?
+    sales        SalesPoint?
+    poet         Poet?
     vidio_editor VideoEditor?
 }
 

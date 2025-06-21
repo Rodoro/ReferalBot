@@ -22,8 +22,4 @@ export class UserResponseDto {
     @ApiProperty()
     @Expose()
     telegramId: string
-
-    @ApiProperty()
-    @Expose()
-    role: string
 }

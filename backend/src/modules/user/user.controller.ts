@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { UserResponseDto } from "./dto/user-response.dto";
 import { Authorized } from "@/src/shared/decorators/authorized.decorator";
@@ -6,6 +6,7 @@ import { UserService } from "./user.service";
 import { Authorization } from "@/src/shared/decorators/auth.decorator";
 import { BotAuthorization } from "@/src/shared/decorators/bot-auth.decorator";
 import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 @ApiTags('User')
 @Controller('user')
@@ -34,4 +35,30 @@ export class UserController {
         return this.userService.me(id);
     }
 
+    @Get()
+    @ApiOperation({ summary: 'Get all users' })
+    findAll(): Promise<UserResponseDto[]> {
+        return this.userService.findAll();
+    }
+
+    @Get(':id')
+    @ApiOperation({ summary: 'Get user by id' })
+    async findOne(@Param('id') id: string): Promise<UserResponseDto> {
+        return this.userService.findOne(+id);
+    }
+
+    @Put(':id')
+    @ApiOperation({ summary: 'Update user by id' })
+    async update(
+        @Param('id') id: string,
+        @Body() dto: UpdateUserDto,
+    ): Promise<UserResponseDto> {
+        return this.userService.update(+id, dto);
+    }
+
+    @Delete(':id')
+    @ApiOperation({ summary: 'Delete user by id' })
+    async remove(@Param('id') id: string): Promise<UserResponseDto> {
+        return this.userService.remove(+id);
+    }
 }
