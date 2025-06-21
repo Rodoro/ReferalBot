@@ -16,13 +16,13 @@ import { NavSecondary } from "./nav-secondary"
 import { usePathname } from "next/navigation"
 import { getSidebarContent, commonSidebarContent } from "@/widgets/content/sidebar-content"
 import { useCurrentUser } from "@/entites/User/lib/hooks/useCurrentUser"
-import { RoleType } from "@/entites/User/types/user.types"
+import { getUserRoles } from "@/entites/User/types/user.types"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const { user } = useCurrentUser()
 
-  const sidebarContent = getSidebarContent(user?.role as RoleType)
+  const sidebarContent = getSidebarContent(getUserRoles(user))
 
   // useEffect(() => {
   //   console.log(user?.role)

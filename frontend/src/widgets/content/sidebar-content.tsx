@@ -86,51 +86,71 @@ const adminchikContent: TeamContent = {
     ],
 }
 
-const staffSidebarContent: { teams: Team[] } = {
-    teams: [
+const baseTeam: Omit<Team, "content"> = {
+    name: "Подари песню",
+    logo: Music2,
+    plan: "Панель управления",
+    url: "/",
+}
+
+const staffTeamContent: TeamContent = adminchikContent
+
+const agentTeamContent: TeamContent = {
+    navMain: [
         {
-            name: "Подари песню",
-            logo: Music2,
-            plan: "Админ панель",
-            url: "/",
-            content: adminchikContent,
+            title: "Метрики",
+            url: "/consultant/metrics",
+            icon: AreaChart,
+            isActive: true,
+            items: [
+                { title: "Статистика", url: "/consultant/metrics/statistics" },
+            ],
         },
     ],
+    projects: [],
 }
 
-const agentSidebarContent: { teams: Team[] } = {
-    teams: [
-        {
-            name: "Подари песню",
-            logo: Music2,
-            plan: "Консультант",
-            url: "/",
-            content: {
-                navMain: [
-                    {
-                        title: "Метрики",
-                        url: "/metrics",
-                        icon: AreaChart,
-                        isActive: true,
-                        items: [
-                            { title: "Статистика", url: "/metrics/statistics" },
-                        ],
-                    },
-                ],
-                projects: [],
-            },
-        },
-    ],
+type RoleSidebar = {
+    plan: string
+    content: TeamContent
 }
 
-export const sidebarContentByRole: Record<RoleType, { teams: Team[] }> = {
-    [RoleType.STAFF]: staffSidebarContent,
-    [RoleType.AGENT]: agentSidebarContent,
-    [RoleType.SALES_POINT]: agentSidebarContent,
-    [RoleType.POET]: agentSidebarContent,
-    [RoleType.VIDEO_EDITOR]: agentSidebarContent,
+export const sidebarContentByRole: Record<RoleType, RoleSidebar> = {
+    [RoleType.STAFF]: { plan: "Админ панель", content: staffTeamContent },
+    [RoleType.AGENT]: { plan: "Консультант", content: agentTeamContent },
+    [RoleType.SALES_POINT]: { plan: "Консультант", content: agentTeamContent },
+    [RoleType.POET]: { plan: "Консультант", content: agentTeamContent },
+    [RoleType.VIDEO_EDITOR]: { plan: "Консультант", content: agentTeamContent },
 }
 
-export function getSidebarContent(role: RoleType = RoleType.AGENT) {
-    return sidebarContentByRole[role] || agentSidebarContent
+function mergeContent(target: TeamContent, source: TeamContent) {
+    for (const nav of source.navMain) {
+        if (!target.navMain.find(n => n.url === nav.url)) {
+            target.navMain.push(nav)
+        }
+    }
+    for (const project of source.projects) {
+        if (!target.projects.find(p => p.url === project.url)) {
+            target.projects.push(project)
+        }
+    }
+}
+
+export function getSidebarContent(roles: RoleType[] = [RoleType.AGENT]) {
+    const combinedContent: TeamContent = { navMain: [], projects: [] }
+    let plan = baseTeam.plan
+
+    for (const role of roles) {
+        const roleData = sidebarContentByRole[role]
+        if (roleData) {
+            plan = roleData.plan
+            mergeContent(combinedContent, roleData.content)
+        }
+    }
+
+    if (combinedContent.navMain.length === 0 && combinedContent.projects.length === 0) {
+        return { teams: [{ ...baseTeam, plan: sidebarContentByRole[RoleType.AGENT].plan, content: agentTeamContent }] }
+    }
+
+    return { teams: [{ ...baseTeam, plan, content: combinedContent }] }
 }
