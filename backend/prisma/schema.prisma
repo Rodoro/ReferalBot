@@ -55,7 +55,7 @@ model SalesPoint {
     id               Int      @id @default(autoincrement())
     user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId           Int      @unique @map("user_id")
-    agentId          BigInt   @map("agent_id")
+    agentId          Int      @map("agent_id")
     fullName         String   @map("full_name")
     city             String
     inn              String

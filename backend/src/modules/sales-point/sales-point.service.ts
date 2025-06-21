@@ -13,7 +13,7 @@ export class SalesPointService {
         const sp = await this.prismaService.salesPoint.create({
             data: {
                 user: { connect: { id: data.userId } },
-                agentId: BigInt(data.agentId),
+                agentId: data.agentId,
                 fullName: data.fullName,
                 city: data.city,
                 inn: data.inn,
@@ -57,7 +57,7 @@ export class SalesPointService {
     }
 
     async findByAgent(agentId: number): Promise<SalesPointResponseDto[]> {
-        const points = await this.prismaService.salesPoint.findMany({ where: { agentId: BigInt(agentId) } });
+        const points = await this.prismaService.salesPoint.findMany({ where: { agentId: agentId } });
         return points.map((p) => plainToInstance(SalesPointResponseDto, p));
     }
 }
