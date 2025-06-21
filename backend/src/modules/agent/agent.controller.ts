@@ -19,7 +19,7 @@ export class AgentController {
         return this.agentService.create(dto);
     }
 
-    @Post()
+    @Post('user')
     @ApiOperation({ summary: 'Create agent' })
     @ApiResponse({ status: 201, type: AgentResponseDto })
     async create(@Body() dto: CreateAgentDto): Promise<AgentResponseDto> {
@@ -39,7 +39,7 @@ export class AgentController {
         return this.agentService.findOne(+id);
     }
 
-    @Get(':id')
+    @Get('user/:id')
     @ApiOperation({ summary: 'Get agent by id' })
     async findOne(@Param('id') id: string): Promise<AgentResponseDto> {
         return this.agentService.findOne(+id);
@@ -52,7 +52,7 @@ export class AgentController {
         return this.agentService.update(+id, dto);
     }
 
-    @Put(':id')
+    @Put('user/:id')
     @ApiOperation({ summary: 'Update agent by id' })
     async update(@Param('id') id: string, @Body() dto: UpdateAgentDto): Promise<AgentResponseDto> {
         return this.agentService.update(+id, dto);
@@ -65,7 +65,7 @@ export class AgentController {
         return this.agentService.remove(+id);
     }
 
-    @Delete(':id')
+    @Delete('user/:id')
     @ApiOperation({ summary: 'Delete agent by id' })
     async remove(@Param('id') id: string): Promise<AgentResponseDto> {
         return this.agentService.remove(+id);

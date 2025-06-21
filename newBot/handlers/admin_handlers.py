@@ -29,11 +29,11 @@ async def handle_approve_user(
     """
     data = callback.data  # строка "approve_agent_123456"
     parts = data.split("_")
-    if len(parts) != 3:
+    if len(parts) != 4:
         await callback.answer("Неверный формат команды.", show_alert=True)
         return
 
-    _, role, uid = parts
+    _, role, uid, tg_id = parts
     try:
         user_id = int(uid)
     except ValueError:
@@ -79,12 +79,12 @@ async def handle_approve_user(
                     [
                         InlineKeyboardButton(
                             text="Подписать договор",
-                            callback_data=f"{role}_sign_contract_{user_id}"
+                            callback_data=f"{role}_sign_contract_{user_id}_{tg_id}"
                         )
                     ]
                 ])
                 await bot.send_document(
-                    chat_id=user_id,
+                    chat_id=tg_id,
                     document=types.FSInputFile(contract_path),
                     caption="🎉 Ваша заявка одобрена!\n\n"
                             "Пожалуйста, ознакомьтесь с договором и нажмите кнопку «Подписать договор» ниже.",
@@ -112,11 +112,11 @@ async def handle_reject_user_callback(
     Пример: "reject_agent_123456"
     """
     parts = callback.data.split("_")
-    if len(parts) != 3:
+    if len(parts) != 4:
         await callback.answer("Неверный формат команды.", show_alert=True)
         return
 
-    _, role, uid = parts
+    _, role, uid, tg_id = parts
     try:
         user_id = int(uid)
     except ValueError:
@@ -152,7 +152,7 @@ async def handle_reject_user_callback(
 
     # Сохраняем в FSM: кому отказ, и роль
     admin_id = callback.from_user.id
-    pending_rejections[admin_id] = (role, user_id)
+    pending_rejections[admin_id] = (role, user_id, tg_id)
 
     # Спрашиваем у админа причину отказа
     await callback.message.answer(f"📝 Укажите причину отказа для {role} {user_id} (текстом), Вам нужно ответить на это сообщение:")
@@ -171,7 +171,7 @@ async def process_reject_reason(
         # Если админ пишет что-то «не по делу», просто выходим
         return
 
-    role, user_id = pending_rejections.pop(admin_id)  # забираем и удаляем запись
+    role, user_id, tg_id = pending_rejections.pop(admin_id)  # забираем и удаляем запись
     reason = message.text.strip()
 
     # Пробуем удалить запись из БД
@@ -201,7 +201,7 @@ async def process_reject_reason(
     # Отправляем кандидату уведомление об отказе с текстом причины
     try:
         await bot.send_message(
-            chat_id=user_id,
+            chat_id=tg_id,
             text=f"❌ Ваша заявка ({role}) отклонена.\n\nПричина: {reason}"
         )
     except Exception as e:

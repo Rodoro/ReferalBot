@@ -27,6 +27,14 @@ export class UserService {
     }
 
     async create(data: CreateUserDto): Promise<UserResponseDto> {
+        const existing = await this.prismaService.user.findUnique({
+            where: { telegramId: data.telegramId },
+        });
+
+        if (existing) {
+            return plainToInstance(UserResponseDto, existing);
+        }
+
         const user = await this.prismaService.user.create({ data });
         return plainToInstance(UserResponseDto, user);
     }

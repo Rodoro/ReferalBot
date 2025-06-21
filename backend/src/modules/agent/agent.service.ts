@@ -52,7 +52,7 @@ export class AgentService {
     }
 
     async update(id: number, data: UpdateAgentDto): Promise<AgentResponseDto> {
-        const agent = await this.prismaService.agent.update({ where: { id }, data });
+        const agent = await this.prismaService.agent.update({ where: { userId: id }, data });
         return plainToInstance(AgentResponseDto, agent);
     }
 

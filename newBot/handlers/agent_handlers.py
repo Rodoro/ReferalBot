@@ -7,6 +7,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from newBot.config import settings
 from newBot.services.agent_service import AgentService
+from newBot.services.user_service import UserService
+from newBot.db import SessionLocal
 
 class AgentRegistrationStates(StatesGroup):
     waiting_for_mini_app = State()
@@ -138,10 +140,22 @@ async def handle_agent_webapp_data(message: types.Message, state: FSMContext):
 
 # callback_data == "agent_confirm_data"
 async def agent_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
-    user_id = callback.from_user.id
+    telegram_id = callback.from_user.id
     data = await state.get_data()
+    db = SessionLocal()
+    try:
+        user_svc = UserService(db)
+        user = user_svc.get_or_create_user(
+            telegram_id=telegram_id,
+            full_name=callback.from_user.full_name or "",
+            username=callback.from_user.username or "",
+            role="",
+        )
+        user_id = user.get("id")
+    finally:
+        db.close()
+    tg_id = callback.from_user.id
 
-    # Вместо "async for db in get_db():"
     svc = AgentService()
     try:
         svc.register_agent(
@@ -167,11 +181,11 @@ async def agent_confirm_data(callback: types.CallbackQuery, state: FSMContext, b
         [
             InlineKeyboardButton(
                 text="✅ Одобрить",
-                callback_data=f"approve_agent_{user_id}"
+                callback_data=f"approve_agent_{user_id}_{tg_id}"
             ),
             InlineKeyboardButton(
                 text="❌ Отклонить",
-                callback_data=f"reject_agent_{user_id}"
+                callback_data=f"reject_agent_{user_id}_{tg_id}"
             )
         ]
     ])
@@ -181,7 +195,7 @@ async def agent_confirm_data(callback: types.CallbackQuery, state: FSMContext, b
         chat_id=settings.CHANNEL_ID,
         text=(
             f"Новый кандидат в консультанты:\n"
-            f"- Telegram ID: {user_id}\n"
+            f"- Telegram ID: {telegram_id}\n"
             f"- ФИО: {data['full_name']}\n"
             f"- Город: {data['city']}\n"
             f"- ИНН: {data['inn']}\n"
@@ -222,11 +236,11 @@ async def handle_agent_sign_contract(
     Помечаем в базе contract_signed и отправляем пользователю реферальную ссылку.
     """
     parts = callback.data.split("_")  # ["agent", "sign", "contract", "<user_id>"]
-    if len(parts) != 4:
+    if len(parts) != 5:
         await callback.answer("Неверный формат подписи договора.", show_alert=True)
         return
 
-    _, _, _, uid = parts
+    _, _, _, uid, tg_id = parts
     try:
         user_id = int(uid)
     except ValueError:
@@ -245,7 +259,7 @@ async def handle_agent_sign_contract(
 
     # Отправляем пользователю его реферальную ссылку (текстом)
     await bot.send_message(
-        chat_id=user_id,
+        chat_id=tg_id,
         text=(
             "✅ Вы успешно подписали договор как консультант!\n\n"
             f"Ваша реферальная ссылка:\n{referral_link}\n\n"
@@ -256,7 +270,7 @@ async def handle_agent_sign_contract(
     # Уведомляем админ‐канал, что договор подписан
     await bot.send_message(
         chat_id=settings.CHANNEL_ID,
-        text=f"➡️ Консультант {user_id} подписал договор."
+        text=f"➡️ Консультант {tg_id} подписал договор."
     )
 
     await callback.answer("Договор подписан. Ссылка отправлена.")

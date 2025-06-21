@@ -40,12 +40,13 @@ class AgentService:
         return True
 
     def sign_agent_contract(self, user_id: int) -> str:
-        data = self.client.put(
-            f"agent/bot/{user_id}", {"contractSigned": True}
+        import random
+        import string
+
+        code = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
+        self.client.put(
+            f"agent/bot/{user_id}", {"contractSigned": True, "referralCode": code}
         )
-        code = data.get("referralCode")
-        if not code:
-            raise ValueError("Referral code not generated")
         return f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
 
     def get_agent_profile(self, user_id: int) -> dict:
