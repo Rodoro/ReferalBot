@@ -1,13 +1,14 @@
 from sqlalchemy import Column, Integer, BigInteger, String, Boolean, Text, TIMESTAMP, ForeignKey, func
 from sqlalchemy.orm import relationship
+from .agent import Agent
 from ..db import Base
 
 class SalesPoint(Base):
     __tablename__ = "sales_points"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(BigInteger, unique=True, nullable=False, index=True)
-    agent_id = Column(BigInteger, ForeignKey("agents.user_id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, unique=True, nullable=False, index=True)
+    agent_id = Column(Integer, ForeignKey("agents.user_id", ondelete="CASCADE"), nullable=False)
     full_name = Column(String, nullable=False)
     city = Column(String, nullable=False)
     inn = Column(String, nullable=False)

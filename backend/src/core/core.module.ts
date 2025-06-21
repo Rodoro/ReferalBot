@@ -8,6 +8,7 @@ import { SessionModule } from '../modules/session/session.module';
 import { UserModule } from '../modules/user/user.module';
 import { StaffModule } from '../modules/staff/staff.module';
 import { AgentModule } from '../modules/agent/agent.module';
+import { SalesPointModule } from '../modules/sales-point/sales-point.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { AgentModule } from '../modules/agent/agent.module';
     SessionModule,
     UserModule,
     StaffModule,
-    AgentModule
+    AgentModule,
+    SalesPointModule
   ],
 })
 export class CoreModule { }

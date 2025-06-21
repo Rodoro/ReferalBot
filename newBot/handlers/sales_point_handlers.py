@@ -8,6 +8,7 @@ from newBot.config import settings
 from newBot.db import SessionLocal
 from newBot.services.agent_service import AgentService
 from newBot.services.sales_point_service import SalesPointService
+from newBot.services.user_service import UserService
 
 class SalesPointRegistrationStates(StatesGroup):
     waiting_for_start = State()        # после /start ref_<agent_id> мы в этот стан переходим
@@ -207,13 +208,25 @@ async def sp_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
     а затем отправляем администраторам сообщение с кнопками Одобрить/Отклонить.
     """
     data = await state.get_data()
-    user_id = callback.from_user.id
+    tg_id = callback.from_user.id
 
     # Обязательно должен быть agent_id, иначе кто-то хитрит
     agent_id = data.get("agent_id")
     if not agent_id:
         await callback.answer("Ошибка: agent_id не передан.", show_alert=True)
         return
+
+    db = SessionLocal()
+    try:
+        user_svc = UserService(db)
+        user = user_svc.get_or_create_user(
+            telegram_id=tg_id,
+            full_name=callback.from_user.full_name or "",
+            username=callback.from_user.username or "",
+        )
+        user_id = user.get("id")
+    finally:
+        db.close()
 
     sp_svc = SalesPointService()
     try:
@@ -239,14 +252,14 @@ async def sp_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
     # Уведомляем админа в канал:
     # составляем Inline-клавиатуру с кнопками «Одобрить» / «Отклонить»
     admin_kb = InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text="✅ Одобрить", callback_data=f"approve_sp_{user_id}"),
-        InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_sp_{user_id}")
+        InlineKeyboardButton(text="✅ Одобрить", callback_data=f"approve_sp_{user_id}_{tg_id}"),
+        InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_sp_{user_id}_{tg_id}")
     ]])
 
     # Текст админа (без подробных банковских полей, они в БД)
     admin_text = (
         f"📄 Новая заявка ТОЧКИ ПРОДАЖ:\n"
-        f"- Telegram ID: {user_id}\n"
+        f"- Telegram ID: {tg_id}\n"
         f"- Agent ID: {agent_id}\n"
         f"- ФИО: {data['full_name']}\n"
         f"- Город: {data['city']}\n"
@@ -293,13 +306,14 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
     и отсылаем его точке, а также уведомляем админ-канал.
     """
     parts = callback.data.split("_")
-    # ["sp", "sign", "contract", "<user_id>"]
-    if len(parts) != 4:
+    # ["sp", "sign", "contract", "<user_id>", "<tg_id>"]
+    if len(parts) != 5:
         await callback.answer("Неверный формат подписи договора.", show_alert=True)
         return
 
     try:
         user_id = int(parts[3])
+        tg_id = int(parts[4])
     except ValueError:
         await callback.answer("Неверённый user_id.", show_alert=True)
         return
@@ -316,7 +330,7 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
 
     # Отправляем точке продаж баннер с QR-кодом и ссылку
     await bot.send_message(
-        chat_id=user_id,
+        chat_id=tg_id,
         text=(
             "✅ Вы успешно подписали договор как точка продаж!\n\n"
             f"Ваша реферальная ссылка:\n{referral_link}\n\n"
@@ -324,13 +338,13 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
         )
     )
     await bot.send_document(
-        chat_id=user_id,
+        chat_id=tg_id,
         document=types.FSInputFile(banner_path),
         caption="Ваш баннер с QR-кодом"
     )
     os.remove(banner_path)
 
     # Уведомляем админ-канал, что договор подписан
-    await bot.send_message(chat_id=settings.CHANNEL_ID, text=f"➡️ Точка продаж {user_id} подписала договор.")
+    await bot.send_message(chat_id=settings.CHANNEL_ID, text=f"➡️ Точка продаж {tg_id} подписала договор.")
 
     await callback.answer("Договор подписан. Баннер отправлен.")

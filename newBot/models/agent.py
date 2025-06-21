@@ -5,7 +5,7 @@ class Agent(Base):
     __tablename__ = "agents"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(BigInteger, unique=True, nullable=False, index=True)
+    user_id = Column(Integer, unique=True, nullable=False, index=True)
     full_name = Column(String, nullable=False)
     city = Column(String, nullable=False)
     inn = Column(String, nullable=False)

@@ -74,8 +74,13 @@ export class AgentService {
 
     async findSalesPoints(agentId: number) {
         const points = await this.prismaService.salesPoint.findMany({
-            where: { agentId: BigInt(agentId) },
+            where: { agentId: agentId },
         });
-        return points.map((p) => plainToInstance(SalesPointResponseDto, p));
+        return points.map((p) =>
+            plainToInstance(SalesPointResponseDto, {
+                ...p,
+                agentId: p.agentId,
+            }),
+        );
     }
 }
