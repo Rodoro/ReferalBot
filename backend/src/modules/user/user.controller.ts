@@ -48,9 +48,16 @@ export class UserController {
         return this.userService.findAll();
     }
 
-    @Get(':id')
+    @Get('user/:id')
     @ApiOperation({ summary: 'Get user by id' })
     async findOne(@Param('id') id: string): Promise<UserResponseDto> {
+        return this.userService.findOne(+id);
+    }
+
+    @Get('bot/:id')
+    @BotAuthorization()
+    @ApiOperation({ summary: 'Get user by id (bot)' })
+    async findOneBot(@Param('id') id: string): Promise<UserResponseDto> {
         return this.userService.findOne(+id);
     }
 

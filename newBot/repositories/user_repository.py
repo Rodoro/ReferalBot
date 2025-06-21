@@ -13,8 +13,7 @@ class UserRepository:
         user = User(
             display_name=display_name,
             telegram_teg=telegram_tag,
-            telegram_id=str(telegram_id),
-            role=role
+            telegram_id=str(telegram_id)
         )
         self.db.add(user)
         self.db.commit()

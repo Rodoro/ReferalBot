@@ -6,6 +6,7 @@ from aiogram.types import ReplyKeyboardRemove, InlineKeyboardButton, InlineKeybo
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from newBot.config import settings
+from newBot.lib.user_roles import get_user_roles
 from newBot.services.agent_service import AgentService
 from newBot.services.user_service import UserService
 from newBot.db import SessionLocal
@@ -28,6 +29,24 @@ def agent_confirmation_keyboard():
 
 # /start secret_<ADMIN_SECRET> для консультанта
 async def cmd_start_agent_secret(message: types.Message, state: FSMContext):
+    db = SessionLocal()
+    try:
+        user_svc = UserService(db)
+        user = user_svc.get_or_create_user(
+            telegram_id=message.from_user.id,
+            full_name=message.from_user.full_name or "",
+            username=message.from_user.username or "",
+        )
+        user_id = user.get("id")
+    finally:
+        db.close()
+
+    
+    roles = get_user_roles(db, user_id)
+
+    if any(item[0] == 'agent' for item in roles):
+        await message.answer("Вы уже зарегистрированы как консультант.")
+        return
     # Если здесь — значит ни консультанта, ни точкой ещё не были
     await message.answer(
         "👤 Регистрация Консультанта.\n\nЧтобы начать, нажмите кнопку «Старт регистрации консультанта»",
@@ -36,7 +55,7 @@ async def cmd_start_agent_secret(message: types.Message, state: FSMContext):
 
 # callback_data == "start_agent_registration"
 async def start_agent_registration(callback: types.CallbackQuery, state: FSMContext):
-    # Отправляем кнопку WebApp
+
     mini_app_url = f"{settings.WEBAPP_URL}/agent-form"
     web_app = types.WebAppInfo(url=mini_app_url)
     kb = types.ReplyKeyboardMarkup(

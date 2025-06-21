@@ -1,8 +1,12 @@
 from aiogram import types
 from aiogram import Bot
 from newBot.db import SessionLocal
-from newBot.lib.user_roles import get_user_role, send_profile, ROLE_NAMES
+from newBot.lib.user_roles import (
+    get_user_roles,
+    build_referral_links,
+)
 from newBot.services.user_service import UserService
+from newBot.config import settings
 
 
 async def cmd_start(message: types.Message, bot: Bot) -> None:
@@ -11,18 +15,34 @@ async def cmd_start(message: types.Message, bot: Bot) -> None:
     db = SessionLocal()
     try:
         user_svc = UserService(db)
-        user_svc.get_or_create_user(
+        user = user_svc.get_or_create_user(
             telegram_id=user_id,
             full_name=message.from_user.full_name or "",
-            username=message.from_user.username or ""
+            username=message.from_user.username or "",
         )
-        role, profile = get_user_role(db, user_id)
+        # print("ID: ", user.get("id"))
+        roles = get_user_roles(db, user.get("id"))
+        # print(roles)
 
-        if role:
-            await send_profile(bot, message.chat.id, role, profile, message.from_user, db)
+        if roles:
+            text = build_referral_links(roles)
+            token = user_svc.generate_token(user)
+            # print(token)
+
+            keyboard = types.InlineKeyboardMarkup(
+                inline_keyboard=[[
+                    types.InlineKeyboardButton(
+                        text="Перейти на сайт",
+                        url=f"{settings.DASHBOARD_URL}login?key={token}",
+                    )
+                ]]
+            )
+
         else:
-            await message.answer(
+            text = (
                 "Вы ещё не зарегистрированы. Используйте полученную ссылку для начала регистрации."
             )
+
+        await bot.send_message(message.chat.id, text, reply_markup=keyboard, parse_mode="HTML")
     finally:
         db.close()

@@ -20,12 +20,41 @@ class UserRole:
 
 
 ROLE_NAMES = {
-    UserRole.AGENT: "консультант",
-    UserRole.SALES_POINT: "точка продаж",
+    UserRole.AGENT: "Ваша ссылка консультанта:",
+    UserRole.SALES_POINT: "Ваша ссылка точки продажи:",
     UserRole.POET: "поэт",
     UserRole.VIDEO_EDITOR: "видеомонтажёр",
 }
 
+
+def get_user_roles(db: Session, user_id: int) -> list[tuple[str, dict]]:
+    """Fetch all user roles via backend and return list of profiles."""
+    user_svc = UserService(db)
+    user = user_svc.get_user(user_id)
+
+    roles: list[tuple[str, dict]] = []
+    if user.get("agent"):
+        roles.append((UserRole.AGENT, user["agent"]))
+    if user.get("sales"):
+        roles.append((UserRole.SALES_POINT, user["sales"]))
+    if user.get("poet"):
+        roles.append((UserRole.POET, user["poet"]))
+    video_profile = user.get("vidio_editor") or user.get("video_editor")
+    if video_profile:
+        roles.append((UserRole.VIDEO_EDITOR, video_profile))
+
+    return roles
+
+def build_referral_links(roles: list[tuple[str, dict]]) -> str:
+    """Create message text with referral links for given roles."""
+    parts: list[str] = []
+    for role, profile in roles:
+        code = profile.get("referralCode") or profile.get("referral_code")
+        if not code:
+            continue
+        link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
+        parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{link}")
+    return "\n\n".join(parts)
 
 def get_user_role(db: Session, user_id: int) -> tuple[str | None, dict]:
     """Return user's role and profile if registered."""

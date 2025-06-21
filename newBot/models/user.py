@@ -25,7 +25,6 @@ class User(Base):
     display_name = Column(String, nullable=False)
     telegram_teg = Column(String, nullable=False)
     telegram_id = Column(String, unique=True, nullable=False)
-    role = Column(Enum(RoleType), nullable=False)
 
     tokens = relationship("Token", back_populates="user")
 
@@ -40,5 +39,5 @@ class Token(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    user_id = Column(String, ForeignKey("User.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("User.id", ondelete="CASCADE"))
     user = relationship("User", back_populates="tokens")

@@ -19,6 +19,9 @@ class UserService:
         }
         return self.client.post("user/bot", payload)
 
+    def get_user(self, user_id: int) -> dict:
+        return self.client.get(f"user/bot/{user_id}")
+
     def generate_token(self, user: dict):
         existing = self.token_repo.get_by_user_and_type(user["id"], TokenType.TELEGRAM_AUTH)
         if existing:
