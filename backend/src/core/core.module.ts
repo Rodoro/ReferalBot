@@ -6,6 +6,7 @@ import { IS_DEV_ENV } from '../shared/utils/is-dev.utils';
 import { RedisModule } from './redis/redis.module';
 import { SessionModule } from '../modules/session/session.module';
 import { UserModule } from '../modules/user/user.module';
+import { StaffModule } from '../modules/staff/staff.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { UserModule } from '../modules/user/user.module';
 
     BannersModule,
     SessionModule,
-    UserModule
+    UserModule,
+    StaffModule
   ],
 })
 export class CoreModule { }

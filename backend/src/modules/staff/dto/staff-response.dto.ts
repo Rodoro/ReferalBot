@@ -11,12 +11,6 @@ export class StaffResponseDto {
     id: string
 
     @Expose()
-    avatar: string
-
-    @Expose()
-    displayName: string
-
-    @Expose()
     firstName: string
     @Expose()
     midleName: string
@@ -24,7 +18,8 @@ export class StaffResponseDto {
     lastName: string
 
     @Expose()
-    telegramId: string
+    userId: string
+
     @Expose()
     permissions: string
 

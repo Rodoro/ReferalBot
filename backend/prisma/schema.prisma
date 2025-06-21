@@ -103,8 +103,9 @@ model Banner {
 }
 
 model Staff {
-    id   Int  @id @default(autoincrement())
-    user User @relation(fields: [id], references: [id], onDelete: Cascade)
+    id     Int  @id @default(autoincrement())
+    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId Int  @unique @map("user_id")
 
     firstName String  @map("first_name")
     midleName String? @map("midle_name")
