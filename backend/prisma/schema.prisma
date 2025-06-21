@@ -27,8 +27,6 @@ model Agent {
     registrationDate DateTime @default(now()) @map("registration_date")
 
     // salesPoints SalesPoint[]
-
-    @@map("agents")
 }
 
 model Poet {

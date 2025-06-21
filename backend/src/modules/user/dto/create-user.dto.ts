@@ -10,7 +10,4 @@ export class CreateUserDto {
 
   @ApiProperty()
   telegramId: string;
-
-  @ApiProperty({ enum: RoleType })
-  role: RoleType;
 }

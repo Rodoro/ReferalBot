@@ -13,8 +13,15 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 export class UserController {
     constructor(private readonly userService: UserService) { }
 
-    @Post()
+    @Post('bot')
     @BotAuthorization()
+    @ApiOperation({ summary: 'Create user' })
+    @ApiResponse({ status: 201, type: UserResponseDto })
+    async createIsBot(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
+        return this.userService.create(dto);
+    }
+
+    @Post()
     @ApiOperation({ summary: 'Create user' })
     @ApiResponse({ status: 201, type: UserResponseDto })
     async create(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
