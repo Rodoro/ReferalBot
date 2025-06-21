@@ -45,6 +45,7 @@ const adminchikContent: TeamContent = {
                 { title: "Точки продаж", url: "/sales-point" },
                 { title: "Поэты", url: "/poets" },
                 { title: "Видеомонтажеры", url: "/video-editors" },
+                { title: "Пользователи", url: "/users" },
             ],
         },
         {

@@ -20,5 +20,5 @@ jobs:
     uses: 'rodoro/ReferalBot/.github/workflows/test-miniapp.yml@master'
 
   test-newBot:
-    name: 'Test miniApp'
+    name: 'Test tgBot'
     uses: 'rodoro/ReferalBot/.github/workflows/test-newbot.yml@master'

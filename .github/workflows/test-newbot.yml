@@ -19,7 +19,7 @@ jobs:
           python-version-file: "pyproject.toml"
       - name: Load dev environment
         run: |
-          cat .env.dev >> "$GITHUB_ENV"
+          cat .env >> "$GITHUB_ENV"
           echo "APP_ENV=dev" >> "$GITHUB_ENV"
       - name: Start newBot
         env:
