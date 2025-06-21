@@ -10,8 +10,32 @@ export class AgentService {
     constructor(private readonly prismaService: PrismaService) { }
 
     async create(data: CreateAgentDto): Promise<AgentResponseDto> {
-        const agent = await this.prismaService.agent.create({ data });
-        return plainToInstance(AgentResponseDto, agent);
+        const agent = await this.prismaService.agent.create({
+            data: {
+                user: { connect: { id: data.userId } },
+                fullName: data.fullName,
+                city: data.city,
+                inn: data.inn,
+                phone: data.phone,
+                businessType: data.businessType,
+                bik: data.bik,
+                account: data.account,
+                bankName: data.bankName,
+                bankKs: data.bankKs,
+                bankDetails: data.bankDetails,
+                approved: data.approved,
+                contractSigned: data.contractSigned,
+                referralCode: data.referralCode,
+            },
+            include: {
+                user: true,
+            },
+        });
+
+        return plainToInstance(AgentResponseDto, {
+            ...agent.user,
+            ...agent,
+        });
     }
 
     async findAll(): Promise<AgentResponseDto[]> {

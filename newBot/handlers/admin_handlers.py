@@ -2,19 +2,13 @@ import os
 from typing import Dict, Tuple
 from aiogram import types, Bot
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.fsm.context import FSMContext
-from sqlalchemy.orm import Session
-from newBot.db import SessionLocal
-from newBot.repositories.agent_repository import AgentRepository
 from newBot.repositories.sales_point_repository import SalesPointRepository
 from newBot.repositories.poet_repository import PoetRepository
+from newBot.db import SessionLocal
 from newBot.services.agent_service import AgentService
 from newBot.services.sales_point_service import SalesPointService
 from newBot.services.poet_service import PoetService
 from newBot.services.video_editor_service import VideoEditorService
-
-from ..services.agent_service import AgentService
-from ..services.sales_point_service import SalesPointService
 
 pending_rejections: Dict[int, Tuple[str, int]] = {}
 
@@ -46,24 +40,27 @@ async def handle_approve_user(
         await callback.answer("Неверный user_id.", show_alert=True)
         return
 
-    db: Session = SessionLocal()
+    db = None
     try:
         if role == "agent":
-            svc = AgentService(db)
+            svc = AgentService()
             ok = svc.approve_agent(user_id)
             contract_path = AGENT_CONTRACT_PATH
             sign_prefix = "sign_contract_agent"
         elif role == "sp":
+            db = SessionLocal()
             svc = SalesPointService(db)
             ok = svc.approve_sales_point(user_id)
             contract_path = SP_CONTRACT_PATH
             sign_prefix = "sign_contract_sp"
         elif role == "poet":
+            db = SessionLocal()
             svc = PoetService(db)
             ok = svc.approve_poet(user_id)
             contract_path = POET_CONTRACT_PATH
             sign_prefix = "sign_contract_poet"
         elif role == "ve":
+            db = SessionLocal()
             svc = VideoEditorService(db)
             ok = svc.approve_video_editor(user_id)
             contract_path = VE_CONTRACT_PATH
@@ -104,7 +101,8 @@ async def handle_approve_user(
         else:
             await callback.answer(f"Не удалось одобрить {role} {user_id}.", show_alert=True)
     finally:
-        db.close()
+        if db:
+            db.close()
 
 async def handle_reject_user_callback(
     callback: types.CallbackQuery
@@ -126,15 +124,18 @@ async def handle_reject_user_callback(
         return
 
     # Проверяем, что такая заявка реально есть (опционально)
-    db: Session = SessionLocal()
+    db = None
     try:
         if role == "agent":
-            exists = AgentService(db).get_agent_profile(user_id)  # вернёт {} или словарь␊
+            exists = AgentService().get_agent_profile(user_id)
         elif role == "sp":
+            db = SessionLocal()
             exists = SalesPointService(db).get_sales_point_profile(user_id)
         elif role == "poet":
+            db = SessionLocal()
             exists = PoetService(db).get_poet_profile(user_id)
         elif role == "ve":
+            db = SessionLocal()
             exists = VideoEditorService(db).get_video_editor_profile(user_id)
         else:
             exists = None
@@ -143,7 +144,8 @@ async def handle_reject_user_callback(
             await callback.answer(f"Заявка {role} {user_id} не найдена.", show_alert=True)
             return
     finally:
-        db.close()
+        if db:
+            db.close()
 
     # Удаляем inline-кнопки «Одобрить/Отклонить» под сообщением
     await callback.message.edit_reply_markup(reply_markup=None)
@@ -173,25 +175,28 @@ async def process_reject_reason(
     reason = message.text.strip()
 
     # Пробуем удалить запись из БД
-    db: Session = SessionLocal()
+    db = None
     try:
         if role == "agent":
-            repo = AgentRepository(db)
-            deleted = repo.delete_by_user_id(user_id)
+            deleted = AgentService().remove_agent(user_id)
         elif role == "sp":
+            db = SessionLocal()
             repo = SalesPointRepository(db)
             deleted = repo.delete_by_user_id(user_id)
         elif role == "poet":
+            db = SessionLocal()
             repo = PoetRepository(db)
             deleted = repo.delete_by_user_id(user_id)
         elif role == "ve":
             from newBot.repositories.video_editor_repository import VideoEditorRepository
+            db = SessionLocal()
             repo = VideoEditorRepository(db)
             deleted = repo.delete_by_user_id(user_id)
         else:
             deleted = False
     finally:
-        db.close()
+        if db:
+            db.close()
 
     # Отправляем кандидату уведомление об отказе с текстом причины
     try:

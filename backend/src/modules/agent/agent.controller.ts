@@ -4,23 +4,39 @@ import { AgentService } from './agent.service';
 import { CreateAgentDto } from './dto/create-agent.dto';
 import { UpdateAgentDto } from './dto/update-agent.dto';
 import { AgentResponseDto } from './dto/agent-response.dto';
+import { BotAuthorization } from '@/src/shared/decorators/bot-auth.decorator';
 
 @ApiTags('Agent')
 @Controller('agent')
 export class AgentController {
     constructor(private readonly agentService: AgentService) { }
 
+    @Post('bot')
+    @BotAuthorization()
+    @ApiOperation({ summary: 'Create agent' })
+    @ApiResponse({ status: 201, type: AgentResponseDto })
+    async createBot(@Body() dto: CreateAgentDto): Promise<AgentResponseDto> {
+        return this.agentService.create(dto);
+    }
+
     @Post()
     @ApiOperation({ summary: 'Create agent' })
     @ApiResponse({ status: 201, type: AgentResponseDto })
-    create(@Body() dto: CreateAgentDto): Promise<AgentResponseDto> {
+    async create(@Body() dto: CreateAgentDto): Promise<AgentResponseDto> {
         return this.agentService.create(dto);
     }
 
     @Get()
     @ApiOperation({ summary: 'Get all agents' })
-    findAll(): Promise<AgentResponseDto[]> {
+    async findAll(): Promise<AgentResponseDto[]> {
         return this.agentService.findAll();
+    }
+
+    @Get('bot/:id')
+    @BotAuthorization()
+    @ApiOperation({ summary: 'Get agent by id' })
+    async findOneBot(@Param('id') id: string): Promise<AgentResponseDto> {
+        return this.agentService.findOne(+id);
     }
 
     @Get(':id')
@@ -29,10 +45,24 @@ export class AgentController {
         return this.agentService.findOne(+id);
     }
 
+    @Put('bot/:id')
+    @BotAuthorization()
+    @ApiOperation({ summary: 'Update agent by id' })
+    async updateBot(@Param('id') id: string, @Body() dto: UpdateAgentDto): Promise<AgentResponseDto> {
+        return this.agentService.update(+id, dto);
+    }
+
     @Put(':id')
     @ApiOperation({ summary: 'Update agent by id' })
     async update(@Param('id') id: string, @Body() dto: UpdateAgentDto): Promise<AgentResponseDto> {
         return this.agentService.update(+id, dto);
+    }
+
+    @Delete('bot/:id')
+    @BotAuthorization()
+    @ApiOperation({ summary: 'Delete agent by id' })
+    async removeBot(@Param('id') id: string): Promise<AgentResponseDto> {
+        return this.agentService.remove(+id);
     }
 
     @Delete(':id')

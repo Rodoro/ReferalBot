@@ -1,19 +1,12 @@
 import json
-from sqlalchemy.orm import Session
-from aiogram import types
+from aiogram import Bot, types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
-from newBot.config import settings
-from newBot.db import SessionLocal
-from newBot.services.agent_service import AgentService
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from ..config import settings
-from ..db import get_db
-from ..services.agent_service import AgentService
-from newBot.services.sales_point_service import SalesPointService
-from aiogram import Bot
+from newBot.config import settings
+from newBot.services.agent_service import AgentService
 
 class AgentRegistrationStates(StatesGroup):
     waiting_for_mini_app = State()
@@ -33,24 +26,6 @@ def agent_confirmation_keyboard():
 
 # /start secret_<ADMIN_SECRET> для консультанта
 async def cmd_start_agent_secret(message: types.Message, state: FSMContext):
-    user_id = message.from_user.id
-
-    db = SessionLocal()
-    try:
-        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
-        role, profile = get_user_role(db, user_id)
-
-        if role:
-            if role == UserRole.AGENT:
-                await send_profile(message.bot, message.chat.id, role, profile, message.from_user, db)
-            else:
-                await message.answer(
-                    f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать консультантом."
-                )
-            return
-    finally:
-        db.close()
-
     # Если здесь — значит ни консультанта, ни точкой ещё не были
     await message.answer(
         "👤 Регистрация Консультанта.\n\nЧтобы начать, нажмите кнопку «Старт регистрации консультанта»",
@@ -59,24 +34,6 @@ async def cmd_start_agent_secret(message: types.Message, state: FSMContext):
 
 # callback_data == "start_agent_registration"
 async def start_agent_registration(callback: types.CallbackQuery, state: FSMContext):
-    user_id = callback.from_user.id
-
-    # Проверим, не зарегистрирован ли он уже
-    db = SessionLocal()
-    try:
-        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
-        role, profile = get_user_role(db, user_id)
-        if role:
-            if role == UserRole.AGENT:
-                await send_profile(callback.message.bot, callback.message.chat.id, role, profile, callback.from_user, db)
-            else:
-                await callback.answer(
-                    f"Вы уже зарегистрированы как {ROLE_NAMES[role]}!", show_alert=True
-                )
-            return
-    finally:
-        db.close()
-
     # Отправляем кнопку WebApp
     mini_app_url = f"{settings.WEBAPP_URL}/agent-form"
     web_app = types.WebAppInfo(url=mini_app_url)
@@ -185,30 +142,25 @@ async def agent_confirm_data(callback: types.CallbackQuery, state: FSMContext, b
     data = await state.get_data()
 
     # Вместо "async for db in get_db():"
-    db = SessionLocal()
+    svc = AgentService()
     try:
-        svc = AgentService(db)
-        try:
-            # Передаём все поля, включая разобранные bank_name и bank_ks
-            svc.register_agent(
-                user_id=user_id,
-                full_name=data["full_name"],
-                city=data["city"],
-                inn=data["inn"],
-                phone=data["phone"],
-                business_type=data["business_type"],
-                bik=data["bik"],
-                account=data["account"],
-                bank_name=data["bank_name"],
-                bank_ks=data["bank_ks"],
-                bank_details=data["bank_details"],
-            )
-        except ValueError as e:
-            await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
-            await state.clear()
-            return
-    finally:
-        db.close()
+        svc.register_agent(
+            user_id=user_id,
+            full_name=data["full_name"],
+            city=data["city"],
+            inn=data["inn"],
+            phone=data["phone"],
+            business_type=data["business_type"],
+            bik=data["bik"],
+            account=data["account"],
+            bank_name=data["bank_name"],
+            bank_ks=data["bank_ks"],
+            bank_details=data["bank_details"],
+        )
+    except Exception as e:
+        await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
+        await state.clear()
+        return
 
     # Уведомляем администратора в канал
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -281,17 +233,12 @@ async def handle_agent_sign_contract(
         await callback.answer("Неверённый user_id.", show_alert=True)
         return
 
-    db: Session = SessionLocal()
+    svc = AgentService()
     try:
-        svc = AgentService(db)
-        # Метод sign_agent_contract, как мы ранее договорились, помечает contract_signed и возвращает ссылку
-        try:
-            referral_link = svc.sign_agent_contract(user_id)
-        except Exception as e:
-            await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
-            return
-    finally:
-        db.close()
+        referral_link = svc.sign_agent_contract(user_id)
+    except Exception as e:
+        await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
+        return
 
     # Убираем кнопку «Подписать договор» под сообщением
     await callback.message.edit_reply_markup(reply_markup=None)
