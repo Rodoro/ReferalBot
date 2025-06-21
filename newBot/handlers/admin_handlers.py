@@ -48,8 +48,7 @@ async def handle_approve_user(
             contract_path = AGENT_CONTRACT_PATH
             sign_prefix = "sign_contract_agent"
         elif role == "sp":
-            db = SessionLocal()
-            svc = SalesPointService(db)
+            svc = SalesPointService()
             ok = svc.approve_sales_point(user_id)
             contract_path = SP_CONTRACT_PATH
             sign_prefix = "sign_contract_sp"
@@ -129,8 +128,7 @@ async def handle_reject_user_callback(
         if role == "agent":
             exists = AgentService().get_agent_profile(user_id)
         elif role == "sp":
-            db = SessionLocal()
-            exists = SalesPointService(db).get_sales_point_profile(user_id)
+            exists = SalesPointService().get_sales_point_profile(user_id)
         elif role == "poet":
             db = SessionLocal()
             exists = PoetService(db).get_poet_profile(user_id)
@@ -180,9 +178,7 @@ async def process_reject_reason(
         if role == "agent":
             deleted = AgentService().remove_agent(user_id)
         elif role == "sp":
-            db = SessionLocal()
-            repo = SalesPointRepository(db)
-            deleted = repo.delete_by_user_id(user_id)
+            deleted = SalesPointService().remove_sales_point(user_id)
         elif role == "poet":
             db = SessionLocal()
             repo = PoetRepository(db)

@@ -59,3 +59,6 @@ class AgentService:
     def remove_agent(self, user_id: int) -> bool:
         self.client.delete(f"agent/bot/{user_id}")
         return True
+    
+    def get_agent_by_code(self, code: str) -> dict:
+        return self.client.get(f"agent/ref/{code}")

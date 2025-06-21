@@ -4,6 +4,7 @@ import { plainToInstance } from 'class-transformer';
 import { CreateAgentDto } from './dto/create-agent.dto';
 import { UpdateAgentDto } from './dto/update-agent.dto';
 import { AgentResponseDto } from './dto/agent-response.dto';
+import { SalesPointResponseDto } from '../sales-point/dto/sales-point-response.dto';
 
 @Injectable()
 export class AgentService {
@@ -59,5 +60,22 @@ export class AgentService {
     async remove(id: number): Promise<AgentResponseDto> {
         const agent = await this.prismaService.agent.delete({ where: { id } });
         return plainToInstance(AgentResponseDto, agent);
+    }
+
+    async findByReferralCode(code: string): Promise<AgentResponseDto> {
+        const agent = await this.prismaService.agent.findUnique({
+            where: { referralCode: code },
+        });
+        if (!agent) {
+            throw new NotFoundException('Agent not found');
+        }
+        return plainToInstance(AgentResponseDto, agent);
+    }
+
+    async findSalesPoints(agentId: number) {
+        const points = await this.prismaService.salesPoint.findMany({
+            where: { agentId: BigInt(agentId) },
+        });
+        return points.map((p) => plainToInstance(SalesPointResponseDto, p));
     }
 }

@@ -5,6 +5,7 @@ import { CreateAgentDto } from './dto/create-agent.dto';
 import { UpdateAgentDto } from './dto/update-agent.dto';
 import { AgentResponseDto } from './dto/agent-response.dto';
 import { BotAuthorization } from '@/src/shared/decorators/bot-auth.decorator';
+import { SalesPointResponseDto } from '../sales-point/dto/sales-point-response.dto';
 
 @ApiTags('Agent')
 @Controller('agent')
@@ -30,6 +31,19 @@ export class AgentController {
     @ApiOperation({ summary: 'Get all agents' })
     async findAll(): Promise<AgentResponseDto[]> {
         return this.agentService.findAll();
+    }
+
+    @Get('ref/:code')
+    @ApiOperation({ summary: 'Get agent by referral code' })
+    async findByCode(@Param('code') code: string): Promise<AgentResponseDto> {
+        return this.agentService.findByReferralCode(code);
+    }
+
+    @Get('bot/:id/points')
+    @BotAuthorization()
+    @ApiOperation({ summary: 'Get sales points for agent' })
+    async getPoints(@Param('id') id: string): Promise<SalesPointResponseDto[]> {
+        return this.agentService.findSalesPoints(+id);
     }
 
     @Get('bot/:id')

@@ -1,4 +1,5 @@
 
+import UserTable from '@/entites/User/ui/UserTable'
 import { Card } from '@/shared/ui/overlay/card'
 import { TypographyH2 } from '@/shared/ui/typography/TypographyH2'
 import { TypographyP } from '@/shared/ui/typography/TypographyP'
@@ -7,7 +8,7 @@ import React from 'react'
 
 export async function generateMetadata() {
     return {
-        title: 'Сотрудники',
+        title: 'Пользователи',
     }
 }
 
@@ -16,13 +17,13 @@ export default function page() {
         <>
             <Header
                 breadcrumbs={[
-                    { label: "Adminchik", href: "/adminchik" },
-                    { label: "Сотрудники", isCurrent: true }
+                    { label: "Администрирование", href: "/" },
+                    { label: "Пользователи", isCurrent: true }
                 ]}
             />
             <main className="flex flex-1 flex-col pb-4 pt-0 px-8 max-w-7xl gap-4">
-                <TypographyH2 text='Сотрудники' />
-                <TypographyP className='' text='Все сотрудники которые зарегистрированы в сети Adminchik' />
+                <TypographyH2 text='Пользователи' />
+                <TypographyP className='' text='Все пользователи которые зарегистрированы в сети' />
                 <Card>
                     <UserTable />
                 </Card>

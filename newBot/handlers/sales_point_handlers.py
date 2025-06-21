@@ -6,10 +6,8 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from newBot.config import settings
 from newBot.db import SessionLocal
-from newBot.repositories.agent_repository import AgentRepository
 from newBot.services.agent_service import AgentService
 from newBot.services.sales_point_service import SalesPointService
-from newBot.services.agent_service import AgentService
 
 class SalesPointRegistrationStates(StatesGroup):
     waiting_for_start = State()        # после /start ref_<agent_id> мы в этот стан переходим
@@ -65,14 +63,15 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
             await message.answer("Неверная ссылка регистрации точки продаж.")
             return
 
-        agent_repo = AgentRepository(db)
-        agent = agent_repo.get_by_referral_code(ref_code)
-        if not agent:
+        svc = AgentService()
+        try:
+            agent = svc.get_agent_by_code(ref_code)
+        except Exception:
             await message.answer("Консультант не найден по этой ссылке или ссылка уже устарела.")
             return
 
-        agent_id = agent.user_id
-        agent_name = agent.full_name
+        agent_id = agent.get("userId") or agent.get("user_id")
+        agent_name = agent.get("fullName") or agent.get("full_name")
 
     finally:
         db.close()
@@ -216,31 +215,26 @@ async def sp_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
         await callback.answer("Ошибка: agent_id не передан.", show_alert=True)
         return
 
-    # Сохраняем в БД
-    db = SessionLocal()
+    sp_svc = SalesPointService()
     try:
-        sp_svc = SalesPointService(db)
-        try:
-            sp_svc.register_sales_point(
-                user_id=user_id,
-                agent_id=agent_id,
-                full_name=data["full_name"],
-                city=data["city"],
-                inn=data["inn"],
-                phone=data["phone"],
-                business_type=data["business_type"],
-                bik=data.get("bik", ""),
-                account=data.get("account", ""),
-                bank_name=data["bank_name"],
-                bank_ks=data["bank_ks"],
-                bank_details=data["bank_details"]
-            )
-        except ValueError as e:
-            await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
-            await state.clear()
-            return
-    finally:
-        db.close()
+        sp_svc.register_sales_point(
+            user_id=user_id,
+            agent_id=agent_id,
+            full_name=data["full_name"],
+            city=data["city"],
+            inn=data["inn"],
+            phone=data["phone"],
+            business_type=data["business_type"],
+            bik=data.get("bik", ""),
+            account=data.get("account", ""),
+            bank_name=data["bank_name"],
+            bank_ks=data["bank_ks"],
+            bank_details=data["bank_details"]
+        )
+    except Exception as e:
+        await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
+        await state.clear()
+        return
 
     # Уведомляем админа в канал:
     # составляем Inline-клавиатуру с кнопками «Одобрить» / «Отклонить»
@@ -310,16 +304,12 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
         await callback.answer("Неверённый user_id.", show_alert=True)
         return
 
-    db = SessionLocal()
+    sp_svc = SalesPointService()
     try:
-        sp_svc = SalesPointService(db)
-        try:
-            banner_path, referral_link = sp_svc.sign_sales_point_contract(user_id)
-        except Exception as e:
-            await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
-            return
-    finally:
-        db.close()
+        banner_path, referral_link = sp_svc.sign_sales_point_contract(user_id)
+    except Exception as e:
+        await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
+        return
 
     # Убираем кнопку «Подписать договор»
     await callback.message.edit_reply_markup(reply_markup=None)
