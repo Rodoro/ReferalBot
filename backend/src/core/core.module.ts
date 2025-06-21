@@ -7,6 +7,7 @@ import { RedisModule } from './redis/redis.module';
 import { SessionModule } from '../modules/session/session.module';
 import { UserModule } from '../modules/user/user.module';
 import { StaffModule } from '../modules/staff/staff.module';
+import { AgentModule } from '../modules/agent/agent.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { StaffModule } from '../modules/staff/staff.module';
     BannersModule,
     SessionModule,
     UserModule,
-    StaffModule
+    StaffModule,
+    AgentModule
   ],
 })
 export class CoreModule { }

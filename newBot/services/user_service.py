@@ -17,7 +17,7 @@ class UserService:
             "telegramTeg": username or "",
             "telegramId": str(telegram_id)
         }
-        return self.client.post("user", payload)
+        return self.client.post("user/bot", payload)
 
     def generate_token(self, user: dict):
         existing = self.token_repo.get_by_user_and_type(user["id"], TokenType.TELEGRAM_AUTH)
