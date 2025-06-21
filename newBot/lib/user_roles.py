@@ -29,25 +29,25 @@ ROLE_NAMES = {
 
 def get_user_role(db: Session, user_id: int) -> tuple[str | None, dict]:
     """Return user's role and profile if registered."""
-    svc = AgentService(db)
-    profile = svc.get_agent_profile(user_id)
-    if profile:
-        return UserRole.AGENT, profile
+    # svc = AgentService(db)
+    # profile = svc.get_agent_profile(user_id)
+    # if profile:
+    #     return UserRole.AGENT, profile
 
-    sp_svc = SalesPointService(db)
-    profile = sp_svc.get_sales_point_profile(user_id)
-    if profile:
-        return UserRole.SALES_POINT, profile
+    # sp_svc = SalesPointService(db)
+    # profile = sp_svc.get_sales_point_profile(user_id)
+    # if profile:
+    #     return UserRole.SALES_POINT, profile
 
-    poet_svc = PoetService(db)
-    profile = poet_svc.get_poet_profile(user_id)
-    if profile:
-        return UserRole.POET, profile
+    # poet_svc = PoetService(db)
+    # profile = poet_svc.get_poet_profile(user_id)
+    # if profile:
+    #     return UserRole.POET, profile
 
-    ve_svc = VideoEditorService(db)
-    profile = ve_svc.get_video_editor_profile(user_id)
-    if profile:
-        return UserRole.VIDEO_EDITOR, profile
+    # ve_svc = VideoEditorService(db)
+    # profile = ve_svc.get_video_editor_profile(user_id)
+    # if profile:
+    #     return UserRole.VIDEO_EDITOR, profile
 
     return None, {}
 

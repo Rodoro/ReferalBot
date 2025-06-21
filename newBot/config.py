@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     WEBAPP_URL: str = Field(..., env="WEBAPP_URL")
     DASHBOARD_URL: str = Field(..., env="DASHBOARD_URL")
 
+    BACKEND_URL: str = Field(..., env="BACKEND_URL")
+    BOT_SERVICE_TOKEN: str = Field(..., env="BOT_SERVICE_TOKEN")
+
     # PostgreSQL
     DB_HOST: str = Field(..., env="POSTGRES_HOST")
     DB_PORT: int = Field(..., env="POSTGRES_PORT")
