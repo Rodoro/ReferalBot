@@ -137,3 +137,12 @@ class CSVImageProcessor:
             import traceback
             error_details = traceback.format_exc()
             raise Exception(f"Ошибка в process_and_save_image: {str(e)}\n\nДетали:\n{error_details}")
+        
+def generate_banner_image(image_url: str, pos_x: int, pos_y: int, qr_size: int, qr_data: str, output_path: str = DEFAULT_OUTPUT_PATH):
+    """Overlay QR code on image from given URL and save it."""
+    processor = CSVImageProcessor("")
+    base_image = processor.download_image(image_url)
+    qr_image = processor.generate_qr_code(qr_data, qr_size or DEFAULT_QR_SIZE)
+    base_image.paste(qr_image, (pos_x, pos_y))
+    base_image.save(output_path)
+    return output_path

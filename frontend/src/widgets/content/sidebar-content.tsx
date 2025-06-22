@@ -24,11 +24,6 @@ export const commonSidebarContent = {
             url: "https://t.me/podaripesnyu_bot",
             icon: Send,
         },
-        // {
-        //     title: "Ссылка например на чат с гпт по проекту",
-        //     url: "https://example.com",
-        //     icon: MessageCircleWarning,
-        // }
     ],
 }
 
@@ -111,6 +106,52 @@ const agentTeamContent: TeamContent = {
     projects: [],
 }
 
+const spTeamContent: TeamContent = {
+    navMain: [
+        {
+            title: "Точка продаж",
+            url: "/sales-point/metrics",
+            icon: AreaChart,
+            isActive: true,
+            items: [
+                { title: "Статистика", url: "/sales-point/metrics/statistics" },
+                { title: "Баннеры", url: "/sales-point/metrics/banners" },
+            ],
+        },
+    ],
+    projects: [],
+}
+
+const poetTeamContent: TeamContent = {
+    navMain: [
+        {
+            title: "Поэт",
+            url: "/poet/metrics",
+            icon: AreaChart,
+            isActive: true,
+            items: [
+                { title: "Чаты", url: "/poet/metrics/statistics" },
+            ],
+        },
+    ],
+    projects: [],
+}
+
+const veTeamContent: TeamContent = {
+    navMain: [
+        {
+            title: "Видеомантажер",
+            url: "/video-editor/metrics",
+            icon: AreaChart,
+            isActive: true,
+            items: [
+                { title: "Чаты", url: "/video-editor/metrics/statistics" },
+            ],
+        },
+    ],
+    projects: [],
+}
+
 type RoleSidebar = {
     plan: string
     content: TeamContent
@@ -119,9 +160,9 @@ type RoleSidebar = {
 export const sidebarContentByRole: Record<RoleType, RoleSidebar> = {
     [RoleType.STAFF]: { plan: "Админ панель", content: staffTeamContent },
     [RoleType.AGENT]: { plan: "Консультант", content: agentTeamContent },
-    [RoleType.SALES_POINT]: { plan: "Консультант", content: agentTeamContent },
-    [RoleType.POET]: { plan: "Консультант", content: agentTeamContent },
-    [RoleType.VIDEO_EDITOR]: { plan: "Консультант", content: agentTeamContent },
+    [RoleType.SALES_POINT]: { plan: "Точка продажи", content: spTeamContent },
+    [RoleType.POET]: { plan: "Консультант", content: poetTeamContent },
+    [RoleType.VIDEO_EDITOR]: { plan: "Консультант", content: veTeamContent },
 }
 
 function mergeContent(target: TeamContent, source: TeamContent) {
@@ -137,10 +178,9 @@ function mergeContent(target: TeamContent, source: TeamContent) {
     }
 }
 
-export function getSidebarContent(roles: RoleType[] = [RoleType.AGENT]) {
+export function getSidebarContent(roles: RoleType[]) {
     const combinedContent: TeamContent = { navMain: [], projects: [] }
     let plan = baseTeam.plan
-
     for (const role of roles) {
         const roleData = sidebarContentByRole[role]
         if (roleData) {
