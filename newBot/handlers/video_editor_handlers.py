@@ -1,5 +1,4 @@
 import json
-from sqlalchemy.orm import Session
 from aiogram import types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -7,6 +6,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from newBot.config import settings
 from newBot.db import SessionLocal
+from newBot.lib.user_roles import get_user_roles
+from newBot.services.user_service import UserService
 from newBot.services.video_editor_service import VideoEditorService
 from aiogram import Bot
 
@@ -26,21 +27,24 @@ def ve_confirmation_keyboard():
     return kb.as_markup()
 
 async def cmd_start_ve(message: types.Message, state: FSMContext):
-    user_id = message.from_user.id
     db = SessionLocal()
     try:
-        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
-        role, profile = get_user_role(db, user_id)
-        if role:
-            if role == UserRole.VIDEO_EDITOR:
-                await send_profile(message.bot, message.chat.id, role, profile, message.from_user, db)
-            else:
-                await message.answer(
-                    f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать видеомонтажёром."
-                )
-            return
+        user_svc = UserService(db)
+        user = user_svc.get_or_create_user(
+            telegram_id=message.from_user.id,
+            full_name=message.from_user.full_name or "",
+            username=message.from_user.username or "",
+        )
+        user_id = user.get("id")
     finally:
         db.close()
+
+    
+    roles = get_user_roles(db, user_id)
+
+    if any(item[0] == 'video_editor' for item in roles):
+        await message.answer("Вы уже зарегистрированы как видеомантажер.")
+        return
 
     await message.answer(
         "✍️ Регистрация Видеомонтажёра.\n\nЧтобы начать, нажмите кнопку «Старт регистрации видеомонтажёра»",
@@ -48,23 +52,6 @@ async def cmd_start_ve(message: types.Message, state: FSMContext):
     )
 
 async def start_ve_registration(callback: types.CallbackQuery, state: FSMContext):
-    user_id = callback.from_user.id
-    db = SessionLocal()
-    try:
-        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
-        role, profile = get_user_role(db, user_id)
-    finally:
-        db.close()
-
-    if role:
-        if role == UserRole.VIDEO_EDITOR:
-            await send_profile(callback.message.bot, callback.message.chat.id, role, profile, callback.from_user, db)
-        else:
-            await callback.answer(
-                f"Вы уже зарегистрированы как {ROLE_NAMES[role]}!", show_alert=True
-            )
-        return
-
     mini_app_url = f"{settings.WEBAPP_URL}/video-editor-form"
     web_app = types.WebAppInfo(url=mini_app_url)
     kb = types.ReplyKeyboardMarkup(
@@ -142,36 +129,45 @@ async def handle_ve_webapp_data(message: types.Message, state: FSMContext):
     await state.set_state(VideoEditorRegistrationStates.confirmation)
 
 async def ve_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
-    user_id = callback.from_user.id
+    telegram_id = callback.from_user.id
     data = await state.get_data()
+
     db = SessionLocal()
     try:
-        svc = VideoEditorService(db)
-        try:
-            svc.register_video_editor(
-                user_id=user_id,
-                full_name=data["full_name"],
-                city=data["city"],
-                inn=data["inn"],
-                phone=data["phone"],
-                business_type=data["business_type"],
-                bik=data["bik"],
-                account=data["account"],
-                bank_name=data["bank_name"],
-                bank_ks=data["bank_ks"],
-                bank_details=data["bank_details"],
-            )
-        except ValueError as e:
-            await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
-            await state.clear()
-            return
+        user_svc = UserService(db)
+        user = user_svc.get_or_create_user(
+            telegram_id=telegram_id,
+            full_name=callback.from_user.full_name or "",
+            username=callback.from_user.username or ""
+        )
+        user_id = user.get("id")
     finally:
         db.close()
 
+    svc = VideoEditorService()
+    try:
+        svc.register_video_editor(
+            user_id=user_id,
+            full_name=data["full_name"],
+            city=data["city"],
+            inn=data["inn"],
+            phone=data["phone"],
+            business_type=data["business_type"],
+            bik=data["bik"],
+            account=data["account"],
+            bank_name=data["bank_name"],
+            bank_ks=data["bank_ks"],
+            bank_details=data["bank_details"],
+        )
+    except Exception as e:
+        await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
+        await state.clear()
+        return
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Одобрить", callback_data=f"approve_ve_{user_id}"),
-            InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_ve_{user_id}"),
+            InlineKeyboardButton(text="✅ Одобрить", callback_data=f"approve_poet_{user_id}_{telegram_id}"),
+            InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_poet_{user_id}_{telegram_id}"),
         ]
     ])
 
@@ -211,31 +207,28 @@ async def ve_correct_data(callback: types.CallbackQuery, state: FSMContext):
 
 async def handle_ve_sign_contract(callback: types.CallbackQuery, bot: Bot):
     parts = callback.data.split("_")
-    if len(parts) != 4:
+    if len(parts) != 5:
         await callback.answer("Неверный формат подписи договора.", show_alert=True)
         return
 
+    _, _, _, uid, tg_id = parts
     try:
-        user_id = int(parts[3])
+        user_id = int(uid)
     except ValueError:
         await callback.answer("Неверённый user_id.", show_alert=True)
         return
 
-    db: Session = SessionLocal()
+    svc = VideoEditorService()
     try:
-        svc = VideoEditorService(db)
-        try:
-            svc.sign_video_editor_contract(user_id)
-        except Exception as e:
-            await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
-            return
-    finally:
-        db.close()
+        svc.sign_video_editor_contract(user_id)
+    except Exception as e:
+        await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
+        return
 
     await callback.message.edit_reply_markup(reply_markup=None)
 
     await bot.send_message(
-        chat_id=user_id,
+        chat_id=tg_id,
         text=(
             "✅ Вы успешно подписали договор как видеомонтажёр!\n\n"
             "Теперь вы зарегистрированы как видеомонтажёр."
@@ -244,7 +237,7 @@ async def handle_ve_sign_contract(callback: types.CallbackQuery, bot: Bot):
 
     await bot.send_message(
         chat_id=settings.CHANNEL_ID,
-        text=f"➡️ Видеомонтажёр {user_id} подписал договор.",
+        text=f"➡️ Видеомонтажёр {tg_id} подписал договор.",
     )
 
     await callback.answer("Договор подписан.")

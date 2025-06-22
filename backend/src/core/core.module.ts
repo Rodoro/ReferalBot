@@ -10,6 +10,7 @@ import { StaffModule } from '../modules/staff/staff.module';
 import { AgentModule } from '../modules/agent/agent.module';
 import { SalesPointModule } from '../modules/sales-point/sales-point.module';
 import { PoetModule } from '../modules/poet/poet.module';
+import { VideoEditorModule } from '../modules/video-editor/video-editor.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { PoetModule } from '../modules/poet/poet.module';
     StaffModule,
     AgentModule,
     SalesPointModule,
-    PoetModule
+    PoetModule,
+    VideoEditorModule
   ],
 })
 export class CoreModule { }
