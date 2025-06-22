@@ -9,6 +9,7 @@ import { UserModule } from '../modules/user/user.module';
 import { StaffModule } from '../modules/staff/staff.module';
 import { AgentModule } from '../modules/agent/agent.module';
 import { SalesPointModule } from '../modules/sales-point/sales-point.module';
+import { PoetModule } from '../modules/poet/poet.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { SalesPointModule } from '../modules/sales-point/sales-point.module';
     UserModule,
     StaffModule,
     AgentModule,
-    SalesPointModule
+    SalesPointModule,
+    PoetModule
   ],
 })
 export class CoreModule { }

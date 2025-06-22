@@ -53,8 +53,7 @@ async def handle_approve_user(
             contract_path = SP_CONTRACT_PATH
             sign_prefix = "sign_contract_sp"
         elif role == "poet":
-            db = SessionLocal()
-            svc = PoetService(db)
+            svc = PoetService()
             ok = svc.approve_poet(user_id)
             contract_path = POET_CONTRACT_PATH
             sign_prefix = "sign_contract_poet"
@@ -130,8 +129,7 @@ async def handle_reject_user_callback(
         elif role == "sp":
             exists = SalesPointService().get_sales_point_profile(user_id)
         elif role == "poet":
-            db = SessionLocal()
-            exists = PoetService(db).get_poet_profile(user_id)
+            exists = PoetService().get_poet_profile(user_id)
         elif role == "ve":
             db = SessionLocal()
             exists = VideoEditorService(db).get_video_editor_profile(user_id)
@@ -180,9 +178,7 @@ async def process_reject_reason(
         elif role == "sp":
             deleted = SalesPointService().remove_sales_point(user_id)
         elif role == "poet":
-            db = SessionLocal()
-            repo = PoetRepository(db)
-            deleted = repo.delete_by_user_id(user_id)
+            deleted = PoetService().remove_poet(user_id)
         elif role == "ve":
             from newBot.repositories.video_editor_repository import VideoEditorRepository
             db = SessionLocal()

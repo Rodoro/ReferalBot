@@ -10,6 +10,8 @@ from newBot.db import SessionLocal
 from newBot.services.poet_service import PoetService
 from aiogram import Bot
 
+from newBot.services.user_service import UserService
+
 class PoetRegistrationStates(StatesGroup):
     waiting_for_mini_app = State()
     confirmation = State()
@@ -141,36 +143,44 @@ async def handle_poet_webapp_data(message: types.Message, state: FSMContext):
     await state.set_state(PoetRegistrationStates.confirmation)
 
 async def poet_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
-    user_id = callback.from_user.id
+    telegram_id = callback.from_user.id
     data = await state.get_data()
+
     db = SessionLocal()
     try:
-        svc = PoetService(db)
-        try:
-            svc.register_poet(
-                user_id=user_id,
-                full_name=data["full_name"],
-                city=data["city"],
-                inn=data["inn"],
-                phone=data["phone"],
-                business_type=data["business_type"],
-                bik=data["bik"],
-                account=data["account"],
-                bank_name=data["bank_name"],
-                bank_ks=data["bank_ks"],
-                bank_details=data["bank_details"],
-            )
-        except ValueError as e:
-            await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
-            await state.clear()
-            return
+        user_svc = UserService(db)
+        user = user_svc.get_or_create_user(
+            telegram_id=telegram_id,
+            full_name=callback.from_user.full_name or "",
+            username=callback.from_user.username or ""
+        )
+        user_id = user.get("id")
     finally:
         db.close()
 
+    svc = PoetService()
+    try:
+        svc.register_poet(
+            user_id=user_id,
+            full_name=data["full_name"],
+            city=data["city"],
+            inn=data["inn"],
+            phone=data["phone"],
+            business_type=data["business_type"],
+            bik=data["bik"],
+            account=data["account"],
+            bank_name=data["bank_name"],
+            bank_ks=data["bank_ks"],
+            bank_details=data["bank_details"],
+        )
+    except Exception as e:
+        await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
+        await state.clear()
+        return
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="✅ Одобрить", callback_data=f"approve_poet_{user_id}"),
-            InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_poet_{user_id}"),
+            InlineKeyboardButton(text="✅ Одобрить", callback_data=f"approve_poet_{user_id}_{telegram_id}"),
+            InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_poet_{user_id}_{telegram_id}"),
         ]
     ])
 
@@ -210,31 +220,28 @@ async def poet_correct_data(callback: types.CallbackQuery, state: FSMContext):
 
 async def handle_poet_sign_contract(callback: types.CallbackQuery, bot: Bot):
     parts = callback.data.split("_")
-    if len(parts) != 4:
+    if len(parts) != 5:
         await callback.answer("Неверный формат подписи договора.", show_alert=True)
         return
 
+    _, _, _, uid, tg_id = parts
     try:
-        user_id = int(parts[3])
+        user_id = int(uid)
     except ValueError:
         await callback.answer("Неверённый user_id.", show_alert=True)
         return
 
-    db: Session = SessionLocal()
+    svc = PoetService()
     try:
-        svc = PoetService(db)
-        try:
-            svc.sign_poet_contract(user_id)
-        except Exception as e:
-            await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
-            return
-    finally:
-        db.close()
+        svc.sign_poet_contract(user_id)
+    except Exception as e:
+        await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
+        return
 
     await callback.message.edit_reply_markup(reply_markup=None)
 
     await bot.send_message(
-        chat_id=user_id,
+        chat_id=tg_id,
         text=(
             "✅ Вы успешно подписали договор как поэт!\n\n"
             "Теперь вы зарегистрированы как поэт."
@@ -243,7 +250,7 @@ async def handle_poet_sign_contract(callback: types.CallbackQuery, bot: Bot):
 
     await bot.send_message(
         chat_id=settings.CHANNEL_ID,
-        text=f"➡️ Поэт {user_id} подписал договор.",
+        text=f"➡️ Поэт {tg_id} подписал договор.",
     )
 
     await callback.answer("Договор подписан.")

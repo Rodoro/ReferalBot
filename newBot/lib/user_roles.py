@@ -50,6 +50,7 @@ def build_referral_links(roles: list[tuple[str, dict]]) -> str:
     parts: list[str] = []
     for role, profile in roles:
         code = profile.get("referralCode") or profile.get("referral_code")
+        #TODO: рефы для точки в другое направление
         if not code:
             continue
         link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"

@@ -8,8 +8,9 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Input } from '@/shared/ui/form/input'
 import { Button } from '@/shared/ui/form/button'
 import { Skeleton } from '@/shared/ui/branding/skeleton'
-import { ArrowUpDown } from 'lucide-react'
+import { ArrowUpDown, Trash } from 'lucide-react'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/branding/avatar'
 import { Badge } from '@/shared/ui/branding/badge'
 
@@ -20,6 +21,7 @@ export default function UserTable() {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [globalFilter, setGlobalFilter] = useState('')
+    const [deleting, setDeleting] = useState<number | null>(null)
 
     useEffect(() => {
         userApi
@@ -27,7 +29,7 @@ export default function UserTable() {
             .then(res => {
                 const prepared = res.map(u => ({
                     ...u,
-                    searchText: `${u.displayName} ${u.telegramTeg} ${u.telegramId}`.toLowerCase(),
+                    searchText: `${u.displayName} ${u.telegramTeg}`.toLowerCase(),
                 }))
                 setData(prepared)
             })
@@ -35,10 +37,18 @@ export default function UserTable() {
             .finally(() => setLoading(false))
     }, [])
 
-    const copyId = (id: number) => {
-        if (typeof navigator !== 'undefined' && navigator.clipboard) {
-            navigator.clipboard.writeText(String(id))
-            toast.success('ID скопирован', { description: String(id) })
+    const router = useRouter()
+
+    const handleDelete = async (id: number) => {
+        try {
+            setDeleting(id)
+            await userApi.delete(id)
+            setData((prev) => prev.filter((u) => u.id !== id))
+            toast.success('Пользователь удален')
+        } catch (error) {
+            toast.error('Не удалось удалить пользователя')
+        } finally {
+            setDeleting(null)
         }
     }
 
@@ -96,6 +106,22 @@ export default function UserTable() {
                 </div>
             ),
         },
+        {
+            id: 'actions',
+            header: '',
+            cell: ({ row }) => (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        handleDelete(row.original.id)
+                    }}
+                >
+                    <Trash className="size-4" />
+                </Button>
+            ),
+        },
     ]
 
     const table = useReactTable({
@@ -104,10 +130,8 @@ export default function UserTable() {
         state: {
             sorting,
             columnFilters: [{ id: 'searchText', value: globalFilter }, ...columnFilters],
-            globalFilter,
         },
         onSortingChange: setSorting,
-        onGlobalFilterChange: setGlobalFilter,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
@@ -120,12 +144,11 @@ export default function UserTable() {
     return (
         <div className="flex flex-col gap-4 p-4">
             <Input
-                placeholder="Поиск по имени или тегу..."
+                placeholder="Поиск по имени или телеграму..."
                 value={globalFilter ?? ''}
                 onChange={(e) => {
                     const value = e.target.value.toLowerCase()
                     setGlobalFilter(value)
-                    table.getColumn('searchText')?.setFilterValue(value)
                 }}
                 className="max-w-sm"
             />
@@ -149,7 +172,7 @@ export default function UserTable() {
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
-                                    onClick={() => copyId(row.original.id)}
+                                    onClick={() => router.push(`/users/${row.original.id}`)}
                                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                                 >
                                     {row.getVisibleCells().map((cell) => (
@@ -169,6 +192,6 @@ export default function UserTable() {
                     </TableBody>
                 </Table>
             </div>
-        </div>
+        </div >
     )
 }

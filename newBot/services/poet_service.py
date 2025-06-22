@@ -1,46 +1,48 @@
-from sqlalchemy.orm import Session
-from ..repositories.poet_repository import PoetRepository
-from ..models.poet import Poet
+from .backend_client import BackendClient
 
 class PoetService:
-    def __init__(self, db: Session):
-        self.repo = PoetRepository(db)
+    def __init__(self) -> None:
+        self.client = BackendClient()
 
-    def register_poet(self, user_id: int, full_name: str, city: str,
-                      inn: str, phone: str, business_type: str,
-                      bik: str, account: str, bank_name: str,
-                      bank_ks: str, bank_details: str) -> Poet:
-        return self.repo.create(
-            user_id=user_id,
-            full_name=full_name,
-            city=city,
-            inn=inn,
-            phone=phone,
-            business_type=business_type,
-            bik=bik,
-            account=account,
-            bank_name=bank_name,
-            bank_ks=bank_ks,
-            bank_details=bank_details
-        )
+    def register_poet(
+        self,
+        user_id: int,
+        full_name: str,
+        city: str,
+        inn: str,
+        phone: str,
+        business_type: str,
+        bik: str,
+        account: str,
+        bank_name: str,
+        bank_ks: str,
+        bank_details: str,
+    ) -> dict:
+        payload = {
+            "userId": user_id,
+            "fullName": full_name,
+            "city": city,
+            "inn": inn,
+            "phone": phone,
+            "businessType": business_type,
+            "bik": bik,
+            "account": account,
+            "bankName": bank_name,
+            "bankKs": bank_ks,
+            "bankDetails": bank_details,
+        }
+        return self.client.post("poet/bot", payload)
 
     def approve_poet(self, user_id: int) -> bool:
-        return self.repo.approve(user_id)
+        self.client.put(f"poet/bot/{user_id}", {"approved": True})
+        return True
 
     def sign_poet_contract(self, user_id: int) -> None:
-        ok = self.repo.sign_contract(user_id)
-        if not ok:
-            raise ValueError("Poet not found or not approved")
+        self.client.put(f"poet/bot/{user_id}", {"contractSigned": True})
 
     def get_poet_profile(self, user_id: int) -> dict:
-        poet = self.repo.get_by_user_id(user_id)
-        if not poet:
-            return {}
-        return {
-            "full_name": poet.full_name,
-            "city": poet.city,
-            "inn": poet.inn,
-            "phone": poet.phone,
-            "business_type": poet.business_type,
-            "bank_details": poet.bank_details,
-        }
+        return self.client.get(f"poet/bot/{user_id}")
+
+    def remove_poet(self, user_id: int) -> bool:
+        self.client.delete(f"poet/bot/{user_id}")
+        return True
