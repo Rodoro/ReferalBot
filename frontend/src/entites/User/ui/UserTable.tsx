@@ -21,6 +21,7 @@ export default function UserTable() {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [globalFilter, setGlobalFilter] = useState('')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [deleting, setDeleting] = useState<number | null>(null)
 
     useEffect(() => {
@@ -45,7 +46,9 @@ export default function UserTable() {
             await userApi.delete(id)
             setData((prev) => prev.filter((u) => u.id !== id))
             toast.success('Пользователь удален')
-        } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            console.error(error)
             toast.error('Не удалось удалить пользователя')
         } finally {
             setDeleting(null)
@@ -58,11 +61,11 @@ export default function UserTable() {
             header: () => <div className="text-center">Аватар</div>,
             cell: ({ row }) => (
                 <div className="flex justify-center">
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-8 w-8 rounded-lg">
                         {row.original.avatar ? (
                             <AvatarImage src={row.original.avatar} alt={row.original.displayName} />
                         ) : (
-                            <AvatarFallback>{row.original.displayName[0]}</AvatarFallback>
+                            <AvatarFallback className="rounded-lg bg-blue-400 text-white">{row.original.displayName[0]}</AvatarFallback>
                         )}
                     </Avatar>
                 </div>
@@ -129,26 +132,30 @@ export default function UserTable() {
         columns,
         state: {
             sorting,
-            columnFilters: [{ id: 'searchText', value: globalFilter }, ...columnFilters],
+            columnFilters,
+            globalFilter,
         },
-        onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
+        onSortingChange: setSorting,
+        onGlobalFilterChange: setGlobalFilter,
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getSortedRowModel: getSortedRowModel(),
+        debugTable: true,
     })
 
     if (loading) return <Skeleton className="h-[300px] w-full" />
     if (error) return <div className="text-red-500 p-4">{error}</div>
 
     return (
-        <div className="flex flex-col gap-4 p-4">
+        <div className="flex flex-col gap-4">
             <Input
                 placeholder="Поиск по имени или телеграму..."
-                value={globalFilter ?? ''}
-                onChange={(e) => {
-                    const value = e.target.value.toLowerCase()
+                // value={globalFilter ?? ''}
+                onChange={(event) => {
+                    const value = event.target.value.toLowerCase()
                     setGlobalFilter(value)
+                    // table.getColumn('searchText')?.setFilterValue(value)
                 }}
                 className="max-w-sm"
             />
@@ -168,10 +175,11 @@ export default function UserTable() {
                         ))}
                     </TableHeader>
                     <TableBody>
-                        {table.getRowModel().rows.length ? (
+                        {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
+                                    data-state={row.getIsSelected() && "selected"}
                                     onClick={() => router.push(`/users/${row.original.id}`)}
                                     className="cursor-pointer hover:bg-muted/50 transition-colors"
                                 >

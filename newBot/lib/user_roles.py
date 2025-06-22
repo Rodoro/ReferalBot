@@ -22,8 +22,8 @@ class UserRole:
 ROLE_NAMES = {
     UserRole.AGENT: "Ваша ссылка консультанта:",
     UserRole.SALES_POINT: "Ваша ссылка точки продажи:",
-    UserRole.POET: "поэт",
-    UserRole.VIDEO_EDITOR: "видеомонтажёр",
+    UserRole.POET: "Вы зарегистрированы как поэт.",
+    UserRole.VIDEO_EDITOR: "Вы зарегистрированы как видеомонтажёр.",
 }
 
 
@@ -52,6 +52,7 @@ def build_referral_links(roles: list[tuple[str, dict]]) -> str:
         code = profile.get("referralCode") or profile.get("referral_code")
         #TODO: рефы для точки в другое направление
         if not code:
+            parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>")
             continue
         link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
         parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{link}")
