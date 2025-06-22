@@ -1,208 +1,278 @@
 generator client {
-    provider = "prisma-client-js"
-    output   = "./generated"
+  provider = "prisma-client-js"
+  output   = "./generated"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = "postgresql://root:123456@127.0.0.1:5433/bot"
-}
-
-model Agent {
-    id               Int      @id @default(autoincrement())
-    user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId           Int      @unique @map("user_id")
-    fullName         String   @map("full_name")
-    city             String
-    inn              String
-    phone            String
-    businessType     String   @map("business_type")
-    bik              String?
-    account          String?
-    bankName         String?  @map("bank_name")
-    bankKs           String?  @map("bank_ks")
-    bankDetails      String   @map("bank_details")
-    approved         Boolean  @default(false)
-    contractSigned   Boolean  @default(false) @map("contract_signed")
-    referralCode     String?  @unique @map("referral_code")
-    registrationDate DateTime @default(now()) @map("registration_date")
-
-    // salesPoints SalesPoint[]
-}
-
-model Poet {
-    id               Int      @id @default(autoincrement())
-    user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId           Int      @unique @map("user_id")
-    fullName         String   @map("full_name")
-    city             String
-    inn              String
-    phone            String
-    businessType     String   @map("business_type")
-    bik              String?
-    account          String?
-    bankName         String?  @map("bank_name")
-    bankKs           String?  @map("bank_ks")
-    bankDetails      String   @map("bank_details")
-    approved         Boolean  @default(false)
-    contractSigned   Boolean  @default(false) @map("contract_signed")
-    registrationDate DateTime @default(now()) @map("registration_date")
-
-    @@map("poets")
-}
-
-model SalesPoint {
-    id               Int      @id @default(autoincrement())
-    user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId           Int      @unique @map("user_id")
-    agentId          Int      @map("agent_id")
-    fullName         String   @map("full_name")
-    city             String
-    inn              String
-    phone            String
-    businessType     String   @map("business_type")
-    bik              String?
-    account          String?
-    bankName         String?  @map("bank_name")
-    bankKs           String?  @map("bank_ks")
-    bankDetails      String   @map("bank_details")
-    approved         Boolean  @default(false)
-    contractSigned   Boolean  @default(false) @map("contract_signed")
-    referralCode     String?  @map("referral_code")
-    registrationDate DateTime @default(now()) @map("registration_date")
-
-    @@map("sales_points")
-}
-
-model VideoEditor {
-    id               Int      @id @default(autoincrement())
-    user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId           Int      @unique @map("user_id")
-    fullName         String   @map("full_name")
-    city             String
-    inn              String
-    phone            String
-    businessType     String   @map("business_type")
-    bik              String?
-    account          String?
-    bankName         String?  @map("bank_name")
-    bankKs           String?  @map("bank_ks")
-    bankDetails      String   @map("bank_details")
-    approved         Boolean  @default(false)
-    contractSigned   Boolean  @default(false) @map("contract_signed")
-    registrationDate DateTime @default(now()) @map("registration_date")
-
-    @@map("video_editors")
+  provider = "postgresql"
+  url      = "postgresql://root:123456@127.0.0.1:5433/bot"
 }
 
 model Banner {
-    id           Int      @id @default(autoincrement())
-    imageUrl     String   @map("image_url")
-    qrTopOffset  Int      @default(0) @map("qr_top_offset")
-    qrLeftOffset Int      @default(0) @map("qr_left_offset")
-    qrSize       Int      @default(100) @map("qr_size")
-    createdAt    DateTime @default(now()) @map("created_at")
+  id           Int      @id @default(autoincrement())
+  imageUrl     String   @map("image_url")
+  qrTopOffset  Int      @default(0) @map("qr_top_offset")
+  qrLeftOffset Int      @default(0) @map("qr_left_offset")
+  qrSize       Int      @default(100) @map("qr_size")
+  createdAt    DateTime @default(now()) @map("created_at")
 
-    @@map("banners")
+  @@map("banners")
 }
 
-model Staff {
-    id     Int  @id @default(autoincrement())
-    user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId Int  @unique @map("user_id")
-
-    firstName String  @map("first_name")
-    midleName String? @map("midle_name")
-    lastName  String  @map("last_name")
-
-    permissions String @default("")
-
-    notifications        Notification[]
-    notificationSettings NotificationSettings?
+model actions {
+  id        Int       @id @default(autoincrement())
+  agent_id  Int?
+  sales_id  Int?
+  user_id   BigInt?
+  timestamp DateTime? @default(now()) @db.Timestamp(6)
+  method    String?
+  metadata  String?
 }
 
-model User {
-    id Int @id @default(autoincrement())
-
-    avatar      String?
-    displayName String  @map("display_name")
-    telegramTeg String  @map("telegram_teg")
-    telegramId  String  @unique @map("telegram_id")
-
-    tokens Token[]
-
-    staff        Staff?
-    agent        Agent?
-    sales        SalesPoint?
-    poet         Poet?
-    vidio_editor VideoEditor?
+model orders {
+  id         Int       @id @default(autoincrement())
+  task_id    String    @unique
+  chat_id    BigInt
+  prompt     String?
+  name       String?
+  mode       String?
+  status     String
+  amount     Float?    @db.Real
+  title      String?
+  url        String?
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  users      users     @relation(fields: [chat_id], references: [chat_id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model Token {
-    id Int @id @default(autoincrement())
-
-    token     String    @unique
-    type      TokenType
-    expiresIn DateTime  @map("expires_in")
-
-    createdAt DateTime @default(now()) @map("created_at")
-    updateAt  DateTime @updatedAt @map("updated_at")
-
-    user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId Int?  @map("user_id")
-
-    @@map("tokens")
+model poet_bans {
+  chat_id   BigInt    @id
+  reason    String?
+  banned_at DateTime? @default(now()) @db.Timestamp(6)
 }
 
-model Notification {
-    id String @id @default(uuid())
-
-    message String
-    type    NotificationType
-    isRead  Boolean          @default(false) @map("is_read")
-
-    user   Staff? @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId Int?   @map("user_id")
-
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    @@map("notifications")
+model poet_requests {
+  id          Int       @id @default(autoincrement())
+  client_id   BigInt
+  poet_id     BigInt?
+  request     String
+  assigned_at DateTime? @db.Timestamp(6)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  closed_at   DateTime? @db.Timestamp(6)
 }
 
-model NotificationSettings {
-    id String @id @default(uuid())
+model settings {
+  key   String  @id
+  value String?
+}
 
-    authLogin     Boolean @default(true) @map("auth_login")
-    passwordReset Boolean @default(true) @map("password_reset")
-
-    user   Staff @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId Int   @unique @map("user_id")
-
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    @@map("notification_settings")
+model users {
+  chat_id                     BigInt    @id
+  username                    String?
+  phone                       String?
+  count_trys_generate_song    Int?      @default(0)
+  count_trys_generate_chatgpt Int?      @default(0)
+  sales_id                    Int?
+  agent_id                    Int?
+  created_at                  DateTime? @default(now()) @db.Timestamp(6)
+  orders                      orders[]
 }
 
 enum RoleType {
-    STAFF
-    AGENT
-    SALES_POINT
-    POET
-    VIDEO_EDITOR
+  STAFF
+  AGENT
+  SALES_POINT
+  POET
+  VIDEO_EDITOR
 
-    @@map("role_types")
+  @@map("role_types")
 }
 
 enum TokenType {
-    TELEGRAM_AUTH
+  TELEGRAM_AUTH
 
-    @@map("token_types")
+  @@map("token_types")
 }
 
 enum NotificationType {
-    AUTH_LOGIN
+  AUTH_LOGIN
 
-    @@map("notification_types")
+  @@map("notification_types")
+}
+
+enum roletype {
+  STAFF
+  AGENT
+  SALES_POINT
+  POET
+  VIDEO_EDITOR
+}
+
+enum tokentype {
+  TELEGRAM_AUTH
+}
+
+model Agent {
+  id               Int      @id @default(autoincrement())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int      @unique @map("user_id")
+  fullName         String   @map("full_name")
+  city             String
+  inn              String
+  phone            String
+  businessType     String   @map("business_type")
+  bik              String?
+  account          String?
+  bankName         String?  @map("bank_name")
+  bankKs           String?  @map("bank_ks")
+  bankDetails      String   @map("bank_details")
+  approved         Boolean  @default(false)
+  contractSigned   Boolean  @default(false) @map("contract_signed")
+  referralCode     String?  @unique @map("referral_code")
+  registrationDate DateTime @default(now()) @map("registration_date")
+
+  // salesPoints SalesPoint[]
+}
+
+model Poet {
+  id               Int      @id @default(autoincrement())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int      @unique @map("user_id")
+  fullName         String   @map("full_name")
+  city             String
+  inn              String
+  phone            String
+  businessType     String   @map("business_type")
+  bik              String?
+  account          String?
+  bankName         String?  @map("bank_name")
+  bankKs           String?  @map("bank_ks")
+  bankDetails      String   @map("bank_details")
+  approved         Boolean  @default(false)
+  contractSigned   Boolean  @default(false) @map("contract_signed")
+  registrationDate DateTime @default(now()) @map("registration_date")
+
+  @@map("poets")
+}
+
+model SalesPoint {
+  id               Int      @id @default(autoincrement())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int      @unique @map("user_id")
+  agentId          Int      @map("agent_id")
+  fullName         String   @map("full_name")
+  city             String
+  inn              String
+  phone            String
+  businessType     String   @map("business_type")
+  bik              String?
+  account          String?
+  bankName         String?  @map("bank_name")
+  bankKs           String?  @map("bank_ks")
+  bankDetails      String   @map("bank_details")
+  approved         Boolean  @default(false)
+  contractSigned   Boolean  @default(false) @map("contract_signed")
+  referralCode     String?  @map("referral_code")
+  registrationDate DateTime @default(now()) @map("registration_date")
+
+  @@map("sales_points")
+}
+
+model VideoEditor {
+  id               Int      @id @default(autoincrement())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int      @unique @map("user_id")
+  fullName         String   @map("full_name")
+  city             String
+  inn              String
+  phone            String
+  businessType     String   @map("business_type")
+  bik              String?
+  account          String?
+  bankName         String?  @map("bank_name")
+  bankKs           String?  @map("bank_ks")
+  bankDetails      String   @map("bank_details")
+  approved         Boolean  @default(false)
+  contractSigned   Boolean  @default(false) @map("contract_signed")
+  registrationDate DateTime @default(now()) @map("registration_date")
+
+  @@map("video_editors")
+}
+
+model Staff {
+  id     Int  @id @default(autoincrement())
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int  @unique @map("user_id")
+
+  firstName String  @map("first_name")
+  midleName String? @map("midle_name")
+  lastName  String  @map("last_name")
+
+  permissions String @default("")
+
+  notifications        Notification[]
+  notificationSettings NotificationSettings?
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  avatar      String?
+  displayName String  @map("display_name")
+  telegramTeg String  @map("telegram_teg")
+  telegramId  String  @unique @map("telegram_id")
+
+  tokens Token[]
+
+  staff        Staff?
+  agent        Agent?
+  sales        SalesPoint?
+  poet         Poet?
+  vidio_editor VideoEditor?
+}
+
+model Token {
+  id Int @id @default(autoincrement())
+
+  token     String    @unique
+  type      TokenType
+  expiresIn DateTime  @map("expires_in")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updateAt  DateTime @updatedAt @map("updated_at")
+
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?  @map("user_id")
+
+  @@map("tokens")
+}
+
+model Notification {
+  id String @id @default(uuid())
+
+  message String
+  type    NotificationType
+  isRead  Boolean          @default(false) @map("is_read")
+
+  user   Staff? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?   @map("user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("notifications")
+}
+
+model NotificationSettings {
+  id String @id @default(uuid())
+
+  authLogin     Boolean @default(true) @map("auth_login")
+  passwordReset Boolean @default(true) @map("password_reset")
+
+  user   Staff @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int   @unique @map("user_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("notification_settings")
 }
