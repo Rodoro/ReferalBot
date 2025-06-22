@@ -7,6 +7,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from newBot.config import settings
 from newBot.db import SessionLocal
+from newBot.lib.user_roles import get_user_roles
 from newBot.services.poet_service import PoetService
 from aiogram import Bot
 
@@ -28,21 +29,24 @@ def poet_confirmation_keyboard():
     return kb.as_markup()
 
 async def cmd_start_poet_secret(message: types.Message, state: FSMContext):
-    user_id = message.from_user.id
     db = SessionLocal()
     try:
-        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
-        role, profile = get_user_role(db, user_id)
-        if role:
-            if role == UserRole.POET:
-                await send_profile(message.bot, message.chat.id, role, profile, message.from_user, db)
-            else:
-                await message.answer(
-                    f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать поэтом."
-                )
-            return
+        user_svc = UserService(db)
+        user = user_svc.get_or_create_user(
+            telegram_id=message.from_user.id,
+            full_name=message.from_user.full_name or "",
+            username=message.from_user.username or "",
+        )
+        user_id = user.get("id")
     finally:
         db.close()
+
+    
+    roles = get_user_roles(db, user_id)
+
+    if any(item[0] == 'poet' for item in roles):
+        await message.answer("Вы уже зарегистрированы как поэт.")
+        return
 
     await message.answer(
         "✍️ Регистрация Поэта.\n\nЧтобы начать, нажмите кнопку «Старт регистрации поэта»",

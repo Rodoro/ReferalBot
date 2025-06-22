@@ -6,6 +6,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from newBot.config import settings
 from newBot.db import SessionLocal
+from newBot.lib.user_roles import get_user_roles
 from newBot.services.agent_service import AgentService
 from newBot.services.sales_point_service import SalesPointService
 from newBot.services.user_service import UserService
@@ -44,16 +45,23 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
 
     db = SessionLocal()
     try:
-        from newBot.lib.user_roles import get_user_role, ROLE_NAMES, UserRole, send_profile
-        role, profile = get_user_role(db, user_id)
-        role, profile = get_user_role(db, user_id)
-        if role:
-            if role == UserRole.SALES_POINT:
-                await send_profile(message.bot, message.chat.id, role, profile, message.from_user, db)
-            else:
-                await message.answer(
-                    f"⚠️ Вы уже зарегистрированы как {ROLE_NAMES[role]} и не можете стать точкой продаж."
-                )
+        db = SessionLocal()
+        try:
+            user_svc = UserService(db)
+            user = user_svc.get_or_create_user(
+                telegram_id=message.from_user.id,
+                full_name=message.from_user.full_name or "",
+                username=message.from_user.username or "",
+            )
+            user_id = user.get("id")
+        finally:
+            db.close()
+
+        
+        roles = get_user_roles(db, user_id)
+
+        if any(item[0] == 'sales_point' for item in roles):
+            await message.answer("Вы уже зарегистрированы как точка продажи.")
             return
 
         # 3) Проверяем корректность ссылки агента: найдём agent по коду
@@ -76,6 +84,8 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
 
     finally:
         db.close()
+
+    
 
     # Сохраняем agent_id и далее показываем кнопку «Старт регистрации точки продаж»
     await state.update_data(agent_id=agent_id, agent_name=agent_name)
