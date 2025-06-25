@@ -4,10 +4,10 @@ import { DailyStatDto } from './dto/daily-stat.dto';
 
 @Injectable()
 export class StatisticsService {
-    constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) { }
 
-    async getDaily(): Promise<DailyStatDto[]> {
-        const rows = await this.prisma.$queryRawUnsafe<any[]>(`
+  async getDaily(): Promise<DailyStatDto[]> {
+    const rows = await this.prisma.$queryRawUnsafe<any[]>(`
       SELECT
         CAST(DATE(a."timestamp") AS TEXT) AS date,
         ag."full_name" AS agent_name,
@@ -25,16 +25,16 @@ export class StatisticsService {
       ORDER BY DATE(a."timestamp") DESC;
     `);
 
-        return rows.map((r) => ({
-            date: r.date,
-            agentName: r.agent_name ?? '',
-            pointName: r.point_name ?? '',
-            newClients: Number(r.new_clients ?? 0),
-            songGenerations: Number(r.song_generations ?? 0),
-            trialGenerations: Number(r.trial_generations ?? 0),
-            purchasedSongs: Number(r.purchased_songs ?? 0),
-            poemOrders: Number(r.poem_orders ?? 0),
-            videoOrders: Number(r.video_orders ?? 0),
-        }));
-    }
+    return rows.map((r) => ({
+      date: r.date,
+      agentName: r.agent_name && r.agent_name.trim() !== '' ? r.agent_name : 'Неопределенного',
+      pointName: r.point_name && r.point_name.trim() !== '' ? r.point_name : 'Неопределенного',
+      newClients: Number(r.new_clients ?? 0),
+      songGenerations: Number(r.song_generations ?? 0),
+      trialGenerations: Number(r.trial_generations ?? 0),
+      purchasedSongs: Number(r.purchased_songs ?? 0),
+      poemOrders: Number(r.poem_orders ?? 0),
+      videoOrders: Number(r.video_orders ?? 0),
+    }));
+  }
 }
