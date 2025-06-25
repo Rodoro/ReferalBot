@@ -16,7 +16,7 @@ export const commonSidebarContent = {
     navSecondary: [
         {
             title: "Рефиральный Bot",
-            url: "https://t.me/TestBotReferalSystemBot",
+            url: process.env.NEXT_PUBLIC_REFBOT,
             icon: Send,
         },
         {
@@ -66,17 +66,17 @@ const adminchikContent: TeamContent = {
     projects: [
         {
             name: "Консультант",
-            url: "https://t.me/TestBotReferalSystemBot?start=secret_6A3C3FFB",
+            url: process.env.NEXT_PUBLIC_REFBOT + "?start=secret_6A3C3FFB",
             icon: <FaUserSecret />,
         },
         {
             name: "Поэта",
-            url: "https://t.me/TestBotReferalSystemBot?start=poet_6A3C3BBB",
+            url: process.env.NEXT_PUBLIC_REFBOT + "?start=poet_6A3C3BBB",
             icon: <FaBookBookmark />,
         },
         {
             name: "Видеомантажер",
-            url: "https://t.me/TestBotReferalSystemBot?start=ve_6A3C3AAA",
+            url: process.env.NEXT_PUBLIC_REFBOT + "?start=ve_6A3C3AAA",
             icon: <IoIosMusicalNotes />,
         },
     ],

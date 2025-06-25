@@ -76,6 +76,7 @@ export function ServiceStatsPanel() {
             try {
                 setLoading(true);
                 const data = await getDailyStats();
+                console.log(data)
                 setRawData(data);
                 setError(null);
             } catch (e) {
@@ -441,8 +442,8 @@ export function ServiceStatsPanel() {
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
                             <SelectItem value="all">Все консультанты</SelectItem>
-                            {agentOptions.map((agent) => (
-                                <SelectItem key={agent} value={agent}>
+                            {agentOptions.map((agent, index) => (
+                                <SelectItem key={index} value={agent}>
                                     {agent}
                                 </SelectItem>
                             ))}
@@ -616,7 +617,7 @@ export function ServiceStatsPanel() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {table.getRowModel().rows.length > 0 ? (
+                        {table.getRowModel().rows?.length > 0 ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow key={row.id}>
                                     {row.getVisibleCells().map((cell) => (

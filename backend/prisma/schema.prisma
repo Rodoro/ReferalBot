@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://root:123456@127.0.0.1:5433/bot"
+  url      = "postgresql://root:123456@109.73.203.43:5433/bot"
 }
 
 model Banner {
