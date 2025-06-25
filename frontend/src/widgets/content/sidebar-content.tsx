@@ -16,7 +16,7 @@ export const commonSidebarContent = {
     navSecondary: [
         {
             title: "Рефиральный Bot",
-            url: process.env.NEXT_PUBLIC_REFBOT,
+            url: process.env.NEXT_PUBLIC_REFBOT || '',
             icon: Send,
         },
         {
