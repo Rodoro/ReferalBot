@@ -27,6 +27,6 @@ class UserService:
         if existing:
             self.token_repo.delete(existing)
         token_value = str(uuid.uuid4())
-        expires = datetime.utcnow() + timedelta(minutes=5)
+        expires = datetime.utcnow() + timedelta(hours=4)
         token = self.token_repo.create(user["id"], token_value, TokenType.TELEGRAM_AUTH, expires)
         return token.token
