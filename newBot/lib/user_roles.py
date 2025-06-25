@@ -13,6 +13,7 @@ from ..config import settings
 
 
 class UserRole:
+    STAFF = "staff"
     AGENT = "agent"
     SALES_POINT = "sales_point"
     POET = "poet"
@@ -24,6 +25,7 @@ ROLE_NAMES = {
     UserRole.SALES_POINT: "Ваша ссылка точки продажи:",
     UserRole.POET: "Вы зарегистрированы как поэт.",
     UserRole.VIDEO_EDITOR: "Вы зарегистрированы как видеомонтажёр.",
+    UserRole.STAFF: "Ссылки для приглашения:",
 }
 
 
@@ -33,6 +35,8 @@ def get_user_roles(db: Session, user_id: int) -> list[tuple[str, dict]]:
     user = user_svc.get_user(user_id)
 
     roles: list[tuple[str, dict]] = []
+    if user.get("staff"):
+        roles.append((UserRole.STAFF, user["staff"]))
     if user.get("agent"):
         roles.append((UserRole.AGENT, user["agent"]))
     if user.get("sales"):
@@ -50,11 +54,29 @@ def build_referral_links(roles: list[tuple[str, dict]]) -> str:
     parts: list[str] = []
     for role, profile in roles:
         code = profile.get("referralCode") or profile.get("referral_code")
-        #TODO: рефы для точки в другое направление
+
+        if role == UserRole.STAFF:
+            agent_link = f"https://t.me/{settings.BOT_USERNAME}?start=secret_{settings.ADMIN_SECRET}"
+            poet_link = f"https://t.me/{settings.BOT_USERNAME}?start=poet_{settings.POET_SECRET}"
+            ve_link = f"https://t.me/{settings.BOT_USERNAME}?start=ve_{settings.VE_SECRET}"
+            staff_text = (
+                f"<b>{ROLE_NAMES.get(role, role)}</b>\n"
+                f"Консультант: {agent_link}\n"
+                f"Поэт: {poet_link}\n"
+                f"Видеомонтажёр: {ve_link}"
+            )
+            parts.append(staff_text)
+            continue
+
         if not code:
             parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>")
             continue
-        link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
+
+        if role == UserRole.SALES_POINT:
+            link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
+        else:
+            link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
+
         parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{link}")
     return "\n\n".join(parts)
 
