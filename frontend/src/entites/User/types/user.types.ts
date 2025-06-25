@@ -1,3 +1,13 @@
+export interface AgentInfo {
+    id: number
+    fullName?: string
+}
+
+export interface SalesPointInfo {
+    id: number
+    fullName?: string
+}
+
 export interface User {
     id: number
 
@@ -7,8 +17,8 @@ export interface User {
     telegramTeg: string
 
     staff?: unknown | null
-    agent?: unknown | null
-    sales?: unknown | null
+    agent?: AgentInfo | null
+    sales?: SalesPointInfo | null
     poet?: unknown | null
     vidio_editor?: unknown | null
 }

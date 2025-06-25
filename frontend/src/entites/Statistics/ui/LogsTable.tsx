@@ -3,7 +3,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from "react";
-import { getDailyStats, DailyStat } from "../lib/api/service-stats-api";
+import {
+    getDailyStats,
+    getDailyStatsByAgent,
+    getDailyStatsBySalesPoint,
+    DailyStat,
+} from "../lib/api/service-stats-api";
 import {
     ColumnDef,
     flexRender,
@@ -56,7 +61,19 @@ type ServiceStatRow = {
     payable: number; // accrued × (percent/100)
 };
 
-export function ServiceStatsPanel() {
+export type StatsMode = 'all' | 'agent' | 'salesPoint';
+
+interface ServiceStatsPanelProps {
+    mode?: StatsMode;
+    id?: number;
+    showAgentFilter?: boolean;
+}
+
+export function ServiceStatsPanel({
+    mode = 'all',
+    id,
+    showAgentFilter = mode === 'all',
+}: ServiceStatsPanelProps) {
     // 1) Сырые «дневные» события и состояние загрузки/ошибки
     const [rawData, setRawData] = useState<DailyStat[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -75,19 +92,25 @@ export function ServiceStatsPanel() {
         async function fetchAll() {
             try {
                 setLoading(true);
-                const data = await getDailyStats();
-                console.log(data)
+                let data: DailyStat[] = [];
+                if (mode === 'agent' && id) {
+                    data = await getDailyStatsByAgent(id);
+                } else if (mode === 'salesPoint' && id) {
+                    data = await getDailyStatsBySalesPoint(id);
+                } else {
+                    data = await getDailyStats();
+                }
                 setRawData(data);
                 setError(null);
             } catch (e) {
                 console.error(e);
-                setError("Ошибка загрузки данных");
+                setError('Ошибка загрузки данных');
             } finally {
                 setLoading(false);
             }
         }
         fetchAll();
-    }, []);
+    }, [mode, id]);
 
     // 4) Проверка, попадает ли дата в выбранный период
     function isInPeriod(dateStr: string, period: typeof selectedPeriod): boolean {
@@ -130,7 +153,7 @@ export function ServiceStatsPanel() {
     const filteredEvents = useMemo(() => {
         return rawData.filter((row) => {
             if (!isInPeriod(row.date, selectedPeriod)) return false;
-            if (selectedAgent !== "all" && row.agentName !== selectedAgent) return false;
+            if (showAgentFilter && selectedAgent !== "all" && row.agentName !== selectedAgent) return false;
             const text = searchValue.trim().toLowerCase();
             if (text) {
                 const a = row.agentName.toLowerCase();
@@ -433,22 +456,24 @@ export function ServiceStatsPanel() {
                     </Select>
 
                     {/* Консультант */}
-                    <Select
-                        value={selectedAgent}
-                        onValueChange={(v) => setSelectedAgent(v)}
-                    >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Консультант" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                            <SelectItem value="all">Все консультанты</SelectItem>
-                            {agentOptions.map((agent, index) => (
-                                <SelectItem key={index} value={agent}>
-                                    {agent}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {showAgentFilter && (
+                        <Select
+                            value={selectedAgent}
+                            onValueChange={(v) => setSelectedAgent(v)}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Консультант" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                                <SelectItem value="all">Все консультанты</SelectItem>
+                                {agentOptions.map((agent, index) => (
+                                    <SelectItem key={index} value={agent}>
+                                        {agent}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
 
                     {/* Поиск */}
                     <Input

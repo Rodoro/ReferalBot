@@ -15,3 +15,11 @@ export type DailyStat = {
 export async function getDailyStats(): Promise<DailyStat[]> {
     return apiClient.get('/statistics/daily');
 }
+
+export async function getDailyStatsByAgent(id: number): Promise<DailyStat[]> {
+    return apiClient.get(`/statistics/agent/${id}/daily`);
+}
+
+export async function getDailyStatsBySalesPoint(id: number): Promise<DailyStat[]> {
+    return apiClient.get(`/statistics/sales-point/${id}/daily`);
+}
