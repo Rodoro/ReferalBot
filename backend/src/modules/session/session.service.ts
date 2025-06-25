@@ -100,7 +100,10 @@ export class SessionService {
 
     public async clearSession(req: Request) {
         req.res?.clearCookie(
-            this.configService.getOrThrow<string>('SESSION_NAME')
+            this.configService.getOrThrow<string>('SESSION_NAME'),
+            {
+                domain: this.configService.getOrThrow<string>('SESSION_DOMAIN')
+            }
         )
         return true
     }

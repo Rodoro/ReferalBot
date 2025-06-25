@@ -30,7 +30,12 @@ export function destroySession(req: Request, configService: ConfigService) {
                 return reject(new InternalServerErrorException('Не удалось заверщить сессию'))
             }
 
-            req.res?.clearCookie(configService.getOrThrow<string>('SESSION_NAME'))
+            req.res?.clearCookie(
+                configService.getOrThrow<string>('SESSION_NAME'),
+                {
+                    domain: configService.getOrThrow<string>('SESSION_DOMAIN')
+                }
+            )
             resolve(true)
         })
     })
