@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import subprocess
 from pathlib import Path
 
 from aiogram import Bot, Dispatcher, Router
@@ -15,6 +14,7 @@ from .config import settings
 router = Router()
 
 BACKUP_FILE = Path("backup.sql")
+BACKUP_INTERVAL = 6 * 60 * 60  # seconds
 
 async def run_backup() -> Path:
     """Dump database using docker and return path to created file."""
@@ -39,6 +39,22 @@ async def run_backup() -> Path:
     BACKUP_FILE.write_bytes(stdout)
     return BACKUP_FILE
 
+
+async def periodic_backup(bot: Bot) -> None:
+    """Periodically create and send database backups."""
+    chat_id, thread_id = '-1002806831697', '2'
+    while True:
+        try:
+            path = await run_backup()
+            await bot.send_document(chat_id, FSInputFile(path), message_thread_id=thread_id)
+            logging.info("Backup sent")
+        except TelegramBadRequest as e:
+            desc = f"{chat_id}" + (f"_{thread_id}" if thread_id else "")
+            logging.error("Failed to send backup to chat %s: %s", desc, e)
+        except Exception as e:
+            logging.error("Backup failed: %s", e)
+        await asyncio.sleep(BACKUP_INTERVAL)
+
 @router.message(Command("backup"))
 async def backup_handler(message: Message, bot: Bot) -> None:
     """Handle /backup command: create dump and send it."""
@@ -62,6 +78,7 @@ async def main() -> None:
     bot = Bot(token=settings.BACKUP_BOT_TOKEN, parse_mode=ParseMode.HTML)
     dp = Dispatcher()
     dp.include_router(router)
+    asyncio.create_task(periodic_backup(bot))
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
