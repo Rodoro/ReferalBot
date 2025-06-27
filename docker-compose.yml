@@ -1,59 +1,32 @@
 version: '3.7'
 
 services:
-    db-main:
-        container_name: postgres-bot-main
+    db:
+        container_name: postgres-bot
         image: postgres:latest
         restart: always
-        env_file:
-            - .env.main
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_DATABASE=${POSTGRES_DATABASE}
         ports:
-            - "5433:5432"
+            - 5433:5432
         volumes:
-            - postgres_main_data:/var/lib/postgresql/data
+            - postgres_data:/var/lib/postgresql/data
         networks:
             - bot-backend
 
-    db-dev:
-        container_name: postgres-bot-dev
-        image: postgres:latest 
-        restart: always
-        env_file:
-            - .env.dev
-        ports:
-            - "5434:5432"
-        volumes:
-            - postgres_dev_data:/var/lib/postgresql/data
-        networks:
-            - bot-backend
-
-    redis-main:
-        container_name: redis-bot-main
+    redis:
+        container_name: redis-bot
         image: redis:6.0
         restart: always
-        env_file:
-            - .env.main
         ports:
-            - "6379:6379"
-        command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+        - 6379:6379
+        command: redis-server --requirepass ${REDIS_PASSWORD}
         volumes:
-            - redis_main_data:/data
+        - redis_data:/data
         networks:
-            - bot-backend
-
-    redis-dev:
-        container_name: redis-bot-dev
-        image: redis:6.0
-        restart: always
-        env_file:
-            - .env.dev
-        ports:
-            - "6380:6379"
-        command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
-        volumes:
-            - redis_dev_data:/data
-        networks:
-            - bot-backend
+        - bot-backend
     # minio:
     #     image: minio/minio
     #     container_name: minio-bot
@@ -70,10 +43,8 @@ services:
     #     - bot-backend
             
 volumes:
-    postgres_main_data:
-    postgres_dev_data:
-    redis_main_data:
-    redis_dev_data:
+    postgres_data:
+    redis_data:
     minio_data:
 
 networks:
