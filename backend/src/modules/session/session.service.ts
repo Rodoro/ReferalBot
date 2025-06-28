@@ -22,6 +22,10 @@ export class SessionService {
     ) { }
 
     public async loginByToken(req: Request, tokenValue: string, userAgent: string) {
+        console.log(tokenValue)
+        if (tokenValue == undefined) {
+            throw new NotFoundException('Ссылка для регистрации не действительна')
+        }
         const record = await this.prismaService.token.findFirst({
             where: {
                 token: tokenValue,
@@ -31,6 +35,7 @@ export class SessionService {
                 user: true
             }
         })
+        console.log(record)
 
         if (!record || record.expiresIn < new Date()) {
             throw new NotFoundException('Ссылка для регистрации не действительна')
