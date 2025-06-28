@@ -3,7 +3,12 @@ import os
 from aiogram import types, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import (
+    ReplyKeyboardRemove,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    InputMediaDocument,
+)
 from newBot.config import settings
 from newBot.db import SessionLocal
 from newBot.lib.user_roles import get_user_roles
@@ -330,7 +335,7 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
 
     sp_svc = SalesPointService()
     try:
-        banner_paths, referral_link = sp_svc.sign_sales_point_contract(user_id)
+        banner_paths, qr_path, referral_link = sp_svc.sign_sales_point_contract(user_id)
     except Exception as e:
         await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
         return
@@ -344,15 +349,14 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
         text=(
             "✅ Вы успешно подписали договор как точка продаж!\n\n"
             f"Ваша реферальная ссылка:\n{referral_link}\n\n"
-            "Ниже ваш баннер с QR-кодом. Сохраните или поделитесь им для привлечения клиентов. (Это может занять немного больше, чем Вы думаете)"
+            "Ниже два баннера с QR-кодом. Сохраните или поделитесь ими для привлечения клиентов. (Это может занять немного больше, чем Вы думаете)"
         )
     )
-    for path in banner_paths:
-        await bot.send_document(
-            chat_id=tg_id,
-            document=types.FSInputFile(path),
-            caption="Ваш баннер с QR-кодом"
-        )
+    media = [InputMediaDocument(media=types.FSInputFile(p)) for p in banner_paths]
+    if media:
+        await bot.send_media_group(chat_id=tg_id, media=media)
+    await bot.send_document(chat_id=tg_id, document=types.FSInputFile(qr_path), caption="Отдельный QR-код")
+    for path in banner_paths + [qr_path]:
         os.remove(path)
 
     # Уведомляем админ-канал, что договор подписан

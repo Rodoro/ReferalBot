@@ -2,6 +2,7 @@ from newBot.config import settings
 from .backend_client import BackendClient
 from .banner_service import BannerService
 from newBot.lib.image_processor import CSVImageProcessor, generate_banner_image
+from typing import List, Tuple
 import random
 import string
 
@@ -57,9 +58,10 @@ class SalesPointService:
         banner_service = BannerService()
         banners = banner_service.list_banners()
 
-        paths: list[str] = []
+        paths: List[str] = []
         if banners:
-            for idx, banner in enumerate(banners):
+            selected = random.sample(banners, min(2, len(banners)))
+            for idx, banner in enumerate(selected):
                 image_url = banner.get("imageUrl") or banner.get("image_url")
                 left = banner.get("qrLeftOffset") or banner.get("qr_left_offset") or 0
                 top = banner.get("qrTopOffset") or banner.get("qr_top_offset") or 0
@@ -73,8 +75,13 @@ class SalesPointService:
             output_path = f"sp_qr_{user_id}.png"
             processor.process_and_save_image(referral_link, output_path)
             paths.append(output_path)
+        # plain QR code
+        qr_processor = CSVImageProcessor(settings.CSV_URL)
+        qr_output = f"sp_qr_{user_id}_plain.png"
+        qr_image = qr_processor.generate_qr_code(referral_link, settings.QR_DEFAULT_SIZE)
+        qr_image.save(qr_output)
 
-        return paths, referral_link
+        return paths, qr_output, referral_link
 
     def get_sales_point_profile(self, user_id: int) -> dict:
         return self.client.get(f"sales-point/bot/{user_id}")
