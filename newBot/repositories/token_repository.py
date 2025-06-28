@@ -17,12 +17,22 @@ class TokenRepository:
         self.db.delete(token)
         self.db.commit()
 
-    def create(self, user_id: str, token: str, token_type: str, expires_in) -> Token:
+    def create(
+        self,
+        user_id: str,
+        token: str,
+        token_type: str,
+        expires_in,
+        chat_id: str | None = None,
+        message_id: int | None = None,
+    ) -> Token:
         tk = Token(
             token=token,
             type=token_type,
             expires_in=expires_in,
             user_id=user_id,
+            chat_id=chat_id,
+            message_id=message_id,
         )
         self.db.add(tk)
         self.db.commit()

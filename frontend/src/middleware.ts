@@ -21,7 +21,8 @@ export function middleware(request: NextRequest) {
     )
 
     if (isPublicPath) {
-        if (session) {
+        const hasToken = request.nextUrl.searchParams.has('key')
+        if (session && !hasToken) {
             const url = request.nextUrl.clone()
             url.pathname = '/'
             return NextResponse.redirect(url)

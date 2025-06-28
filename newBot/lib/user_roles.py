@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 from aiogram import Bot, types
 from aiogram.utils.keyboard import InlineKeyboardButton, InlineKeyboardMarkup
+import uuid
 
 from ..services.agent_service import AgentService
 from ..services.sales_point_service import SalesPointService
@@ -121,8 +122,8 @@ async def send_profile(
         full_name=tg_user.full_name,
         username=tg_user.username or ""
     )
-    token = user_svc.generate_token(user)
-    link = f"{settings.DASHBOARD_URL}login?key={token}"
+    token_value = str(uuid.uuid4())
+    link = f"{settings.DASHBOARD_URL}login?key={token_value}"
 
     if role == UserRole.AGENT:
         text = (
@@ -162,8 +163,12 @@ async def send_profile(
         )
 
     keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="Открыть дашборд", url=link)]
-        ]
+        inline_keyboard=[[InlineKeyboardButton(text="Открыть дашборд", url=link)]]
     )
-    await bot.send_message(chat_id, text, reply_markup=keyboard)
+    sent = await bot.send_message(chat_id, text, reply_markup=keyboard)
+    user_svc.store_token(
+        user,
+        token_value,
+        chat_id=str(sent.chat.id),
+        message_id=sent.message_id,
+    )

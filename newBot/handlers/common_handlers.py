@@ -26,14 +26,13 @@ async def cmd_start(message: types.Message, bot: Bot) -> None:
 
         if roles:
             text = build_referral_links(roles)
-            token = user_svc.generate_token(user)
-            # print(token)
+            token_value = user_svc.generate_token(user)
 
             keyboard = types.InlineKeyboardMarkup(
                 inline_keyboard=[[
                     types.InlineKeyboardButton(
                         text="Перейти на сайт",
-                        url=f"{settings.DASHBOARD_URL}login?key={token}",
+                        url=f"{settings.DASHBOARD_URL}login?key={token_value}",
                     )
                 ]]
             )
@@ -43,6 +42,13 @@ async def cmd_start(message: types.Message, bot: Bot) -> None:
                 "Вы ещё не зарегистрированы. Используйте полученную ссылку для начала регистрации."
             )
 
-        await bot.send_message(message.chat.id, text, reply_markup=keyboard, parse_mode="HTML")
+        sent = await bot.send_message(message.chat.id, text, reply_markup=keyboard, parse_mode="HTML")
+        if roles:
+            user_svc.store_token(
+                user,
+                token_value,
+                chat_id=str(sent.chat.id),
+                message_id=sent.message_id,
+            )
     finally:
         db.close()

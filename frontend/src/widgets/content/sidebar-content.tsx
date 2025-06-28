@@ -94,7 +94,7 @@ const staffTeamContent: TeamContent = adminchikContent
 const agentTeamContent: TeamContent = {
     navMain: [
         {
-            title: "Метрики",
+            title: "Консультант",
             url: "/consultant/metrics",
             icon: AreaChart,
             isActive: true,

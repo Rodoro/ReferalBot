@@ -10,7 +10,7 @@ import { StaffResponseDto } from '../staff/dto/staff-response.dto';
 import { getSessionMetadata } from '@/src/shared/utils/session-metadata.util';
 import { RedisService } from '@/src/core/redis/redis.service';
 import { UserResponseDto } from '../user/dto/user-response.dto';
-// import { TelegramService } from '../telegram/telegram.service';
+import { TelegramService } from '../telegram/telegram.service';
 
 @Injectable()
 export class SessionService {
@@ -18,7 +18,7 @@ export class SessionService {
         private readonly prismaService: PrismaService,
         private readonly configService: ConfigService,
         private readonly redisService: RedisService,
-        // private readonly telegramService: TelegramService,
+        private readonly telegramService: TelegramService,
     ) { }
 
     public async loginByToken(req: Request, tokenValue: string, userAgent: string) {
@@ -41,6 +41,10 @@ export class SessionService {
         await saveSession(req, record.user as any, metadata)
 
         await this.prismaService.token.delete({ where: { id: record.id } })
+
+        if (record.messageId && record.chatId) {
+            await this.telegramService.removeKeyboard(record.chatId, record.messageId)
+        }
 
         return plainToInstance(UserResponseDto, record.user)
     }

@@ -39,5 +39,8 @@ class Token(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    message_id = Column(Integer, nullable=True)
+    chat_id = Column(String, nullable=True)
+
     user_id = Column(Integer, ForeignKey("User.id", ondelete="CASCADE"))
     user = relationship("User", back_populates="tokens")
