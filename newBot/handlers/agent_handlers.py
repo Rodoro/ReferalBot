@@ -210,7 +210,8 @@ async def agent_confirm_data(callback: types.CallbackQuery, state: FSMContext, b
 
     # Отправляем админу не просто текст, а текст + клавиатуру:
     await bot.send_message(
-        chat_id='-1002806831697_63',
+        chat_id='-1002806831697',
+        message_thread_id=63,
         text=(
             f"Новый кандидат в консультанты:\n"
             f"- Telegram ID: {telegram_id}\n"
@@ -287,7 +288,8 @@ async def handle_agent_sign_contract(
 
     # Уведомляем админ‐канал, что договор подписан
     await bot.send_message(
-        chat_id='-1002806831697_63',
+        chat_id='-1002806831697',
+        message_thread_id=63,
         text=f"➡️ Консультант {tg_id} подписал договор."
     )
 
