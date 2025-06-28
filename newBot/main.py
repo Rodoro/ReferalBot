@@ -36,6 +36,7 @@ from newBot.lib.webapp_utils import payload_sales_id, payload_form_type
 logging.basicConfig(level=logging.INFO)
 
 async def main():
+    print(settings.CHANNEL_ID)
     bot = Bot(token=settings.BOT_TOKEN, parse_mode=ParseMode.HTML)
     dp = Dispatcher(storage=MemoryStorage())
 

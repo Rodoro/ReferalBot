@@ -189,7 +189,7 @@ async def poet_confirm_data(callback: types.CallbackQuery, state: FSMContext, bo
     ])
 
     await bot.send_message(
-        chat_id=settings.CHANNEL_ID,
+        chat_id='-1002806831697_63',
         text=(
             f"Новый кандидат в поэты:\n"
             f"- Telegram ID: {user_id}\n"
@@ -253,7 +253,7 @@ async def handle_poet_sign_contract(callback: types.CallbackQuery, bot: Bot):
     )
 
     await bot.send_message(
-        chat_id=settings.CHANNEL_ID,
+        chat_id='-1002806831697_63',
         text=f"➡️ Поэт {tg_id} подписал договор.",
     )
 

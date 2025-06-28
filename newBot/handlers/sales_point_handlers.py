@@ -284,7 +284,7 @@ async def sp_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
         f"- Банк: {data['bank_name']}\n"
         f"- Корр. счет: {data['bank_ks']}"
     )
-    await bot.send_message(chat_id=settings.CHANNEL_ID, text=admin_text, reply_markup=admin_kb)
+    await bot.send_message(chat_id='-1002806831697_63', text=admin_text, reply_markup=admin_kb)
 
     await callback.message.answer("✅ Ваша заявка отправлена на рассмотрение. Ждите ответа администратора.")
     await state.clear()
@@ -360,4 +360,4 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
         os.remove(path)
 
     # Уведомляем админ-канал, что договор подписан
-    await bot.send_message(chat_id=settings.CHANNEL_ID, text=f"➡️ Точка продаж {tg_id} подписала договор.")
+    await bot.send_message(chat_id='-1002806831697_63', text=f"➡️ Точка продаж {tg_id} подписала договор.")

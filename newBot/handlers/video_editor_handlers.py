@@ -172,7 +172,7 @@ async def ve_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
     ])
 
     await bot.send_message(
-        chat_id=settings.CHANNEL_ID,
+        chat_id='-1002806831697_63',
         text=(
             f"Новый кандидат в видеомонтажёры:\n"
             f"- Telegram ID: {user_id}\n"
@@ -236,7 +236,7 @@ async def handle_ve_sign_contract(callback: types.CallbackQuery, bot: Bot):
     )
 
     await bot.send_message(
-        chat_id=settings.CHANNEL_ID,
+        chat_id='-1002806831697_63',
         text=f"➡️ Видеомонтажёр {tg_id} подписал договор.",
     )
 

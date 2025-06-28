@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     ADMIN_SECRET: str = Field(..., env="ADMIN_SECRET")
     POET_SECRET: str = Field(..., env="POET_SECRET")
     VE_SECRET: str = Field(..., env="VE_SECRET")
-    CHANNEL_ID: int = Field(..., env="CHANNEL_ID")
+    CHANNEL_ID: str = Field(..., env="CHANNEL_ID")
 
     BOT_USERNAME: str = Field(..., env="BOT_USERNAME")
     MAIN_BOT_USERNAME: str = Field(..., env="MAIN_BOT_USERNAME")
