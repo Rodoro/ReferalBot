@@ -20,4 +20,7 @@ export const bannerApi = {
     duplicate(id: number): Promise<Banner> {
         return apiClient.post(`/banners/${id}/duplicate`)
     },
+    exportXml(): Promise<Blob> {
+        return apiClient.download('/banners/export')
+    },
 }

@@ -9,4 +9,10 @@ export class CreateBannerDto {
 
     @ApiProperty()
     qrSize: number;
+
+    @ApiProperty()
+    width: number;
+
+    @ApiProperty()
+    height: number;
 }

@@ -19,17 +19,19 @@ import {
 } from '@/shared/ui/form/dropdown-menu'
 import { ConfirmModal } from '@/shared/ui/overlay/ConfirmModal'
 import { toast } from 'sonner'
-import { Copy, Pencil, Share2, Trash2 } from 'lucide-react'
+import { Copy, Pencil, Share2, Trash2, Clipboard } from 'lucide-react'
+
 
 function BannerCardSkeleton() {
     return (
-        <Card className="p-0 max-w-96">
+        <Card className="p-0 max-w-96 gap-0">
             <CardContent className="p-0">
                 <Skeleton className="w-full h-[507px]" />
             </CardContent>
-            <CardFooter className="justify-between">
+            <CardFooter className="justify-between p-2">
                 <Skeleton className="h-4 w-24" />
                 <div className="flex gap-2">
+                    <Skeleton className="size-9" />
                     <Skeleton className="size-9" />
                     <Skeleton className="size-9" />
                 </div>
@@ -62,6 +64,18 @@ export default function BannersGrid() {
         toast.success('Баннер продублирован')
     }
 
+    const handleCopySettings = (b: Banner) => {
+        const settings = {
+            qrTopOffset: b.qrTopOffset,
+            qrLeftOffset: b.qrLeftOffset,
+            qrSize: b.qrSize,
+            width: b.width,
+            height: b.height,
+        }
+        navigator.clipboard.writeText(JSON.stringify(settings))
+        toast.success('Настройки скопированы')
+    }
+
     if (data === null) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 max-w-[1184px]">
@@ -75,16 +89,8 @@ export default function BannersGrid() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 max-w-[1184px]">
             {data.map(b => {
-                // TODO: Добавить предпросмотр qr кодов
-                // const size = sizes[b.id] || { w: 500, h: 300 }
-                // console.log(size)
-                // const scaleImg = 3
-                // const top = `${(b.qrTopOffset / size.h / scaleImg) * 100}%`
-                // const left = `${(b.qrLeftOffset / size.w / scaleImg) * 100}%`
-                // const qrW = `${(b.qrSize / size.w / scaleImg) * 100}%`
-                // const qrH = `${(b.qrSize / size.h / scaleImg) * 100}%`
                 return (
-                    <Card key={b.id} className="p-0 max-w-96 gap-2">
+                    <Card key={b.id} className="p-0 max-w-96 gap-0 bg-muted">
                         <CardContent className="p-0 relative">
                             <Image
                                 src={b.imageUrl}
@@ -92,17 +98,21 @@ export default function BannersGrid() {
                                 width={600}
                                 height={300}
                                 className="w-full h-auto rounded-t-lg"
-                            // onLoadingComplete={img => setSizes(prev => ({ ...prev, [b.id]: { w: img.naturalWidth, h: img.naturalHeight } }))}
                             />
-                            {/* <div
+                            <div
                                 className="absolute bg-black/50 text-white flex items-center justify-center"
-                                style={{ top, left, width: qrW, height: qrH }}
+                                style={{
+                                    top: `${(b.qrTopOffset / b.height) * 100}%`,
+                                    left: `${(b.qrLeftOffset / b.width) * 100}%`,
+                                    width: `${(b.qrSize / b.width) * 100}%`,
+                                    height: `${(b.qrSize / b.height) * 100}%`,
+                                }}
                             >
                                 QR
-                            </div> */}
+                            </div>
                         </CardContent>
-                        <CardFooter className="justify-between pb-2">
-                            <span className="text-sm text-muted-foreground">{formatDate(b.createdAt)}</span>
+                        <CardFooter className="justify-between p-2 bg-white rounded-b-lg">
+                            <span className="text-sm pl-2 text-muted-foreground">{formatDate(b.createdAt)}</span>
                             <div className="flex gap-2">
                                 <Link href={`/files/banners/${b.id}`}>
                                     <Button variant="ghost" size="icon">
@@ -127,6 +137,9 @@ export default function BannersGrid() {
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem onSelect={() => handleDuplicate(b.id)}>
                                             <Copy /> Дублировать
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => handleCopySettings(b)}>
+                                            <Clipboard /> Скопировать настройки
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => handleCopy(b.imageUrl)}>
                                             <Share2 /> Поделиться

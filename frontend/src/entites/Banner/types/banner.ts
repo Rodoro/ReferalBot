@@ -4,5 +4,7 @@ export interface Banner {
     qrTopOffset: number;
     qrLeftOffset: number;
     qrSize: number;
+    width: number;
+    height: number;
     createdAt: string;
 }

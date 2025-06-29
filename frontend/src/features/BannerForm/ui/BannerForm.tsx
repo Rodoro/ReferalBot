@@ -21,7 +21,7 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
     const scaleImg = 6
 
     const router = useRouter()
-    const [imageSize, setImageSize] = useState({ width: 500, height: 300 })
+    const [imageSize, setImageSize] = useState({ width: initialValues?.width ?? 500, height: initialValues?.height ?? 300 })
     const [file, setFile] = useState<File | null>(null)
     const [preview, setPreview] = useState(initialValues?.imageUrl ?? '')
     const form = useForm<BannerFormValues>({
@@ -45,6 +45,8 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
         formData.append('qrTopOffset', String(data.qrTopOffset))
         formData.append('qrLeftOffset', String(data.qrLeftOffset))
         formData.append('qrSize', String(data.qrSize))
+        formData.append('width', String(imageSize.width))
+        formData.append('height', String(imageSize.height))
 
         if (bannerId) {
             await bannerApi.update(bannerId, formData)
@@ -87,6 +89,18 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
                             </label>
 
                         </div>
+                        <Button type="button" variant="outline" className="mt-2" onClick={async () => {
+                            const text = await navigator.clipboard.readText();
+                            try {
+                                const settings = JSON.parse(text);
+                                if (settings.width && settings.height) setImageSize({ width: settings.width, height: settings.height });
+                                form.setValue('qrTopOffset', settings.qrTopOffset ?? 0);
+                                form.setValue('qrLeftOffset', settings.qrLeftOffset ?? 0);
+                                form.setValue('qrSize', settings.qrSize ?? 100);
+                            } catch {
+                                toast.error('Не удалось вставить настройки');
+                            }
+                        }}>Вставить настройки</Button>
                     </FormControl>
                 </FormItem>
                 <div className="grid gap-4">

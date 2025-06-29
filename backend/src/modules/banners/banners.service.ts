@@ -19,6 +19,8 @@ export class BannersService {
         if (data.qrTopOffset !== undefined) result.qrTopOffset = Number(data.qrTopOffset);
         if (data.qrLeftOffset !== undefined) result.qrLeftOffset = Number(data.qrLeftOffset);
         if (data.qrSize !== undefined) result.qrSize = Number(data.qrSize);
+        if (data.width !== undefined) result.width = Number(data.width);
+        if (data.height !== undefined) result.height = Number(data.height);
         return result;
     }
 
@@ -38,7 +40,7 @@ export class BannersService {
     }
 
     async update(id: number, data: UpdateBannerDto, file?: Express.Multer.File) {
-        const updateData: any = { ...data };
+        const updateData: any = this.normalize(data);
         if (file) {
             const bucket = this.config.get<string>('MINIO_BANNER_BUCKET');
             updateData.imageUrl = await this.minio.upload(file, bucket);
@@ -57,5 +59,11 @@ export class BannersService {
         return this.prisma.banner.create({
             data: { imageUrl, qrTopOffset, qrLeftOffset, qrSize },
         });
+    }
+
+    async exportXml() {
+        const banners = await this.prisma.banner.findMany();
+        const items = banners.map(b => `\n  <banner>\n    <id>${b.id}</id>\n    <imageUrl>${b.imageUrl}</imageUrl>\n    <qrTopOffset>${b.qrTopOffset}</qrTopOffset>\n    <qrLeftOffset>${b.qrLeftOffset}</qrLeftOffset>\n    <qrSize>${b.qrSize}</qrSize>\n    <width>${b.width}</width>\n    <height>${b.height}</height>\n    <createdAt>${b.createdAt.toISOString()}</createdAt>\n  </banner>`).join('');
+        return `<?xml version="1.0" encoding="UTF-8"?>\n<banners>${items}\n</banners>`;
     }
 }

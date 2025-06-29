@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UploadedFile, UseInterceptors, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BannersService } from './banners.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Response } from 'express';
 
 @ApiTags('banners')
 @Controller('banners')
@@ -24,6 +25,15 @@ export class BannersController {
     @ApiOperation({ summary: 'Get all banners' })
     findAll() {
         return this.bannersService.findAll();
+    }
+
+    @Get('export')
+    @ApiOperation({ summary: 'Export banners as xml' })
+    async export(@Res({ passthrough: true }) res: Response) {
+        const xml = await this.bannersService.exportXml();
+        res.setHeader('Content-Type', 'application/xml');
+        res.setHeader('Content-Disposition', 'attachment; filename="banners.xml"');
+        res.send(xml);
     }
 
     @Get(':id')
@@ -54,4 +64,6 @@ export class BannersController {
     duplicate(@Param('id') id: string) {
         return this.bannersService.duplicate(+id);
     }
+
+
 }

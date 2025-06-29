@@ -14,6 +14,8 @@ model Banner {
   qrTopOffset  Int      @default(0) @map("qr_top_offset")
   qrLeftOffset Int      @default(0) @map("qr_left_offset")
   qrSize       Int      @default(100) @map("qr_size")
+  width        Int      @default(0)
+  height       Int      @default(0)
   createdAt    DateTime @default(now()) @map("created_at")
 
   @@map("banners")

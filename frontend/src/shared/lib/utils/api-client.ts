@@ -54,4 +54,21 @@ export const apiClient = {
     delete<T>(url: string): Promise<T> {
         return this.request(url, { method: 'DELETE' })
     },
+
+    async download(url: string, config: RequestInit = {}): Promise<Blob> {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}${url}`, {
+                ...config,
+                credentials: 'include'
+            })
+            if (!response.ok) {
+                const text = await response.text()
+                throw new Error(text || response.statusText)
+            }
+            return response.blob()
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Unknown error')
+            throw error
+        }
+    },
 }

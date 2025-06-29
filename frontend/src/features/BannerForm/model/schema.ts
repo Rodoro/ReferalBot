@@ -6,4 +6,8 @@ export const bannerSchema = z.object({
     qrSize: z.coerce.number().positive(),
 })
 
-export type BannerFormValues = z.infer<typeof bannerSchema> & { imageUrl?: string }
+export type BannerFormValues = z.infer<typeof bannerSchema> & {
+    imageUrl?: string
+    width?: number
+    height?: number
+}
