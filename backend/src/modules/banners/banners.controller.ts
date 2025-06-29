@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UploadedFile, UseInterceptors, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UploadedFile, UseInterceptors, Res, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BannersService } from './banners.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
@@ -28,12 +28,15 @@ export class BannersController {
     }
 
     @Get('export')
-    @ApiOperation({ summary: 'Export banners as xml' })
-    async export(@Res({ passthrough: true }) res: Response) {
-        const xml = await this.bannersService.exportXml();
-        res.setHeader('Content-Type', 'application/xml');
-        res.setHeader('Content-Disposition', 'attachment; filename="banners.xml"');
-        res.send(xml);
+    @ApiOperation({ summary: 'Export banners' })
+    async export(
+        @Query('format') format: string = 'xml',
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        const { data, type, filename } = await this.bannersService.export(format);
+        res.setHeader('Content-Type', type);
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.send(data);
     }
 
     @Get(':id')

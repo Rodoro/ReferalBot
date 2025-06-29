@@ -64,43 +64,44 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
                 <FormItem>
                     <FormLabel>Картинка</FormLabel>
                     <FormControl>
-                        <div>
-                            <Input
-                                id="file-upload"
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                    const f = e.target.files?.[0] || null;
-                                    setFile(f);
-                                    if (f) setPreview(URL.createObjectURL(f));
-                                }}
-                                className="hidden"
-                            />
-                            <label
-                                htmlFor="file-upload"
-                                className="cursor-pointer inline-flex items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition"
-                            >
-                                {file ? (
-                                    <p className="text-sm text-black">{"Выбран файл " + file.name}</p>
-                                ) : (
-                                    "Выберите файл"
-                                )}
+                        <div className="flex flex-col gap-2">
+                            <div>
+                                <Input
+                                    id="file-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                        const f = e.target.files?.[0] || null;
+                                        setFile(f);
+                                        if (f) setPreview(URL.createObjectURL(f));
+                                    }}
+                                    className="hidden"
+                                />
+                                <label
+                                    htmlFor="file-upload"
+                                    className="cursor-pointer inline-flex items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition"
+                                >
+                                    {file ? (
+                                        <p className="text-sm text-black">{"Выбран файл " + file.name}</p>
+                                    ) : (
+                                        "Выберите файл"
+                                    )}
 
-                            </label>
-
+                                </label>
+                            </div>
+                            <Button type="button" variant="outline" className="mt-2" onClick={async () => {
+                                const text = await navigator.clipboard.readText();
+                                try {
+                                    const settings = JSON.parse(text);
+                                    if (settings.width && settings.height) setImageSize({ width: settings.width, height: settings.height });
+                                    form.setValue('qrTopOffset', settings.qrTopOffset ?? 0);
+                                    form.setValue('qrLeftOffset', settings.qrLeftOffset ?? 0);
+                                    form.setValue('qrSize', settings.qrSize ?? 100);
+                                } catch {
+                                    toast.error('Не удалось вставить настройки');
+                                }
+                            }}>Вставить настройки</Button>
                         </div>
-                        <Button type="button" variant="outline" className="mt-2" onClick={async () => {
-                            const text = await navigator.clipboard.readText();
-                            try {
-                                const settings = JSON.parse(text);
-                                if (settings.width && settings.height) setImageSize({ width: settings.width, height: settings.height });
-                                form.setValue('qrTopOffset', settings.qrTopOffset ?? 0);
-                                form.setValue('qrLeftOffset', settings.qrLeftOffset ?? 0);
-                                form.setValue('qrSize', settings.qrSize ?? 100);
-                            } catch {
-                                toast.error('Не удалось вставить настройки');
-                            }
-                        }}>Вставить настройки</Button>
                     </FormControl>
                 </FormItem>
                 <div className="grid gap-4">
