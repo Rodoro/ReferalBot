@@ -2,7 +2,7 @@
 // components/ServiceStatsPanel.tsx
 'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Fragment } from "react";
 import {
     getDailyStats,
     getDailyStatsByAgent,
@@ -34,7 +34,8 @@ import {
     SelectItem,
 } from "@/shared/ui/form/select";
 import { Button } from "@/shared/ui/form/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, ChevronRight } from "lucide-react";
+import { cn } from "@/shared/lib/utils/utils";
 import { Skeleton } from "@/shared/ui/branding/skeleton";
 
 // Весовые коэффициенты для «Начислено» (только последние 4 действия)
@@ -55,7 +56,7 @@ type ServiceStatRow = {
     poemOrders: number;
     videoOrders: number;
     accrued: number; // Сумма начислений (по последним 4 действиям)
-    payable: number; // accrued × (percent/100)
+    // payable: number; // accrued × (percent/100)
 };
 
 export type StatsMode = 'all' | 'agent' | 'salesPoint';
@@ -82,7 +83,12 @@ export function ServiceStatsPanel({
     >("thisMonth");
     const [selectedAgent, setSelectedAgent] = useState<string>("all");
     const [searchValue, setSearchValue] = useState<string>("");
-    const [percent, setPercent] = useState<number>(10); // процент по умолчанию
+    // const [percent, setPercent] = useState<number>(10);
+    const [expandedAgents, setExpandedAgents] = useState<Record<string, boolean>>({});
+
+    function toggleAgent(name: string) {
+        setExpandedAgents((prev) => ({ ...prev, [name]: !prev[name] }));
+    }
 
     // 3) Загрузка сырых данных при монтировании
     useEffect(() => {
@@ -197,17 +203,16 @@ export function ServiceStatsPanel({
             const poemAcc = vals.poemOrders * WEIGHTS.poemOrders;
             const videoAcc = vals.videoOrders * WEIGHTS.videoOrders;
             const accrued = trialAcc + purchAcc + poemAcc + videoAcc;
-            const payable = parseFloat(((accrued * percent) / 100).toFixed(2));
+            // const payable = parseFloat(((accrued * percent) / 100).toFixed(2));
 
             result.push({
                 ...vals,
-                accrued,
-                payable,
+                accrued
             });
         });
 
         return result;
-    }, [filteredEvents, percent]);
+    }, [filteredEvents]);
 
     // 8) Итоги «ИТОГО количество» (для всех count-столбцов)
     const totals = useMemo(() => {
@@ -412,6 +417,42 @@ export function ServiceStatsPanel({
         getSortedRowModel: getSortedRowModel(),
     });
 
+    // 12) Группировка по консультанту с подсчётом итогов
+    const groupedByAgent = useMemo(() => {
+        const map = new Map<string, { totals: ServiceStatRow; points: any[] }>();
+        table.getRowModel().rows.forEach((r) => {
+            const row = r.original as ServiceStatRow;
+            if (!map.has(row.agentName)) {
+                map.set(row.agentName, {
+                    totals: {
+                        agentName: row.agentName,
+                        pointName: '',
+                        newClients: 0,
+                        songGenerations: 0,
+                        trialGenerations: 0,
+                        purchasedSongs: 0,
+                        poemOrders: 0,
+                        videoOrders: 0,
+                        accrued: 0,
+                        // payable: 0,
+                    },
+                    points: [],
+                });
+            }
+            const data = map.get(row.agentName)!;
+            data.totals.newClients += row.newClients;
+            data.totals.songGenerations += row.songGenerations;
+            data.totals.trialGenerations += row.trialGenerations;
+            data.totals.purchasedSongs += row.purchasedSongs;
+            data.totals.poemOrders += row.poemOrders;
+            data.totals.videoOrders += row.videoOrders;
+            data.totals.accrued += row.accrued;
+            // data.totals.payable += row.payable;
+            data.points.push(r);
+        });
+        return Array.from(map.values());
+    }, [aggregatedRows, sorting]);
+
     // 12) Обработка загрузки / ошибки
     if (loading) return <Skeleton className="h-[350px] w-full" />;
     if (error) return <div className="text-red-500 p-4">{error}</div>;
@@ -462,7 +503,7 @@ export function ServiceStatsPanel({
                     onChange={(e) => setSearchValue(e.target.value)}
                 />
 
-                <Input
+                {/* <Input
                     type="number"
                     min={0}
                     max={100}
@@ -473,7 +514,7 @@ export function ServiceStatsPanel({
                         if (!isNaN(num)) setPercent(num);
                     }}
                     className="w-full"
-                />
+                /> */}
             </div>
 
             <div className="rounded-md border">
@@ -481,7 +522,7 @@ export function ServiceStatsPanel({
                     <TableHeader>
                         <TableRow className="h-16">
                             <TableHead>Консультант</TableHead>
-                            <TableHead>Точка продаж</TableHead>
+                            <TableHead className="min-w-[220px]">Точка продаж</TableHead>
                             <TableHead className="text-center">
                                 <Button
                                     variant="ghost"
@@ -599,15 +640,59 @@ export function ServiceStatsPanel({
                             <TableCell className="text-center">{totals.poemOrders}</TableCell>
                             <TableCell className="text-center">{totals.videoOrders}</TableCell>
                         </TableRow>
-                        {table.getRowModel().rows?.length > 0 ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id}>
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {groupedByAgent.length > 0 ? (
+                            groupedByAgent.map((agent, index) => (
+                                <Fragment key={index}>
+                                    <TableRow className="bg-muted/60 font-medium">
+                                        <TableCell className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleAgent(agent.totals.agentName)}
+                                                className="flex items-center"
+                                            >
+                                                <ChevronRight
+                                                    className={cn(
+                                                        "h-4 w-4 transition-transform cursor-pointer",
+                                                        expandedAgents[agent.totals.agentName] && "rotate-90"
+                                                    )}
+                                                />
+                                            </button>
+                                            {agent.totals.agentName}
                                         </TableCell>
-                                    ))}
-                                </TableRow>
+                                        <TableCell className="italic text-muted-foreground">Всего</TableCell>
+                                        <TableCell className="text-center">{agent.totals.newClients}</TableCell>
+                                        <TableCell className="text-center">{agent.totals.songGenerations}</TableCell>
+                                        <TableCell className="text-center">{agent.totals.trialGenerations}</TableCell>
+                                        <TableCell className="text-center">{agent.totals.purchasedSongs}</TableCell>
+                                        <TableCell className="text-center">{agent.totals.poemOrders}</TableCell>
+                                        <TableCell className="text-center">{agent.totals.videoOrders}</TableCell>
+                                    </TableRow>
+                                    {expandedAgents[agent.totals.agentName] &&
+                                        agent.points.map((row) => (
+                                            <TableRow key={row.id}>
+                                                {row.getVisibleCells().map((cell: any) => (
+                                                    <TableCell
+                                                        key={cell.id}
+                                                        className={
+                                                            cell.column.id ===
+                                                                "pointName"
+                                                                ? "min-w-[206px]"
+                                                                : undefined
+                                                        }
+                                                    >
+                                                        {cell.column.id === "agentName"
+                                                            ? null
+                                                            : flexRender(
+                                                                cell.column
+                                                                    .columnDef
+                                                                    .cell,
+                                                                cell.getContext()
+                                                            )}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        ))}
+                                </Fragment>
                             ))
                         ) : (
                             <TableRow>
