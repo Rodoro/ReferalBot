@@ -21,6 +21,7 @@ export function getSessionMetadata(
                 : req.ip)
 
     const location = lookup(ip == undefined ? '173.166.164.121' : ip)
+    //TODO: надо пофиксить местоположение (всегда в вашинктоне)
     const device = new DeviceDetector().parse(userAgent)
 
     return {

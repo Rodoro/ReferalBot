@@ -17,6 +17,8 @@ model Banner {
   width        Int      @default(0)
   height       Int      @default(0)
   createdAt    DateTime @default(now()) @map("created_at")
+  author       Staff?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId     Int?     @map("author_id")
 
   @@map("banners")
 }
@@ -214,7 +216,8 @@ model Staff {
   midleName String? @map("midle_name")
   lastName  String  @map("last_name")
 
-  permissions String @default("")
+  banners     Banner[]
+  permissions String   @default("")
 
   notifications        Notification[]
   notificationSettings NotificationSettings?

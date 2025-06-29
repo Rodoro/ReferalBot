@@ -154,7 +154,9 @@ export default function BannersGrid() {
                                 </div>
                             </CardContent>
                             <CardFooter className="justify-between p-2 bg-white rounded-b-lg">
-                                <span className="text-sm pl-2 text-muted-foreground">{formatDate(b.createdAt)}</span>
+                                <span className="text-sm pl-2 text-muted-foreground">
+                                    {formatDate(b.createdAt)} | {b.author?.user.displayName ?? '—'}
+                                </span>
                                 <div className="flex gap-2">
                                     <Link href={`/files/banners/${b.id}`}>
                                         <Button variant="ghost" size="icon">

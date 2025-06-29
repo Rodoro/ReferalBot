@@ -7,4 +7,10 @@ export class Banner {
     width: number;
     height: number;
     createdAt: Date;
+    authorId: number | null;
+    author?: {
+        user: {
+            displayName: string;
+        };
+    } | null;
 }

@@ -7,4 +7,10 @@ export interface Banner {
     width: number;
     height: number;
     createdAt: string;
+    authorId: number | null;
+    author?: {
+        user: {
+            displayName: string;
+        };
+    } | null;
 }

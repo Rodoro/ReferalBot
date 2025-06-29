@@ -6,9 +6,7 @@ export const metadata = { title: 'Баннеры' }
 export default async function Page() {
     return (
         <>
-            {/*
-            TODO: Кто создал, отредактировал,
-            TODO: статистика по переходам по qr кодам на банерах */}
+            {/*TODO: статистика по переходам по qr кодам на банерах */}
             <Header breadcrumbs={[{ label: 'Файлы', href: '/files' }, { label: 'Баннеры', isCurrent: true }]} />
             <main className="flex flex-col gap-4 p-8 max-w-[1440px]">
                 <BannersGrid />

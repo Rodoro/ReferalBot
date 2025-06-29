@@ -1,9 +1,22 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, UploadedFile, UseInterceptors, Res, Query } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    Param,
+    Delete,
+    Put,
+    UploadedFile,
+    UseInterceptors,
+    Res,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BannersService } from './banners.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Authorization } from '@/src/shared/decorators/auth.decorator';
+import { Authorized } from '@/src/shared/decorators/authorized.decorator';
 import { Response } from 'express';
 
 @ApiTags('banners')
@@ -13,12 +26,14 @@ export class BannersController {
 
     @Post()
     @UseInterceptors(FileInterceptor('file'))
+    @Authorization()
     @ApiOperation({ summary: 'Create banner' })
     create(
+        @Authorized('id') authorId: number,
         @UploadedFile() file: Express.Multer.File,
         @Body() createBannerDto: CreateBannerDto,
     ) {
-        return this.bannersService.create(createBannerDto, file);
+        return this.bannersService.create(createBannerDto, file, authorId);
     }
 
     @Get()
@@ -28,15 +43,12 @@ export class BannersController {
     }
 
     @Get('export')
-    @ApiOperation({ summary: 'Export banners' })
-    async export(
-        @Query('format') format: string = 'xml',
-        @Res({ passthrough: true }) res: Response,
-    ) {
-        const { data, type, filename } = await this.bannersService.export(format);
-        res.setHeader('Content-Type', type);
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-        res.send(data);
+    @ApiOperation({ summary: 'Export banners as xml' })
+    async export(@Res({ passthrough: true }) res: Response) {
+        const xml = await this.bannersService.exportXml();
+        res.setHeader('Content-Type', 'application/xml');
+        res.setHeader('Content-Disposition', 'attachment; filename="banners.xml"');
+        res.send(xml);
     }
 
     @Get(':id')
@@ -47,13 +59,15 @@ export class BannersController {
 
     @Put(':id')
     @UseInterceptors(FileInterceptor('file'))
+    @Authorization()
     @ApiOperation({ summary: 'Update banner by id' })
     update(
+        @Authorized('id') authorId: number,
         @Param('id') id: string,
         @Body() updateBannerDto: UpdateBannerDto,
         @UploadedFile() file?: Express.Multer.File,
     ) {
-        return this.bannersService.update(+id, updateBannerDto, file);
+        return this.bannersService.update(+id, updateBannerDto, file, authorId);
     }
 
     @Delete(':id')
@@ -63,10 +77,9 @@ export class BannersController {
     }
 
     @Post(':id/duplicate')
+    @Authorization()
     @ApiOperation({ summary: 'Duplicate banner by id' })
-    duplicate(@Param('id') id: string) {
-        return this.bannersService.duplicate(+id);
+    duplicate(@Authorized('id') authorId: number, @Param('id') id: string) {
+        return this.bannersService.duplicate(+id, authorId);
     }
-
-
 }
