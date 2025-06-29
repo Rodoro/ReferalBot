@@ -18,9 +18,6 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 import {
-    CardContent,
-} from "@/shared/ui/overlay/card";
-import {
     Table,
     TableHeader,
     TableRow,
@@ -235,21 +232,6 @@ export function ServiceStatsPanel({
         );
     }, [aggregatedRows]);
 
-    // 9) Итоги «ИТОГО начислено» (по последним 4 действиям)
-    const accruedTotals = useMemo(() => {
-        const trialAcc = totals.trialGenerations * WEIGHTS.trialGenerations;
-        const purchAcc = totals.purchasedSongs * WEIGHTS.purchasedSongs;
-        const poemAcc = totals.poemOrders * WEIGHTS.poemOrders;
-        const videoAcc = totals.videoOrders * WEIGHTS.videoOrders;
-        const sum = trialAcc + purchAcc + poemAcc + videoAcc;
-        return { trialAcc, purchAcc, poemAcc, videoAcc, sum };
-    }, [totals]);
-
-    // 10) Итоги «ИТОГО к выплате» (на основе accruedTotals.sum и percent)
-    const totalPayable = useMemo(() => {
-        return parseFloat(((accruedTotals.sum * percent) / 100).toFixed(2));
-    }, [accruedTotals.sum, percent]);
-
     // 11) Колонки для React Table (с явными типами в getValue())
     const columns = useMemo<ColumnDef<ServiceStatRow>[]>(
         () => [
@@ -436,103 +418,68 @@ export function ServiceStatsPanel({
 
     return (
         <>
-            <CardContent>
-                {/* === Блок фильтров: период, консультанты, поиск, процент === */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                    {/* Период */}
+            <div className="grid grid-cols-4 gap-4 mb-6">
+                {/* Период */}
+                <Select
+                    value={selectedPeriod}
+                    onValueChange={(v) => setSelectedPeriod(v as any)}
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Период" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                        <SelectItem value="today">За сегодня</SelectItem>
+                        <SelectItem value="yesterday">За вчера</SelectItem>
+                        <SelectItem value="thisMonth">За текущий месяц</SelectItem>
+                        <SelectItem value="lastMonth">За прошлый месяц</SelectItem>
+                    </SelectContent>
+                </Select>
+
+                {/* Консультант */}
+                {showAgentFilter && (
                     <Select
-                        value={selectedPeriod}
-                        onValueChange={(v) => setSelectedPeriod(v as any)}
+                        value={selectedAgent}
+                        onValueChange={(v) => setSelectedAgent(v)}
                     >
                         <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Период" />
+                            <SelectValue placeholder="Консультант" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
-                            <SelectItem value="today">За сегодня</SelectItem>
-                            <SelectItem value="yesterday">За вчера</SelectItem>
-                            <SelectItem value="thisMonth">За текущий месяц</SelectItem>
-                            <SelectItem value="lastMonth">За прошлый месяц</SelectItem>
+                            <SelectItem value="all">Все консультанты</SelectItem>
+                            {agentOptions.map((agent, index) => (
+                                <SelectItem key={index} value={agent}>
+                                    {agent}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
+                )}
 
-                    {/* Консультант */}
-                    {showAgentFilter && (
-                        <Select
-                            value={selectedAgent}
-                            onValueChange={(v) => setSelectedAgent(v)}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Консультант" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                                <SelectItem value="all">Все консультанты</SelectItem>
-                                {agentOptions.map((agent, index) => (
-                                    <SelectItem key={index} value={agent}>
-                                        {agent}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
+                {/* Поиск */}
+                <Input
+                    placeholder="Поиск по консультанту или точке..."
+                    value={searchValue}
+                    onChange={(e) => setSearchValue(e.target.value)}
+                />
 
-                    {/* Поиск */}
-                    <Input
-                        placeholder="Поиск по консультанту или точке..."
-                        value={searchValue}
-                        onChange={(e) => setSearchValue(e.target.value)}
-                    />
+                <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    placeholder="% выплаты"
+                    value={String(percent)}
+                    onChange={(e) => {
+                        const num = Number(e.target.value);
+                        if (!isNaN(num)) setPercent(num);
+                    }}
+                    className="w-full"
+                />
+            </div>
 
-                    <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        placeholder="% выплаты"
-                        value={String(percent)}
-                        onChange={(e) => {
-                            const num = Number(e.target.value);
-                            if (!isNaN(num)) setPercent(num);
-                        }}
-                        className="w-full"
-                    />
-                </div>
-
-                {/* === Таблица итогов === */}
-                <Table className="mb-6">
-                    <TableBody>
-                        {/* ИТОГО количество */}
-                        <TableRow className="bg-gray-100 font-medium">
-                            <TableCell colSpan={1}>ИТОГО количество:</TableCell>
-                            <TableCell colSpan={1}></TableCell>
-                            <TableCell colSpan={1} className="text-center">{totals.newClients}</TableCell>
-                            <TableCell colSpan={1} className="text-center">{totals.songGenerations}</TableCell>
-                            <TableCell colSpan={1} className="text-center">{totals.trialGenerations}</TableCell>
-                            <TableCell colSpan={1} className="text-center">{totals.purchasedSongs}</TableCell>
-                            <TableCell colSpan={1} className="text-center">{totals.poemOrders}</TableCell>
-                            <TableCell colSpan={1} className="text-center">{totals.videoOrders}</TableCell>
-                        </TableRow>
-
-                        {/* ИТОГО начислено */}
-                        <TableRow className="bg-gray-100 font-medium">
-                            <TableCell colSpan={1}>ИТОГО начислено:</TableCell>
-                            <TableCell colSpan={3}></TableCell>
-                            <TableCell className="text-center">{accruedTotals.trialAcc}</TableCell>
-                            <TableCell className="text-center">{accruedTotals.purchAcc}</TableCell>
-                            <TableCell className="text-center">{accruedTotals.poemAcc}</TableCell>
-                            <TableCell className="text-center">{accruedTotals.videoAcc}</TableCell>
-                        </TableRow>
-
-                        {/* ИТОГО к выплате */}
-                        <TableRow className="bg-gray-100 font-medium">
-                            <TableCell colSpan={7}>ИТОГО к выплате:</TableCell>
-                            <TableCell colSpan={1} className="text-center">{totalPayable}</TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-
-                {/* === Основная таблица данных === */}
+            <div className="rounded-md border">
                 <Table>
                     <TableHeader>
-                        <TableRow>
+                        <TableRow className="h-16">
                             <TableHead>Консультант</TableHead>
                             <TableHead>Точка продаж</TableHead>
                             <TableHead className="text-center">
@@ -642,6 +589,16 @@ export function ServiceStatsPanel({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
+                        <TableRow className="font-medium">
+                            <TableCell>ИТОГО:</TableCell>
+                            <TableCell></TableCell>
+                            <TableCell className="text-center">{totals.newClients}</TableCell>
+                            <TableCell className="text-center">{totals.songGenerations}</TableCell>
+                            <TableCell className="text-center">{totals.trialGenerations}</TableCell>
+                            <TableCell className="text-center">{totals.purchasedSongs}</TableCell>
+                            <TableCell className="text-center">{totals.poemOrders}</TableCell>
+                            <TableCell className="text-center">{totals.videoOrders}</TableCell>
+                        </TableRow>
                         {table.getRowModel().rows?.length > 0 ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow key={row.id}>
@@ -661,7 +618,8 @@ export function ServiceStatsPanel({
                         )}
                     </TableBody>
                 </Table>
-            </CardContent>
+            </div>
+
         </>
     );
 }
