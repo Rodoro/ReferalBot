@@ -27,20 +27,20 @@ services:
         - redis_data:/data
         networks:
         - bot-backend
-    # minio:
-    #     image: minio/minio
-    #     container_name: minio-bot
-    #     ports:
-    #     - "9000:9000"
-    #     - "9001:9001"
-    #     environment:
-    #     MINIO_ACCESS_KEY: minio
-    #     MINIO_SECRET_KEY: minio123
-    #     command: server /data --console-address ":9001"
-    #     volumes:
-    #     - minio_data:/data
-    #     networks:
-    #     - bot-backend
+    minio:
+        image: minio/minio
+        container_name: minio-bot
+        ports:
+        - "9000:9000"
+        - "9001:9001"
+        environment:
+            MINIO_ACCESS_KEY: minio
+            MINIO_SECRET_KEY: minio123
+        command: server /data --console-address ":9001"
+        volumes:
+        - minio_data:/data
+        networks:
+        - bot-backend
             
 volumes:
     postgres_data:

@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'drive.google.com',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'files.giftsong.online',
+      },
     ]
   }
 };

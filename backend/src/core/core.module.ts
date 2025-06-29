@@ -6,6 +6,7 @@ import { IS_DEV_ENV } from '../shared/utils/is-dev.utils';
 import { RedisModule } from './redis/redis.module';
 import { SessionModule } from '../modules/session/session.module';
 import { UserModule } from '../modules/user/user.module';
+import { MinioModule } from './minio/minio.module';
 import { StaffModule } from '../modules/staff/staff.module';
 import { AgentModule } from '../modules/agent/agent.module';
 import { SalesPointModule } from '../modules/sales-point/sales-point.module';
@@ -22,6 +23,7 @@ import { StatisticsModule } from '../modules/statistics/statistics.module';
     }),
     PrismaModule,
     RedisModule,
+    MinioModule,
 
     BannersModule,
     SessionModule,

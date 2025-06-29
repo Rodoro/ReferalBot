@@ -9,7 +9,6 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { Input } from '@/shared/ui/form/input'
 import { Button } from '@/shared/ui/form/button'
 import { Slider } from '@/shared/ui/form/slider'
-import { convertGoogleDriveLink } from '@/shared/lib/utils/drive-link'
 import { bannerApi } from '@/entites/Banner/lib/api/banner-api'
 import { toast } from 'sonner'
 
@@ -23,17 +22,17 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
 
     const router = useRouter()
     const [imageSize, setImageSize] = useState({ width: 500, height: 300 })
+    const [file, setFile] = useState<File | null>(null)
+    const [preview, setPreview] = useState(initialValues?.imageUrl ?? '')
     const form = useForm<BannerFormValues>({
         resolver: zodResolver(bannerSchema),
         defaultValues: initialValues ?? {
-            imageUrl: '',
             qrTopOffset: 0,
             qrLeftOffset: 0,
             qrSize: 100,
         },
     })
 
-    const imageUrl = convertGoogleDriveLink(form.watch('imageUrl'))
     const qrTop = form.watch('qrTopOffset')
     const qrLeft = form.watch('qrLeftOffset')
     const qrSize = form.watch('qrSize')
@@ -41,11 +40,17 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
     // const scale = imageSize.width ? 500 / imageSize.width : 1
 
     async function onSubmit(data: BannerFormValues) {
+        const formData = new FormData()
+        if (file) formData.append('file', file)
+        formData.append('qrTopOffset', String(data.qrTopOffset))
+        formData.append('qrLeftOffset', String(data.qrLeftOffset))
+        formData.append('qrSize', String(data.qrSize))
+
         if (bannerId) {
-            await bannerApi.update(bannerId, data)
+            await bannerApi.update(bannerId, formData)
             toast.success('Баннер обновлен')
         } else {
-            await bannerApi.create(data)
+            await bannerApi.create(formData)
             toast.success('Баннер создан')
         }
         router.push('/files/banners')
@@ -54,22 +59,36 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4 max-w-md">
-                <FormField
-                    control={form.control}
-                    name="imageUrl"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Ссылка на картинку</FormLabel>
-                            <FormControl>
-                                <Input
-                                    {...field}
-                                    onBlur={() => field.onChange(convertGoogleDriveLink(field.value))}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <FormItem>
+                    <FormLabel>Картинка</FormLabel>
+                    <FormControl>
+                        <div>
+                            <Input
+                                id="file-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const f = e.target.files?.[0] || null;
+                                    setFile(f);
+                                    if (f) setPreview(URL.createObjectURL(f));
+                                }}
+                                className="hidden"
+                            />
+                            <label
+                                htmlFor="file-upload"
+                                className="cursor-pointer inline-flex items-center gap-2 rounded-lg border border-dashed border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition"
+                            >
+                                {file ? (
+                                    <p className="text-sm text-black">{"Выбран файл " + file.name}</p>
+                                ) : (
+                                    "Выберите файл"
+                                )}
+
+                            </label>
+
+                        </div>
+                    </FormControl>
+                </FormItem>
                 <div className="grid gap-4">
                     <FormField
                         control={form.control}
@@ -129,10 +148,10 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
                         )}
                     />
                 </div>
-                {imageUrl && (
-                    <div className="relative border p-2 flex" style={{ width: imageSize.width / scaleImg, height: imageSize.height / scaleImg }}>
+                {preview && (
+                    <div className="relative border flex" style={{ width: imageSize.width / scaleImg, height: imageSize.height / scaleImg }}>
                         <Image
-                            src={imageUrl}
+                            src={preview}
                             alt="preview"
                             width={100000}
                             height={100000}

@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { BannersService } from './banners.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
@@ -10,9 +11,13 @@ export class BannersController {
     constructor(private readonly bannersService: BannersService) { }
 
     @Post()
+    @UseInterceptors(FileInterceptor('file'))
     @ApiOperation({ summary: 'Create banner' })
-    create(@Body() createBannerDto: CreateBannerDto) {
-        return this.bannersService.create(createBannerDto);
+    create(
+        @UploadedFile() file: Express.Multer.File,
+        @Body() createBannerDto: CreateBannerDto,
+    ) {
+        return this.bannersService.create(createBannerDto, file);
     }
 
     @Get()
@@ -28,9 +33,14 @@ export class BannersController {
     }
 
     @Put(':id')
+    @UseInterceptors(FileInterceptor('file'))
     @ApiOperation({ summary: 'Update banner by id' })
-    update(@Param('id') id: string, @Body() updateBannerDto: UpdateBannerDto) {
-        return this.bannersService.update(+id, updateBannerDto);
+    update(
+        @Param('id') id: string,
+        @Body() updateBannerDto: UpdateBannerDto,
+        @UploadedFile() file?: Express.Multer.File,
+    ) {
+        return this.bannersService.update(+id, updateBannerDto, file);
     }
 
     @Delete(':id')
