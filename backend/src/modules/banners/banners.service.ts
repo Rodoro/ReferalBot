@@ -49,4 +49,13 @@ export class BannersService {
     remove(id: number) {
         return this.prisma.banner.delete({ where: { id } });
     }
+
+    async duplicate(id: number) {
+        const banner = await this.prisma.banner.findUnique({ where: { id } });
+        if (!banner) throw new Error('Banner not found');
+        const { imageUrl, qrTopOffset, qrLeftOffset, qrSize } = banner;
+        return this.prisma.banner.create({
+            data: { imageUrl, qrTopOffset, qrLeftOffset, qrSize },
+        });
+    }
 }

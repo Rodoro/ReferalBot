@@ -48,4 +48,10 @@ export class BannersController {
     remove(@Param('id') id: string) {
         return this.bannersService.remove(+id);
     }
+
+    @Post(':id/duplicate')
+    @ApiOperation({ summary: 'Duplicate banner by id' })
+    duplicate(@Param('id') id: string) {
+        return this.bannersService.duplicate(+id);
+    }
 }

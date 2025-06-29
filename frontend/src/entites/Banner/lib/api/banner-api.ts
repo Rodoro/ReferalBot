@@ -17,4 +17,7 @@ export const bannerApi = {
     delete(id: number): Promise<void> {
         return apiClient.delete(`/banners/${id}`)
     },
+    duplicate(id: number): Promise<Banner> {
+        return apiClient.post(`/banners/${id}/duplicate`)
+    },
 }
