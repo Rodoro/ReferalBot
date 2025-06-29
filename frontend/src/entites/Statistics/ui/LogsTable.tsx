@@ -247,7 +247,7 @@ export function ServiceStatsPanel({
             },
             {
                 accessorKey: "pointName",
-                header: "Точка продаж",
+                header: "Партнёр",
                 cell: (info) => <span>{info.getValue<string>()}</span>,
             },
             {
@@ -498,7 +498,7 @@ export function ServiceStatsPanel({
 
                 {/* Поиск */}
                 <Input
-                    placeholder="Поиск по консультанту или точке..."
+                    placeholder="Поиск по консультанту или партнёру..."
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                 />
@@ -522,7 +522,7 @@ export function ServiceStatsPanel({
                     <TableHeader>
                         <TableRow className="h-16">
                             <TableHead>Консультант</TableHead>
-                            <TableHead className="min-w-[220px]">Точка продаж</TableHead>
+                            <TableHead className="min-w-[220px]">Партнёр</TableHead>
                             <TableHead className="text-center">
                                 <Button
                                     variant="ghost"

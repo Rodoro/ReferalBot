@@ -23,7 +23,7 @@ class SalesPointRegistrationStates(StatesGroup):
 
 def sp_start_inline_keyboard():
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Старт регистрации точки продаж", callback_data="start_sp_registration")]
+        [InlineKeyboardButton(text="Старт регистрации партнёра", callback_data="start_sp_registration")]
     ])
     return kb
 
@@ -66,7 +66,7 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
         roles = get_user_roles(db, user_id)
 
         if any(item[0] == 'sales_point' for item in roles):
-            await message.answer("Вы уже зарегистрированы как точка продажи.")
+            await message.answer("Вы уже зарегистрированы как партнёр.")
             return
 
         # 3) Проверяем корректность ссылки агента: найдём agent по коду
@@ -74,7 +74,7 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
             _, ref_code = text.split("ref_", maxsplit=1)
             ref_code = ref_code.strip()
         except Exception:
-            await message.answer("Неверная ссылка регистрации точки продаж.")
+            await message.answer("Неверная ссылка регистрации партнёра.")
             return
 
         svc = AgentService()
@@ -98,7 +98,7 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
 
     welcome_text = (
         f"Здравствуйте! Вы пришли по приглашению консультанта «{agent_name}».\n\n"
-        "Чтобы продолжить регистрацию точки продаж, нажмите кнопку ниже."
+        "Чтобы продолжить регистрацию партнёра, нажмите кнопку ниже."
     )
     await message.answer(welcome_text, reply_markup=sp_start_inline_keyboard())
 
@@ -117,11 +117,11 @@ async def start_sp_registration(callback: types.CallbackQuery, state: FSMContext
     mini_app_url = f"{settings.WEBAPP_URL}/sales-point-form?ref={agent_id}"
     web_app = types.WebAppInfo(url=mini_app_url)
     kb = types.ReplyKeyboardMarkup(
-        keyboard=[[types.KeyboardButton(text="Заполнить форму точки продаж", web_app=web_app)]],
+        keyboard=[[types.KeyboardButton(text="Заполнить форму партнёра", web_app=web_app)]],
         resize_keyboard=True,
         one_time_keyboard=True
     )
-    await callback.message.answer("Пожалуйста, заполните форму регистрации точки продаж:", reply_markup=kb, parse_mode="HTML")
+    await callback.message.answer("Пожалуйста, заполните форму регистрации партнёра:", reply_markup=kb, parse_mode="HTML")
     await state.set_state(SalesPointRegistrationStates.waiting_for_mini_app)
     await callback.answer()
 
@@ -201,7 +201,7 @@ async def handle_sp_webapp_data(message: types.Message, state: FSMContext):
 
     # Формируем текст подтверждения
     confirmation_text = (
-        "<b>Проверьте введённые данные (Точка продаж):</b>\n\n"
+        "<b>Проверьте введённые данные (Партнёра):</b>\n\n"
         f"ФИО: {data['full_name']}\n"
         f"Город: {data['city']}\n"
         f"ИНН: {data['inn']}\n"
@@ -273,7 +273,7 @@ async def sp_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
 
     # Текст админа (без подробных банковских полей, они в БД)
     admin_text = (
-        f"📄 Новая заявка ТОЧКИ ПРОДАЖ:\n"
+        f"📄 Новая заявка ПАРТНЁРА:\n"
         f"- Telegram ID: {tg_id}\n"
         f"- Agent ID: {agent_id}\n"
         f"- ФИО: {data['full_name']}\n"
@@ -347,7 +347,7 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
     await bot.send_message(
         chat_id=tg_id,
         text=(
-            "✅ Вы успешно подписали договор как точка продаж!\n\n"
+            "✅ Вы успешно подписали договор как партнёр!\n\n"
             f"Ваша реферальная ссылка:\n{referral_link}\n\n"
             "Ниже два баннера с QR-кодом. Сохраните или поделитесь ими для привлечения клиентов. (Это может занять немного больше, чем Вы думаете)"
         )
@@ -360,4 +360,4 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
         os.remove(path)
 
     # Уведомляем админ-канал, что договор подписан
-    await bot.send_message(chat_id='-1002806831697', message_thread_id=63, text=f"➡️ Точка продаж {tg_id} подписала договор.")
+    await bot.send_message(chat_id='-1002806831697', message_thread_id=63, text=f"➡️ Партнёр {tg_id} подписала договор.")

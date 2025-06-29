@@ -40,7 +40,7 @@ async def main():
     bot = Bot(token=settings.BOT_TOKEN, parse_mode=ParseMode.HTML)
     dp = Dispatcher(storage=MemoryStorage())
 
-    # --- Точка Продаж ---
+    # --- Партнёр ---
     dp.message.register(cmd_start_sp_referral, lambda msg: msg.text and msg.text.startswith(f"/start ref_"))
     dp.callback_query.register(start_sp_registration, lambda c: c.data == "start_sp_registration")
     dp.message.register(

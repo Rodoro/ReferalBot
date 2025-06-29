@@ -37,7 +37,7 @@ const adminchikContent: TeamContent = {
             items: [
                 { title: "Сотрудники", url: "/staff" },
                 { title: "Консультанты", url: "/agent" },
-                { title: "Точки продаж", url: "/sales-point" },
+                { title: "Партнёры", url: "/sales-point" },
                 { title: "Поэты", url: "/poets" },
                 { title: "Видеомонтажеры", url: "/video-editors" },
                 { title: "Пользователи", url: "/users" },
@@ -109,7 +109,7 @@ const agentTeamContent: TeamContent = {
 const spTeamContent: TeamContent = {
     navMain: [
         {
-            title: "Точка продаж",
+            title: "Партнёр",
             url: "/sales-point/metrics",
             icon: AreaChart,
             isActive: true,
@@ -160,7 +160,7 @@ type RoleSidebar = {
 export const sidebarContentByRole: Record<RoleType, RoleSidebar> = {
     [RoleType.STAFF]: { plan: "Админ панель", content: staffTeamContent },
     [RoleType.AGENT]: { plan: "Консультант", content: agentTeamContent },
-    [RoleType.SALES_POINT]: { plan: "Точка продажи", content: spTeamContent },
+    [RoleType.SALES_POINT]: { plan: "Партнёр", content: spTeamContent },
     [RoleType.POET]: { plan: "Консультант", content: poetTeamContent },
     [RoleType.VIDEO_EDITOR]: { plan: "Консультант", content: veTeamContent },
 }
