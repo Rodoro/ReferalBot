@@ -30,6 +30,16 @@ export class SalesPointService {
             },
             include: { user: true },
         });
+
+        await this.prismaService.salesOutlet.create({
+            data: {
+                partnerId: sp.id,
+                address: data.city,
+                name: data.fullName,
+                description: '',
+                verified: false,
+            },
+        });
         return plainToInstance(SalesPointResponseDto, { ...sp.user, ...sp });
     }
 

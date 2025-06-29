@@ -159,24 +159,25 @@ model Poet {
 }
 
 model SalesPoint {
-  id               Int      @id @default(autoincrement())
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId           Int      @unique @map("user_id")
-  agentId          Int      @map("agent_id")
-  fullName         String   @map("full_name")
+  id               Int           @id @default(autoincrement())
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int           @unique @map("user_id")
+  agentId          Int           @map("agent_id")
+  fullName         String        @map("full_name")
   city             String
   inn              String
   phone            String
-  businessType     String   @map("business_type")
+  businessType     String        @map("business_type")
   bik              String?
   account          String?
-  bankName         String?  @map("bank_name")
-  bankKs           String?  @map("bank_ks")
-  bankDetails      String   @map("bank_details")
-  approved         Boolean  @default(false)
-  contractSigned   Boolean  @default(false) @map("contract_signed")
-  referralCode     String?  @map("referral_code")
-  registrationDate DateTime @default(now()) @map("registration_date")
+  bankName         String?       @map("bank_name")
+  bankKs           String?       @map("bank_ks")
+  bankDetails      String        @map("bank_details")
+  approved         Boolean       @default(false)
+  contractSigned   Boolean       @default(false) @map("contract_signed")
+  referralCode     String?       @map("referral_code")
+  sales            SalesOutlet[]
+  registrationDate DateTime      @default(now()) @map("registration_date")
 
   @@map("sales_points")
 }
@@ -282,4 +283,17 @@ model NotificationSettings {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("notification_settings")
+}
+
+model SalesOutlet {
+  id          Int        @id @default(autoincrement())
+  partner     SalesPoint @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerId   Int        @map("partner_id")
+  address     String
+  name        String
+  description String?
+  verified    Boolean    @default(false)
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  @@map("sales_outlets")
 }

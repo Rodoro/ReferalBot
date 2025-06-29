@@ -10,6 +10,7 @@ import { StaffModule } from '../modules/staff/staff.module';
 import { AgentModule } from '../modules/agent/agent.module';
 import { SalesPointModule } from '../modules/sales-point/sales-point.module';
 import { PoetModule } from '../modules/poet/poet.module';
+import { SalesOutletModule } from '../modules/sales-outlet/sales-outlet.module';
 import { VideoEditorModule } from '../modules/video-editor/video-editor.module';
 import { StatisticsModule } from '../modules/statistics/statistics.module';
 
@@ -29,6 +30,7 @@ import { StatisticsModule } from '../modules/statistics/statistics.module';
     AgentModule,
     SalesPointModule,
     PoetModule,
+    SalesOutletModule,
     VideoEditorModule,
     StatisticsModule
   ],
