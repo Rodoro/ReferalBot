@@ -60,6 +60,7 @@ const adminchikContent: TeamContent = {
             isActive: true,
             items: [
                 { title: "Баннеры", url: "/files/banners" },
+                { title: "QR коды", url: "/files/qr-codes" },
                 { title: "Договоры", url: "/files/сontracts" },
             ],
         },
