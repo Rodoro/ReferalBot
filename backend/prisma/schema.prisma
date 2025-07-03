@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://root:123456@127.0.0.1:5433/bot"
+  url      = "postgresql://root:123456@109.73.203.43:5433/bot"
 }
 
 model Banner {
@@ -81,7 +81,6 @@ model users {
   agent_id                    Int?
   created_at                  DateTime? @default(now()) @db.Timestamp(6)
   orders                      orders[]
-  available_regens            Int
   first_pay_notified          Boolean
 }
 
@@ -182,6 +181,7 @@ model SalesPoint {
   referralCode     String?       @map("referral_code")
   sales            SalesOutlet[]
   registrationDate DateTime      @default(now()) @map("registration_date")
+  count_users      Int?
 
   @@map("sales_points")
 }
