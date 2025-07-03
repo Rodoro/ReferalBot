@@ -5,9 +5,21 @@ import { CreateQrCodeDto } from './dto/create-qr-code.dto';
 import { UpdateQrCodeDto } from './dto/update-qr-code.dto';
 
 @ApiTags('qr-code')
-@Controller('qr-code')
+@Controller('Qr-code')
 export class QrCodeController {
     constructor(private readonly qrCodeService: QrCodeService) { }
+
+    @Get('main')
+    @ApiOperation({ summary: 'Get main QR code' })
+    findMain() {
+        return this.qrCodeService.findMain();
+    }
+
+    @Put('main')
+    @ApiOperation({ summary: 'Update main QR code' })
+    updateMain(@Body() dto: UpdateQrCodeDto) {
+        return this.qrCodeService.updateMain(dto);
+    }
 
     @Post()
     @ApiOperation({ summary: 'Create QR code' })

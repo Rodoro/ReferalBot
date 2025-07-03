@@ -10,6 +10,8 @@ import { Input } from '@/shared/ui/form/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/form/select'
 import { Checkbox } from '@/shared/ui/form/checkbox'
 import { Button } from '@/shared/ui/form/button'
+import { qrCodeApi } from '../lib/api/qr-code.api'
+import { toast } from 'sonner'
 
 const defaultValues: QrCodeFormValues = {
     data: '',
@@ -80,8 +82,19 @@ export default function QrCodeForm() {
         return () => subscription.unsubscribe()
     }, [form])
 
+    useEffect(() => {
+        qrCodeApi.getMain().then((qr) => {
+            if (!qr) return
+            const values = { ...defaultValues, ...(qr.options as object || {}), data: qr.data }
+            form.reset(values)
+        })
+    }, [form])
+
     function onSubmit(data: QrCodeFormValues) {
-        qrRef.current?.update(mapOptions(data))
+        qrCodeApi.updateMain(data).then(() => {
+            toast.success('QR код обновлен')
+            qrRef.current?.update(mapOptions(data))
+        })
     }
 
     return (
