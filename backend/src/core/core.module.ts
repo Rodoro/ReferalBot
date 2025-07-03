@@ -14,6 +14,7 @@ import { PoetModule } from '../modules/poet/poet.module';
 import { SalesOutletModule } from '../modules/sales-outlet/sales-outlet.module';
 import { VideoEditorModule } from '../modules/video-editor/video-editor.module';
 import { StatisticsModule } from '../modules/statistics/statistics.module';
+import { QrCodeModule } from '../modules/qr-code/qr-code.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { StatisticsModule } from '../modules/statistics/statistics.module';
     MinioModule,
 
     BannersModule,
+    QrCodeModule,
     SessionModule,
     UserModule,
     StaffModule,

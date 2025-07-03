@@ -14,6 +14,8 @@ model Banner {
   qrTopOffset  Int      @default(0) @map("qr_top_offset")
   qrLeftOffset Int      @default(0) @map("qr_left_offset")
   qrSize       Int      @default(100) @map("qr_size")
+  qrCode       QrCode?  @relation(fields: [qrCodeId], references: [id])
+  qrCodeId     Int?     @map("qr_code_id")
   width        Int      @default(0)
   height       Int      @default(0)
   createdAt    DateTime @default(now()) @map("created_at")
@@ -301,4 +303,23 @@ model SalesOutlet {
   createdAt   DateTime   @default(now()) @map("created_at")
 
   @@map("sales_outlets")
+}
+
+enum QrType {
+  MAIN
+  SOLO
+  BANNER
+  START_BANNER
+  PRESENTATION
+}
+
+model QrCode {
+  id        Int      @id @default(autoincrement())
+  type      QrType
+  data      String
+  options   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  banners   Banner[]
+
+  @@map("qr_codes")
 }

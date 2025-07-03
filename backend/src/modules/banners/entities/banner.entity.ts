@@ -4,6 +4,7 @@ export class Banner {
     qrTopOffset: number;
     qrLeftOffset: number;
     qrSize: number;
+    qrCodeId: number | null;
     width: number;
     height: number;
     createdAt: Date;

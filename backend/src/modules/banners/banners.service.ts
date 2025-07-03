@@ -35,8 +35,11 @@ export class BannersService {
         const imageUrl = await this.minio.upload(file, bucket);
         const parsedData = this.normalize(data);
         const staff = await this.prisma.staff.findFirst({ where: { userId: authorId } });
+        const qr = await this.prisma.qrCode.create({
+            data: { type: 'START_BANNER', data: '', options: {} },
+        });
         return this.prisma.banner.create({
-            data: { ...parsedData, imageUrl, authorId: staff?.id },
+            data: { ...parsedData, imageUrl, authorId: staff?.id, qrCodeId: qr.id },
             include: { author: { include: { user: { select: { displayName: true } } } } },
         });
     }
@@ -64,6 +67,11 @@ export class BannersService {
         if (file) {
             const bucket = this.config.get<string>('MINIO_BANNER_BUCKET');
             updateData.imageUrl = await this.minio.upload(file, bucket);
+        }
+        const banner = await this.prisma.banner.findUnique({ where: { id } });
+        if (!banner?.qrCodeId) {
+            const qr = await this.prisma.qrCode.create({ data: { type: 'START_BANNER', data: '', options: {} } });
+            updateData.qrCodeId = qr.id;
         }
         if (authorId !== undefined) {
             const staff = await this.prisma.staff.findFirst({ where: { userId: authorId } });
