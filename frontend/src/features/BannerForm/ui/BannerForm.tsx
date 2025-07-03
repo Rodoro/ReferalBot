@@ -1,19 +1,25 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { bannerSchema, BannerFormValues } from '../model/schema'
+import QRCodeStyling from 'qr-code-styling'
+import { QrCodeFormValues } from '@/entites/QrCode/models/schema'
+import { QrCode } from '@/entites/QrCode/types/qr-code'
+import { mapOptions, defaultQrValues } from '@/entites/QrCode/utils'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/shared/ui/form/form'
 import { Input } from '@/shared/ui/form/input'
 import { Button } from '@/shared/ui/form/button'
 import { Slider } from '@/shared/ui/form/slider'
 import { bannerApi } from '@/entites/Banner/lib/api/banner-api'
 import { toast } from 'sonner'
+import BannerQrOptions from './BannerQrOptions'
 
 interface BannerFormProps {
-    initialValues?: BannerFormValues
+    initialValues?: (BannerFormValues & { qrCode?: QrCode | null })
     bannerId?: number
 }
 
@@ -24,6 +30,11 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
     const [imageSize, setImageSize] = useState({ width: initialValues?.width ?? 500, height: initialValues?.height ?? 300 })
     const [file, setFile] = useState<File | null>(null)
     const [preview, setPreview] = useState(initialValues?.imageUrl ?? '')
+    const [qrSettings, setQrSettings] = useState<QrCodeFormValues>(
+        (initialValues as any)?.qrCode?.options || defaultQrValues
+    )
+    const qrContainerRef = useRef<HTMLDivElement>(null)
+    const qrRef = useRef<QRCodeStyling>(null)
     const form = useForm<BannerFormValues>({
         resolver: zodResolver(bannerSchema),
         defaultValues: initialValues ?? {
@@ -37,6 +48,16 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
     const qrLeft = form.watch('qrLeftOffset')
     const qrSize = form.watch('qrSize')
 
+    useEffect(() => {
+        qrRef.current = new QRCodeStyling(mapOptions({ ...qrSettings, width: qrSize, height: qrSize }))
+        if (qrContainerRef.current) qrRef.current.append(qrContainerRef.current)
+        return () => { qrRef.current = undefined }
+    }, [])
+
+    useEffect(() => {
+        qrRef.current?.update(mapOptions({ ...qrSettings, width: qrSize, height: qrSize }))
+    }, [qrSettings, qrSize])
+
     // const scale = imageSize.width ? 500 / imageSize.width : 1
 
     async function onSubmit(data: BannerFormValues) {
@@ -47,6 +68,7 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
         formData.append('qrSize', String(data.qrSize))
         formData.append('width', String(imageSize.width))
         formData.append('height', String(imageSize.height))
+        formData.append('qrOptions', JSON.stringify(qrSettings))
 
         if (bannerId) {
             await bannerApi.update(bannerId, formData)
@@ -175,13 +197,12 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
                             onLoadingComplete={img => setImageSize({ width: img.naturalWidth, height: img.naturalHeight })}
                         />
                         <div
-                            className="bg-black/50 text-white flex items-center justify-center"
+                            ref={qrContainerRef}
                             style={{ position: 'absolute', top: qrTop / scaleImg, left: qrLeft / scaleImg, width: qrSize / scaleImg, height: qrSize / scaleImg }}
-                        >
-                            QR
-                        </div>
+                        />
                     </div>
                 )}
+                <BannerQrOptions value={qrSettings} onChange={setQrSettings} />
                 <Button type="submit">Сохранить</Button>
             </form>
         </Form>

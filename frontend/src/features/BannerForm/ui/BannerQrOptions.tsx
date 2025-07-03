@@ -4,15 +4,12 @@ import { useEffect, useRef } from 'react'
 import QRCodeStyling from 'qr-code-styling'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { qrCodeSchema, QrCodeFormValues } from '../models/schema'
-import { defaultQrValues, mapOptions } from '../utils'
+import { qrCodeSchema, QrCodeFormValues } from '@/entites/QrCode/models/schema'
+import { mapOptions, defaultQrValues } from '@/entites/QrCode/utils'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/shared/ui/form/form'
 import { Input } from '@/shared/ui/form/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/form/select'
 import { Checkbox } from '@/shared/ui/form/checkbox'
-import { Button } from '@/shared/ui/form/button'
-import { qrCodeApi } from '../lib/api/qr-code.api'
-import { toast } from 'sonner'
 
 const dotRadius: Record<QrCodeFormValues['dotType'], string> = {
     square: '0%',
@@ -36,52 +33,49 @@ const cornerDotRadius: Record<QrCodeFormValues['cornersDotType'], string> = {
 
 function ShapePreview({ radius }: { radius: string }) {
     return (
-        <span
-            className="inline-block w-4 h-4 bg-current"
-            style={{ borderRadius: radius }}
-        />
+        <span className="inline-block w-4 h-4 bg-current" style={{ borderRadius: radius }} />
     )
 }
 
-export default function QrCodeForm() {
+interface BannerQrOptionsProps {
+    value: QrCodeFormValues
+    onChange: (value: QrCodeFormValues) => void
+}
+
+export default function BannerQrOptions({ value, onChange }: BannerQrOptionsProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const qrRef = useRef<QRCodeStyling>(null)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const form = useForm<QrCodeFormValues, any, QrCodeFormValues>({
         resolver: zodResolver(qrCodeSchema),
-        defaultValues: defaultQrValues,
+        defaultValues: value,
     })
 
     useEffect(() => {
         qrRef.current = new QRCodeStyling(mapOptions(form.getValues()))
         if (containerRef.current) qrRef.current.append(containerRef.current)
-
-        const subscription = form.watch((values: QrCodeFormValues) => {
-            qrRef.current?.update(mapOptions(values))
+        const sub = form.watch((v: QrCodeFormValues) => {
+            qrRef.current?.update(mapOptions(v))
+            onChange(v)
         })
-        return () => subscription.unsubscribe()
-    }, [form])
+        return () => sub.unsubscribe()
+    }, [form, onChange])
 
+    // update the preview when the parent resets values
     useEffect(() => {
-        qrCodeApi.getMain().then((qr) => {
-            if (!qr) return
-            const values = { ...defaultQrValues, ...(qr.options as object || {}), data: qr.data }
-            form.reset(values)
-        })
-    }, [form])
-
-    function onSubmit(data: QrCodeFormValues) {
-        qrCodeApi.updateMain(data).then(() => {
-            toast.success('QR код обновлен')
-            qrRef.current?.update(mapOptions(data))
-        })
-    }
+        qrRef.current?.update(mapOptions(value))
+        // We intentionally avoid calling form.reset on every change to prevent
+        // a render loop between this component and its parent. The parent
+        // controls the form state, so resetting here would trigger an update
+        // which in turn would cause this effect to run again.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [value])
 
     return (
-        <div className="flex flex-col md:flex-row items-start gap-8">
+        <div className="flex flex-col md:flex-row items-start gap-8 min-w-7xl">
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 max-w-md w-80">
+                <div className="grid gap-4 max-w-md w-80">
                     <FormField
                         control={form.control}
                         name="margin"
@@ -331,10 +325,13 @@ export default function QrCodeForm() {
                             )}
                         />
                     </div>
-                    <Button type="submit">Обновить</Button>
-                </form>
+                </div>
             </Form>
             <div ref={containerRef} className="border rounded w-fit" />
         </div>
     )
+}
+
+BannerQrOptions.defaultProps = {
+    value: defaultQrValues,
 }

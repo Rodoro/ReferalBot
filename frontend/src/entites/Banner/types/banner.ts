@@ -8,6 +8,13 @@ export interface Banner {
     height: number;
     createdAt: string;
     authorId: number | null;
+    qrCodeId: number | null;
+    qrCode?: {
+        id: number;
+        type: string;
+        data: string;
+        options: unknown | null;
+    } | null;
     author?: {
         user: {
             displayName: string;

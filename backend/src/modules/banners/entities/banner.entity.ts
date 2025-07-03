@@ -5,6 +5,12 @@ export class Banner {
     qrLeftOffset: number;
     qrSize: number;
     qrCodeId: number | null;
+    qrCode?: {
+        id: number;
+        type: string;
+        data: string;
+        options: unknown | null;
+    } | null;
     width: number;
     height: number;
     createdAt: Date;

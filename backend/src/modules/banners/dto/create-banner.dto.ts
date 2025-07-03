@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { InputJsonValue } from '@prisma/client/runtime/library';
 
 export class CreateBannerDto {
     @ApiProperty()
@@ -15,4 +16,7 @@ export class CreateBannerDto {
 
     @ApiProperty()
     height: number;
+
+    @ApiProperty({ required: false, type: Object })
+    qrOptions?: InputJsonValue;
 }

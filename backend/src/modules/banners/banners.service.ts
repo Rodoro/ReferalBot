@@ -4,6 +4,7 @@ import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
 import { MinioService } from '../../core/minio/minio.service';
 import { ConfigService } from '@nestjs/config';
+import { InputJsonValue } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class BannersService {
@@ -33,27 +34,38 @@ export class BannersService {
     ) {
         const bucket = this.config.get<string>('MINIO_BANNER_BUCKET');
         const imageUrl = await this.minio.upload(file, bucket);
-        const parsedData = this.normalize(data);
+        const { qrOptions, ...rest } = data as any;
+        const parsedData = this.normalize(rest);
         const staff = await this.prisma.staff.findFirst({ where: { userId: authorId } });
+        let options: InputJsonValue = {};
+        if (typeof qrOptions === 'string') {
+            try { options = JSON.parse(qrOptions) as InputJsonValue; } catch { options = {}; }
+        } else if (qrOptions) options = qrOptions as InputJsonValue;
         const qr = await this.prisma.qrCode.create({
-            data: { type: 'START_BANNER', data: '', options: {} },
+            data: { type: 'START_BANNER', data: '', options },
         });
         return this.prisma.banner.create({
             data: { ...parsedData, imageUrl, authorId: staff?.id, qrCodeId: qr.id },
-            include: { author: { include: { user: { select: { displayName: true } } } } },
+            include: { author: { include: { user: { select: { displayName: true } } } }, qrCode: true },
         });
     }
 
     findAll() {
         return this.prisma.banner.findMany({
-            include: { author: { include: { user: { select: { displayName: true } } } } },
+            include: {
+                author: { include: { user: { select: { displayName: true } } } },
+                qrCode: true,
+            },
         });
     }
 
     findOne(id: number) {
         return this.prisma.banner.findUnique({
             where: { id },
-            include: { author: { include: { user: { select: { displayName: true } } } } },
+            include: {
+                author: { include: { user: { select: { displayName: true } } } },
+                qrCode: true,
+            },
         });
     }
 
@@ -63,15 +75,22 @@ export class BannersService {
         file?: Express.Multer.File,
         authorId?: number,
     ) {
-        const updateData: any = this.normalize(data);
+        const { qrOptions, ...rest } = data as any;
+        const updateData: any = this.normalize(rest);
         if (file) {
             const bucket = this.config.get<string>('MINIO_BANNER_BUCKET');
             updateData.imageUrl = await this.minio.upload(file, bucket);
         }
         const banner = await this.prisma.banner.findUnique({ where: { id } });
+        let options: InputJsonValue | undefined = undefined;
+        if (typeof qrOptions === 'string') {
+            try { options = JSON.parse(qrOptions) as InputJsonValue; } catch { options = undefined; }
+        } else if (qrOptions) options = qrOptions as InputJsonValue;
         if (!banner?.qrCodeId) {
-            const qr = await this.prisma.qrCode.create({ data: { type: 'START_BANNER', data: '', options: {} } });
+            const qr = await this.prisma.qrCode.create({ data: { type: 'START_BANNER', data: '', options: options ?? {} } });
             updateData.qrCodeId = qr.id;
+        } else if (options !== undefined) {
+            await this.prisma.qrCode.update({ where: { id: banner.qrCodeId }, data: { options } });
         }
         if (authorId !== undefined) {
             const staff = await this.prisma.staff.findFirst({ where: { userId: authorId } });
@@ -80,7 +99,7 @@ export class BannersService {
         return this.prisma.banner.update({
             where: { id },
             data: updateData,
-            include: { author: { include: { user: { select: { displayName: true } } } } },
+            include: { author: { include: { user: { select: { displayName: true } } } }, qrCode: true },
         });
     }
 
