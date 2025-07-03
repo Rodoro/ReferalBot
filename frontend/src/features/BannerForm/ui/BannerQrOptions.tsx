@@ -45,6 +45,7 @@ interface BannerQrOptionsProps {
 export default function BannerQrOptions({ value, onChange }: BannerQrOptionsProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const qrRef = useRef<QRCodeStyling>(null)
+    const updateTimeout = useRef<NodeJS.Timeout>(null)
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const form = useForm<QrCodeFormValues, any, QrCodeFormValues>({
@@ -56,10 +57,16 @@ export default function BannerQrOptions({ value, onChange }: BannerQrOptionsProp
         qrRef.current = new QRCodeStyling(mapOptions(form.getValues()))
         if (containerRef.current) qrRef.current.append(containerRef.current)
         const sub = form.watch((v: QrCodeFormValues) => {
-            qrRef.current?.update(mapOptions(v))
-            onChange(v)
+            clearTimeout(updateTimeout.current)
+            updateTimeout.current = setTimeout(() => {
+                onChange(v)
+                qrRef.current?.update(mapOptions(v))
+            }, 50)
         })
-        return () => sub.unsubscribe()
+        return () => {
+            sub.unsubscribe()
+            clearTimeout(updateTimeout.current)
+        }
     }, [form, onChange])
 
     // update the preview when the parent resets values
@@ -73,7 +80,7 @@ export default function BannerQrOptions({ value, onChange }: BannerQrOptionsProp
     }, [value])
 
     return (
-        <div className="flex flex-col md:flex-row items-start gap-8 min-w-7xl">
+        <div className="flex flex-col md:flex-row items-start gap-8 min-w-2xl">
             <Form {...form}>
                 <div className="grid gap-4 max-w-md w-80">
                     <FormField

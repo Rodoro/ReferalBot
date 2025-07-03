@@ -30,8 +30,15 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
     const [imageSize, setImageSize] = useState({ width: initialValues?.width ?? 500, height: initialValues?.height ?? 300 })
     const [file, setFile] = useState<File | null>(null)
     const [preview, setPreview] = useState(initialValues?.imageUrl ?? '')
+    const initialQr: QrCode | undefined | null = (initialValues as any)?.qrCode
     const [qrSettings, setQrSettings] = useState<QrCodeFormValues>(
-        (initialValues as any)?.qrCode?.options || defaultQrValues
+        initialQr
+            ? {
+                ...defaultQrValues,
+                ...(initialQr.options as any || {}),
+                data: (initialQr as any).data ?? defaultQrValues.data,
+            }
+            : defaultQrValues,
     )
     const qrContainerRef = useRef<HTMLDivElement>(null)
     const qrRef = useRef<QRCodeStyling>(null)
@@ -55,7 +62,10 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
     }, [])
 
     useEffect(() => {
-        qrRef.current?.update(mapOptions({ ...qrSettings, width: qrSize, height: qrSize }))
+        const id = setTimeout(() => {
+            qrRef.current?.update(mapOptions({ ...qrSettings, width: qrSize, height: qrSize }))
+        }, 50)
+        return () => clearTimeout(id)
     }, [qrSettings, qrSize])
 
     // const scale = imageSize.width ? 500 / imageSize.width : 1

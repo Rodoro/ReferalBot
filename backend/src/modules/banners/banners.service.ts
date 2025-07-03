@@ -38,11 +38,28 @@ export class BannersService {
         const parsedData = this.normalize(rest);
         const staff = await this.prisma.staff.findFirst({ where: { userId: authorId } });
         let options: InputJsonValue = {};
+        let qrData = '';
         if (typeof qrOptions === 'string') {
-            try { options = JSON.parse(qrOptions) as InputJsonValue; } catch { options = {}; }
-        } else if (qrOptions) options = qrOptions as InputJsonValue;
+            try {
+                const parsed = JSON.parse(qrOptions) as Record<string, unknown>;
+                if (typeof parsed.data === 'string') {
+                    qrData = parsed.data;
+                    delete parsed.data;
+                }
+                options = parsed as InputJsonValue;
+            } catch {
+                options = {};
+            }
+        } else if (qrOptions && typeof qrOptions === 'object') {
+            const parsed = qrOptions as Record<string, unknown>;
+            if (typeof parsed.data === 'string') {
+                qrData = parsed.data;
+                delete parsed.data;
+            }
+            options = parsed as InputJsonValue;
+        }
         const qr = await this.prisma.qrCode.create({
-            data: { type: 'START_BANNER', data: '', options },
+            data: { type: 'START_BANNER', data: qrData, options },
         });
         return this.prisma.banner.create({
             data: { ...parsedData, imageUrl, authorId: staff?.id, qrCodeId: qr.id },
@@ -83,14 +100,35 @@ export class BannersService {
         }
         const banner = await this.prisma.banner.findUnique({ where: { id } });
         let options: InputJsonValue | undefined = undefined;
+        let qrData: string | undefined = undefined;
         if (typeof qrOptions === 'string') {
-            try { options = JSON.parse(qrOptions) as InputJsonValue; } catch { options = undefined; }
-        } else if (qrOptions) options = qrOptions as InputJsonValue;
+            try {
+                const parsed = JSON.parse(qrOptions) as Record<string, unknown>;
+                if (typeof parsed.data === 'string') {
+                    qrData = parsed.data;
+                    delete parsed.data;
+                }
+                options = parsed as InputJsonValue;
+            } catch {
+                options = undefined;
+            }
+        } else if (qrOptions && typeof qrOptions === 'object') {
+            const parsed = qrOptions as Record<string, unknown>;
+            if (typeof parsed.data === 'string') {
+                qrData = parsed.data;
+                delete parsed.data;
+            }
+            options = parsed as InputJsonValue;
+        }
         if (!banner?.qrCodeId) {
-            const qr = await this.prisma.qrCode.create({ data: { type: 'START_BANNER', data: '', options: options ?? {} } });
+            const qr = await this.prisma.qrCode.create({ data: { type: 'START_BANNER', data: qrData ?? '', options: options ?? {} } });
             updateData.qrCodeId = qr.id;
-        } else if (options !== undefined) {
-            await this.prisma.qrCode.update({ where: { id: banner.qrCodeId }, data: { options } });
+        } else {
+            const qrUpdate: any = {};
+            if (options !== undefined) qrUpdate.options = options;
+            if (qrData !== undefined) qrUpdate.data = qrData;
+            if (Object.keys(qrUpdate).length)
+                await this.prisma.qrCode.update({ where: { id: banner.qrCodeId }, data: qrUpdate });
         }
         if (authorId !== undefined) {
             const staff = await this.prisma.staff.findFirst({ where: { userId: authorId } });
