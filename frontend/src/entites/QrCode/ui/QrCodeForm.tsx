@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import QRCodeStyling from 'qr-code-styling'
+import QRCodeStyling, { type Options } from 'qr-code-styling'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { qrCodeSchema, QrCodeFormValues } from '../models/schema'
@@ -11,7 +11,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/shared/ui/form/checkbox'
 import { Button } from '@/shared/ui/form/button'
 
-function mapOptions(values: QrCodeFormValues) {
+const defaultValues: QrCodeFormValues = {
+    data: '',
+    width: 300,
+    height: 300,
+    type: 'svg',
+    margin: 0,
+    image: '',
+    errorCorrectionLevel: 'M',
+    dotColor: '#000000',
+    dotType: 'square',
+    backgroundColor: '#ffffff',
+    cornersSquareType: 'extra-rounded',
+    cornersSquareColor: '#000000',
+    cornersDotType: 'square',
+    cornersDotColor: '#000000',
+    imageSize: 0.4,
+    imageMargin: 0,
+    hideBackgroundDots: false,
+    crossOrigin: 'anonymous',
+}
+
+function mapOptions(values: QrCodeFormValues): Options {
     return {
         width: values.width,
         height: values.height,
@@ -41,19 +62,20 @@ function mapOptions(values: QrCodeFormValues) {
 
 export default function QrCodeForm() {
     const containerRef = useRef<HTMLDivElement>(null)
-    const qrRef = useRef<QRCodeStyling>()
+    const qrRef = useRef<QRCodeStyling>(null)
 
-    const form = useForm<QrCodeFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const form = useForm<QrCodeFormValues, any, QrCodeFormValues>({
         resolver: zodResolver(qrCodeSchema),
-        defaultValues: qrCodeSchema.parse({}),
+        defaultValues,
     })
 
     useEffect(() => {
         qrRef.current = new QRCodeStyling(mapOptions(form.getValues()))
         if (containerRef.current) qrRef.current.append(containerRef.current)
 
-        const subscription = form.watch((values) => {
-            qrRef.current?.update(mapOptions(values as QrCodeFormValues))
+        const subscription = form.watch((values: QrCodeFormValues) => {
+            qrRef.current?.update(mapOptions(values))
         })
         return () => subscription.unsubscribe()
     }, [form])
