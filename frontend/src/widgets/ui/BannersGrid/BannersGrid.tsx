@@ -22,6 +22,7 @@ import { toast } from 'sonner'
 import { Copy, Pencil, Share2, Trash2, Clipboard, Plus } from 'lucide-react'
 import ButtonExport from '@/entites/Banner/ui/ButtonExport'
 import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/layout/tabs'
+import { QrCodePreview } from '@/shared/ui/branding/qr-code-preview'
 
 
 function BannerCardSkeleton() {
@@ -137,21 +138,20 @@ export default function BannersGrid() {
                                 <Image
                                     src={b.imageUrl}
                                     alt="banner"
-                                    width={600}
-                                    height={300}
+                                    width={b.width}
+                                    height={b.height}
                                     className="w-full h-auto rounded-t-lg"
                                 />
-                                <div
-                                    className="absolute bg-black/50 text-white flex items-center justify-center"
+                                <QrCodePreview
+                                    qrCode={b.qrCode}
+                                    className="absolute"
                                     style={{
                                         top: `${(b.qrTopOffset / b.height) * 100}%`,
                                         left: `${(b.qrLeftOffset / b.width) * 100}%`,
                                         width: `${(b.qrSize / b.width) * 100}%`,
                                         height: `${(b.qrSize / b.height) * 100}%`,
                                     }}
-                                >
-                                    QR
-                                </div>
+                                />
                             </CardContent>
                             <CardFooter className="justify-between p-2 bg-white rounded-b-lg">
                                 <span className="text-sm pl-2 text-muted-foreground">

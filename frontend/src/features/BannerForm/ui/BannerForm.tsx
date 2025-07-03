@@ -63,7 +63,7 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
 
     useEffect(() => {
         const id = setTimeout(() => {
-            qrRef.current?.update(mapOptions({ ...qrSettings, width: qrSize, height: qrSize }))
+            qrRef.current?.update(mapOptions({ ...qrSettings, width: qrSize / scaleImg, height: qrSize / scaleImg }))
         }, 50)
         return () => clearTimeout(id)
     }, [qrSettings, qrSize])
@@ -208,7 +208,10 @@ export default function BannerForm({ initialValues, bannerId }: BannerFormProps)
                         />
                         <div
                             ref={qrContainerRef}
-                            style={{ position: 'absolute', top: qrTop / scaleImg, left: qrLeft / scaleImg, width: qrSize / scaleImg, height: qrSize / scaleImg }}
+                            style={{
+                                position: 'absolute',
+                                top: qrTop / scaleImg, left: qrLeft / scaleImg, width: qrSize, height: qrSize
+                            }}
                         />
                     </div>
                 )}

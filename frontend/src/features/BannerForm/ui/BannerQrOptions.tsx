@@ -41,7 +41,7 @@ interface BannerQrOptionsProps {
     value: QrCodeFormValues
     onChange: (value: QrCodeFormValues) => void
 }
-
+// TODO: Надо убрать дроп fps при редактирование qr кода
 export default function BannerQrOptions({ value, onChange }: BannerQrOptionsProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const qrRef = useRef<QRCodeStyling>(null)
