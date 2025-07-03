@@ -13,6 +13,35 @@ import { Button } from '@/shared/ui/form/button'
 import { qrCodeApi } from '../lib/api/qr-code.api'
 import { toast } from 'sonner'
 
+const dotRadius: Record<QrCodeFormValues['dotType'], string> = {
+    square: '0%',
+    dots: '50%',
+    rounded: '20%',
+    classy: '20%',
+    'classy-rounded': '30%',
+    'extra-rounded': '40%',
+}
+
+const cornerSquareRadius: Record<QrCodeFormValues['cornersSquareType'], string> = {
+    square: '0%',
+    dot: '50%',
+    'extra-rounded': '30%',
+}
+
+const cornerDotRadius: Record<QrCodeFormValues['cornersDotType'], string> = {
+    square: '0%',
+    dot: '50%',
+}
+
+function ShapePreview({ radius }: { radius: string }) {
+    return (
+        <span
+            className="inline-block w-4 h-4 bg-current"
+            style={{ borderRadius: radius }}
+        />
+    )
+}
+
 const defaultValues: QrCodeFormValues = {
     data: '',
     width: 300,
@@ -98,72 +127,9 @@ export default function QrCodeForm() {
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <div ref={containerRef} className="border rounded w-fit" />
+        <div className="flex flex-col md:flex-row items-start gap-8">
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 max-w-md">
-                    <FormField
-                        control={form.control}
-                        name="data"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Данные</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="https://" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                            control={form.control}
-                            name="width"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Ширина</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="height"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Высота</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                    <FormField
-                        control={form.control}
-                        name="type"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Тип</FormLabel>
-                                <FormControl>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="canvas">canvas</SelectItem>
-                                            <SelectItem value="svg">svg</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 max-w-md w-80">
                     <FormField
                         control={form.control}
                         name="margin"
@@ -172,42 +138,6 @@ export default function QrCodeForm() {
                                 <FormLabel>Отступ</FormLabel>
                                 <FormControl>
                                     <Input type="number" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="image"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>URL логотипа</FormLabel>
-                                <FormControl>
-                                    <Input type="text" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="errorCorrectionLevel"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Уровень коррекции</FormLabel>
-                                <FormControl>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="L">L</SelectItem>
-                                            <SelectItem value="M">M</SelectItem>
-                                            <SelectItem value="Q">Q</SelectItem>
-                                            <SelectItem value="H">H</SelectItem>
-                                        </SelectContent>
-                                    </Select>
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -239,12 +169,42 @@ export default function QrCodeForm() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="square">square</SelectItem>
-                                                <SelectItem value="dots">dots</SelectItem>
-                                                <SelectItem value="rounded">rounded</SelectItem>
-                                                <SelectItem value="classy">classy</SelectItem>
-                                                <SelectItem value="classy-rounded">classy-rounded</SelectItem>
-                                                <SelectItem value="extra-rounded">extra-rounded</SelectItem>
+                                                <SelectItem value="square">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={dotRadius.square} />
+                                                        square
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="dots">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={dotRadius.dots} />
+                                                        dots
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={dotRadius.rounded} />
+                                                        rounded
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="classy">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={dotRadius.classy} />
+                                                        classy
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="classy-rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={dotRadius['classy-rounded']} />
+                                                        classy-rounded
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="extra-rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={dotRadius['extra-rounded']} />
+                                                        extra-rounded
+                                                    </div>
+                                                </SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </FormControl>
@@ -292,9 +252,24 @@ export default function QrCodeForm() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="square">square</SelectItem>
-                                                <SelectItem value="dot">dot</SelectItem>
-                                                <SelectItem value="extra-rounded">extra-rounded</SelectItem>
+                                                <SelectItem value="square">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={cornerSquareRadius.square} />
+                                                        square
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="dot">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={cornerSquareRadius.dot} />
+                                                        dot
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="extra-rounded">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={cornerSquareRadius['extra-rounded']} />
+                                                        extra-rounded
+                                                    </div>
+                                                </SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </FormControl>
@@ -329,8 +304,18 @@ export default function QrCodeForm() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="square">square</SelectItem>
-                                                <SelectItem value="dot">dot</SelectItem>
+                                                <SelectItem value="square">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={cornerDotRadius.square} />
+                                                        square
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="dot">
+                                                    <div className="flex items-center gap-2">
+                                                        <ShapePreview radius={cornerDotRadius.dot} />
+                                                        dot
+                                                    </div>
+                                                </SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </FormControl>
@@ -339,49 +324,65 @@ export default function QrCodeForm() {
                             )}
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-4">
                         <FormField
                             control={form.control}
-                            name="imageSize"
+                            name="image"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Размер логотипа</FormLabel>
+                                    <FormLabel>URL логотипа</FormLabel>
                                     <FormControl>
-                                        <Input type="number" step="0.1" min="0" max="1" {...field} />
+                                        <Input type="text" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="imageSize"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Размер логотипа</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" step="0.1" min="0" max="1" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="imageMargin"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Отступ логотипа</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         <FormField
                             control={form.control}
-                            name="imageMargin"
+                            name="hideBackgroundDots"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Отступ логотипа</FormLabel>
+                                <FormItem className="flex flex-row items-center gap-2">
                                     <FormControl>
-                                        <Input type="number" {...field} />
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} id="hide-dots" />
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormLabel htmlFor="hide-dots">Скрыть точки под логотипом</FormLabel>
                                 </FormItem>
                             )}
                         />
                     </div>
-                    <FormField
-                        control={form.control}
-                        name="hideBackgroundDots"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center gap-2">
-                                <FormControl>
-                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} id="hide-dots" />
-                                </FormControl>
-                                <FormLabel htmlFor="hide-dots">Скрыть точки под логотипом</FormLabel>
-                            </FormItem>
-                        )}
-                    />
                     <Button type="submit">Обновить</Button>
                 </form>
             </Form>
+            <div ref={containerRef} className="border rounded w-fit" />
         </div>
     )
 }
