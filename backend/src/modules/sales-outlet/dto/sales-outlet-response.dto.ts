@@ -27,6 +27,10 @@ export class SalesOutletResponseDto {
     @Expose()
     verified: boolean;
 
+    @ApiProperty({ required: false })
+    @Expose()
+    referralCode?: string | null;
+
     @ApiProperty()
     @Expose()
     createdAt: Date;

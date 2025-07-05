@@ -293,14 +293,15 @@ model NotificationSettings {
 }
 
 model SalesOutlet {
-  id          Int        @id @default(autoincrement())
-  partner     SalesPoint @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  partnerId   Int        @map("partner_id")
-  address     String
-  name        String
-  description String?
-  verified    Boolean    @default(false)
-  createdAt   DateTime   @default(now()) @map("created_at")
+  id           Int        @id @default(autoincrement())
+  partner      SalesPoint @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerId    Int        @map("partner_id")
+  address      String
+  name         String
+  description  String?
+  verified     Boolean    @default(false)
+  referralCode String?    @map("referral_code")
+  createdAt    DateTime   @default(now()) @map("created_at")
 
   @@map("sales_outlets")
 }

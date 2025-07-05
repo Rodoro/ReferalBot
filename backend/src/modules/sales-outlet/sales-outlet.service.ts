@@ -17,6 +17,7 @@ export class SalesOutletService {
                 name: data.name,
                 description: data.description,
                 verified: data.verified,
+                referralCode: data.referralCode,
             },
         });
         return plainToInstance(SalesOutletResponseDto, outlet);
@@ -66,6 +67,7 @@ export class SalesOutletService {
                         name: partner.fullName,
                         description: '',
                         verified: false,
+                        referralCode: Math.random().toString(36).slice(2, 10),
                     },
                 });
                 created++;

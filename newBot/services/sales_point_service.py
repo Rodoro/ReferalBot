@@ -46,12 +46,20 @@ class SalesPointService:
         self.client.put(f"sales-point/bot/{user_id}", {"approved": True})
         return True
 
-    def sign_sales_point_contract(self, user_id: int) -> tuple[list[str], str]:
+    def sign_sales_point_contract(self, user_id: int) -> tuple[list[str], str, str]:
         code = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
         self.client.put(
             f"sales-point/bot/{user_id}",
-            {"contractSigned": True, "referralCode": code},
+            {"contractSigned": True},
         )
+
+        profile = self.get_sales_point_profile(user_id)
+        partner_id = profile.get("id")
+        from .sales_outlet_service import SalesOutletService
+        outlet_svc = SalesOutletService()
+        outlets = outlet_svc.list_outlets(partner_id)
+        if outlets:
+            outlet_svc.update_outlet(outlets[0].get("id"), {"referralCode": code})
 
         referral_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
 

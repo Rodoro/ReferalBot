@@ -23,6 +23,12 @@ export class SalesOutletController {
         return this.outletService.findAll();
     }
 
+    @Get('partner/:id')
+    @ApiOperation({ summary: 'Get sales outlets by partner id' })
+    findByPartner(@Param('id') id: string): Promise<SalesOutletResponseDto[]> {
+        return this.outletService.findByPartner(+id);
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get sales outlet by id' })
     findOne(@Param('id') id: string): Promise<SalesOutletResponseDto> {

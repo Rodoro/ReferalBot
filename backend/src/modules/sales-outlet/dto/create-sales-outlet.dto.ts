@@ -15,4 +15,7 @@ export class CreateSalesOutletDto {
 
     @ApiProperty({ required: false })
     verified?: boolean;
+
+    @ApiProperty({ required: false })
+    referralCode?: string;
 }

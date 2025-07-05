@@ -53,6 +53,9 @@ def get_user_roles(db: Session, user_id: int) -> list[tuple[str, dict]]:
 def build_referral_links(roles: list[tuple[str, dict]]) -> str:
     """Create message text with referral links for given roles."""
     parts: list[str] = []
+    from ..services.sales_outlet_service import SalesOutletService
+    outlet_service = SalesOutletService()
+
     for role, profile in roles:
         code = profile.get("referralCode") or profile.get("referral_code")
 
@@ -74,9 +77,21 @@ def build_referral_links(roles: list[tuple[str, dict]]) -> str:
             continue
 
         if role == UserRole.SALES_POINT:
-            link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
+            partner_id = profile.get("id") or profile.get("partnerId")
+            outlets = outlet_service.list_outlets(partner_id)
+            outlet_lines = []
+            for o in outlets:
+                o_code = o.get("referralCode") or o.get("referral_code")
+                if not o_code:
+                    continue
+                name = o.get("name")
+                link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{o_code}"
+                outlet_lines.append(f"{name}: {link}")
+            text = "\n".join(outlet_lines) if outlet_lines else "Нет точек"
+            parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{text}")
         else:
             link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
+            parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{link}")
 
         parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{link}")
     return "\n\n".join(parts)
