@@ -92,8 +92,6 @@ def build_referral_links(roles: list[tuple[str, dict]]) -> str:
         else:
             link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
             parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{link}")
-
-        parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{link}")
     return "\n\n".join(parts)
 
 def get_user_role(db: Session, user_id: int) -> tuple[str | None, dict]:
