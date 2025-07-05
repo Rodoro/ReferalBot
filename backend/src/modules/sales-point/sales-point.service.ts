@@ -50,7 +50,7 @@ export class SalesPointService {
     }
 
     async findOne(id: number): Promise<SalesPointResponseDto> {
-        const point = await this.prismaService.salesPoint.findUnique({ where: { id } });
+        const point = await this.prismaService.salesPoint.findUnique({ where: { userId: id } });
         if (!point) {
             throw new NotFoundException('SalesPoint not found');
         }
@@ -63,7 +63,7 @@ export class SalesPointService {
     }
 
     async remove(id: number): Promise<SalesPointResponseDto> {
-        const point = await this.prismaService.salesPoint.delete({ where: { id } });
+        const point = await this.prismaService.salesPoint.delete({ where: { userId: id } });
         return plainToInstance(SalesPointResponseDto, point);
     }
 
