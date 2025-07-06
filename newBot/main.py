@@ -15,6 +15,13 @@ from newBot.handlers.sales_point_handlers import (
     cmd_start_sp_referral, start_sp_registration, handle_sp_webapp_data,
     sp_confirm_data, sp_correct_data, handle_sp_sign_contract
 )
+from newBot.handlers.sales_outlet_handlers import (
+    start_outlet_registration,
+    handle_outlet_webapp_data,
+    outlet_confirm_data,
+    outlet_correct_data,
+    SalesOutletStates,
+)
 from newBot.handlers.poet_handlers import (
     cmd_start_poet_secret, start_poet_registration, handle_poet_webapp_data,
     poet_confirm_data, poet_correct_data, handle_poet_sign_contract,
@@ -49,6 +56,22 @@ async def main():
     dp.callback_query.register(sp_confirm_data, lambda c: c.data == "sp_confirm_data")
     dp.callback_query.register(sp_correct_data, lambda c: c.data == "sp_correct_data")
     dp.callback_query.register(handle_sp_sign_contract,lambda c: c.data and c.data.startswith("sp_sign_contract_"))
+
+    dp.callback_query.register(
+        start_outlet_registration, lambda c: c.data == "start_sales_outlet"
+    )
+    dp.message.register(
+        handle_outlet_webapp_data,
+        StateFilter(SalesOutletStates.waiting_for_mini_app),
+        lambda msg: msg.web_app_data
+        and payload_form_type(msg.web_app_data.data) == "sales_outlet",
+    )
+    dp.callback_query.register(
+        outlet_confirm_data, lambda c: c.data == "outlet_confirm_data"
+    )
+    dp.callback_query.register(
+        outlet_correct_data, lambda c: c.data == "outlet_correct_data"
+    )
 
     # --- Консультант ---
     dp.message.register(cmd_start_agent_secret, lambda msg: msg.text and msg.text.startswith(f"/start secret_{settings.ADMIN_SECRET}"))

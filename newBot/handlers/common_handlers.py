@@ -4,6 +4,7 @@ from newBot.db import SessionLocal
 from newBot.lib.user_roles import (
     get_user_roles,
     build_referral_links,
+    UserRole,
 )
 from newBot.services.user_service import UserService
 from newBot.config import settings
@@ -28,21 +29,31 @@ async def cmd_start(message: types.Message, bot: Bot) -> None:
             text = build_referral_links(roles)
             token_value = user_svc.generate_token(user)
 
-            keyboard = types.InlineKeyboardMarkup(
-                inline_keyboard=[[
+            buttons = [
+                [
                     types.InlineKeyboardButton(
                         text="Перейти на сайт",
                         url=f"{settings.DASHBOARD_URL}login?key={token_value}",
                     )
-                ]]
-            )
+                ]
+            ]
+            if any(r[0] == UserRole.SALES_POINT for r in roles):
+                buttons.append(
+                    [
+                        types.InlineKeyboardButton(
+                            text="Зарегистрировать точку продажи",
+                            callback_data="start_sales_outlet",
+                        )
+                    ]
+                )
+            keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
 
         else:
-            text = (
-                "Вы ещё не зарегистрированы. Используйте полученную ссылку для начала регистрации."
-            )
+            text = "Вы ещё не зарегистрированы. Используйте полученную ссылку для начала регистрации."
 
-        sent = await bot.send_message(message.chat.id, text, reply_markup=keyboard, parse_mode="HTML")
+        sent = await bot.send_message(
+            message.chat.id, text, reply_markup=keyboard, parse_mode="HTML"
+        )
         if roles:
             user_svc.store_token(
                 user,

@@ -23,7 +23,7 @@ class UserRole:
 
 ROLE_NAMES = {
     UserRole.AGENT: "Ваша ссылка консультанта:",
-    UserRole.SALES_POINT: "Ваша ссылка партнёра:",
+    UserRole.SALES_POINT: "Ваши точки продаж:",
     UserRole.POET: "Вы зарегистрированы как поэт.",
     UserRole.VIDEO_EDITOR: "Вы зарегистрированы как видеомонтажёр.",
     UserRole.STAFF: "Ссылки для приглашения:",
@@ -72,26 +72,30 @@ def build_referral_links(roles: list[tuple[str, dict]]) -> str:
             parts.append(staff_text)
             continue
 
-        if not code:
-            parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>")
-            continue
-
         if role == UserRole.SALES_POINT:
             partner_id = profile.get("id") or profile.get("partnerId")
             outlets = outlet_service.list_outlets(partner_id)
             outlet_lines = []
             for o in outlets:
+                name = o.get("name") or "Точка"
                 o_code = o.get("referralCode") or o.get("referral_code")
-                if not o_code:
-                    continue
-                name = o.get("name")
-                link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{o_code}"
-                outlet_lines.append(f"{name}: {link}")
+                if o_code:
+                    link = (
+                        f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{o_code}"
+                    )
+                    outlet_lines.append(f"{name}: {link}")
+                else:
+                    outlet_lines.append(f"{name}: ссылка недоступна")
             text = "\n".join(outlet_lines) if outlet_lines else "Нет точек"
             parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{text}")
-        else:
-            link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
-            parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{link}")
+            continue
+
+        if not code:
+            parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>")
+            continue
+
+        link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
+        parts.append(f"<b>{ROLE_NAMES.get(role, role)}</b>\n{link}")
     return "\n\n".join(parts)
 
 def get_user_role(db: Session, user_id: int) -> tuple[str | None, dict]:

@@ -21,6 +21,10 @@ async def agent_form(request: Request):
 async def sales_point_form(request: Request):
     return FileResponse("miniApp/templates/sales-point-form.html")
 
+@app.get("/sales-outlet-form", response_class=HTMLResponse)
+async def sales_outlet_form(request: Request):
+    return FileResponse("miniApp/templates/sales-outlet-form.html")
+
 @app.get("/poet-form", response_class=HTMLResponse)
 async def poet_form(request: Request):
     return FileResponse("miniApp/templates/poet-form.html")
