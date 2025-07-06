@@ -42,6 +42,7 @@ const adminchikContent: TeamContent = {
                 { title: "Поэты", url: "/poets" },
                 { title: "Видеомонтажеры", url: "/video-editors" },
                 { title: "Пользователи", url: "/users" },
+                { title: "Архитектура", url: "/architecture" },
             ],
         },
         {

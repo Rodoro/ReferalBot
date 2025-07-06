@@ -2,6 +2,7 @@ import { Controller, Get, Param } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { StatisticsService } from './statistics.service';
 import { DailyStatDto } from './dto/daily-stat.dto';
+import { ArchitectureAgentDto } from './dto/architecture.dto';
 
 @ApiTags('Statistics')
 @Controller('statistics')
@@ -24,5 +25,11 @@ export class StatisticsController {
     @ApiOperation({ summary: 'Get daily statistics for sales point' })
     getDailyBySalesPoint(@Param('id') id: string): Promise<DailyStatDto[]> {
         return this.statisticsService.getDailyBySalesPoint(+id);
+    }
+
+    @Get('architecture')
+    @ApiOperation({ summary: 'Get architecture data' })
+    getArchitecture(): Promise<ArchitectureAgentDto[]> {
+        return this.statisticsService.getArchitecture();
     }
 }

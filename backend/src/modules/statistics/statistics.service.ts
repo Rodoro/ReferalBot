@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/src/core/prisma/prisma.service';
 import { DailyStatDto } from './dto/daily-stat.dto';
+import {
+  ArchitectureAgentDto,
+  ArchitecturePartnerDto,
+  ArchitectureOutletDto,
+  ArchitectureUserDto,
+} from './dto/architecture.dto';
 
 @Injectable()
 export class StatisticsService {
@@ -101,5 +107,81 @@ export class StatisticsService {
       poemOrders: Number(r.poem_orders ?? 0),
       videoOrders: Number(r.video_orders ?? 0),
     }));
+  }
+
+  async getArchitecture(): Promise<ArchitectureAgentDto[]> {
+    const agents = await this.prisma.agent.findMany({ orderBy: { fullName: 'asc' } });
+
+    const result: ArchitectureAgentDto[] = [];
+
+    for (const agent of agents) {
+      const partners = await this.prisma.salesPoint.findMany({
+        where: { agentId: agent.id },
+        orderBy: { fullName: 'asc' },
+      });
+
+      const partnerDtos: ArchitecturePartnerDto[] = [];
+      for (const partner of partners) {
+        const outlets = await this.prisma.salesOutlet.findMany({
+          where: { partnerId: partner.id },
+          orderBy: { name: 'asc' },
+        });
+
+        const outletDtos: ArchitectureOutletDto[] = [];
+        for (const outlet of outlets) {
+          const users = await this.prisma.users.findMany({
+            where: { sales_id: outlet.id },
+            select: { chat_id: true, username: true },
+            orderBy: { chat_id: 'asc' },
+          });
+
+          const userDtos: ArchitectureUserDto[] = [];
+          let outletActions = 0;
+          for (const u of users) {
+            const actionsCount = await this.prisma.actions.count({
+              where: { user_id: BigInt(u.chat_id) },
+            });
+            outletActions += actionsCount;
+            userDtos.push({
+              chatId: u.chat_id.toString(),
+              username: u.username ?? null,
+              actionsCount,
+            });
+          }
+
+          outletDtos.push({
+            id: outlet.id,
+            name: outlet.name,
+            users: userDtos,
+            userCount: userDtos.length,
+            actionsCount: outletActions,
+          });
+        }
+
+        const partnerUserCount = outletDtos.reduce((sum, o) => sum + o.userCount, 0);
+        const partnerActionCount = outletDtos.reduce((sum, o) => sum + o.actionsCount, 0);
+
+        partnerDtos.push({
+          id: partner.id,
+          fullName: partner.fullName,
+          outlets: outletDtos,
+          userCount: partnerUserCount,
+          actionsCount: partnerActionCount,
+        });
+      }
+
+      const agentUserCount = partnerDtos.reduce((sum, p) => sum + p.userCount, 0);
+      const agentActionCount = partnerDtos.reduce((sum, p) => sum + p.actionsCount, 0);
+
+      result.push({
+        id: agent.id,
+        fullName: agent.fullName,
+        partners: partnerDtos,
+        userCount: agentUserCount,
+        actionsCount: agentActionCount,
+      });
+    }
+
+    return result;
   }
 }
