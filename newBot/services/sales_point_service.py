@@ -48,11 +48,16 @@ class SalesPointService:
 
     def sign_sales_point_contract(self, user_id: int) -> tuple[list[str], str, str]:
         profile = self.get_sales_point_profile(user_id)
-        code = profile.get("referralCode") or "".join(
-            random.choices(string.ascii_lowercase + string.digits, k=8)
-        )
+        code = profile.get("referralCode")
+        payload = {"contractSigned": True}
+        if not code:
+            code = "".join(
+                random.choices(string.ascii_lowercase + string.digits, k=8)
+            )
+            payload["referralCode"] = code
+
         self.client.put(
-            f"sales-point/bot/{user_id}", {"contractSigned": True}
+            f"sales-point/bot/{user_id}", payload
         )
 
         partner_id = profile.get("id")

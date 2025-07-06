@@ -39,7 +39,7 @@ export class SalesPointService {
                 name: data.fullName,
                 description: '',
                 verified: false,
-                referralCode: Math.random().toString(36).slice(2, 10),
+                referralCode
             },
         });
         return plainToInstance(SalesPointResponseDto, { ...sp.user, ...sp });
