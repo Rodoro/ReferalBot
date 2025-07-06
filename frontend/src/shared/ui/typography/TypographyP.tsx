@@ -1,6 +1,6 @@
 export function TypographyP({ text, className }: { text: string, className?: string }) {
     return (
-        <p className={className + " leading-7 [&:not(:first-child)]:mt-6"}>
+        <p className={className + " leading-7 [&:not(:first-child)]:mt-2"}>
             {text}
         </p>
     )

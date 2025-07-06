@@ -13,7 +13,11 @@ export class ArchitectureUserDto {
 
     @ApiProperty()
     @Expose()
-    actionsCount: number
+    songGenerations: number
+
+    @ApiProperty()
+    @Expose()
+    textGenerations: number
 }
 
 @Exclude()
@@ -26,6 +30,10 @@ export class ArchitectureOutletDto {
     @Expose()
     name: string
 
+    @ApiProperty()
+    @Expose()
+    verified: boolean
+
     @ApiProperty({ type: () => [ArchitectureUserDto] })
     @Expose()
     @Type(() => ArchitectureUserDto)
@@ -37,7 +45,11 @@ export class ArchitectureOutletDto {
 
     @ApiProperty()
     @Expose()
-    actionsCount: number
+    songGenerations: number
+
+    @ApiProperty()
+    @Expose()
+    textGenerations: number
 }
 
 @Exclude()
@@ -61,7 +73,11 @@ export class ArchitecturePartnerDto {
 
     @ApiProperty()
     @Expose()
-    actionsCount: number
+    songGenerations: number
+
+    @ApiProperty()
+    @Expose()
+    textGenerations: number
 }
 
 @Exclude()
@@ -85,5 +101,9 @@ export class ArchitectureAgentDto {
 
     @ApiProperty()
     @Expose()
-    actionsCount: number
+    songGenerations: number
+
+    @ApiProperty()
+    @Expose()
+    textGenerations: number
 }

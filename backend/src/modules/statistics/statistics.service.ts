@@ -131,54 +131,68 @@ export class StatisticsService {
         for (const outlet of outlets) {
           const users = await this.prisma.users.findMany({
             where: { sales_id: outlet.id },
-            select: { chat_id: true, username: true },
+            select: {
+              chat_id: true,
+              username: true,
+              count_trys_generate_song: true,
+              count_trys_generate_chatgpt: true,
+            },
             orderBy: { chat_id: 'asc' },
           });
 
           const userDtos: ArchitectureUserDto[] = [];
-          let outletActions = 0;
+          let outletSongGen = 0;
+          let outletTextGen = 0;
+
           for (const u of users) {
-            const actionsCount = await this.prisma.actions.count({
-              where: { user_id: BigInt(u.chat_id) },
-            });
-            outletActions += actionsCount;
+            const song = u.count_trys_generate_song ?? 0;
+            const text = u.count_trys_generate_chatgpt ?? 0;
+            outletSongGen += song;
+            outletTextGen += text;
             userDtos.push({
               chatId: u.chat_id.toString(),
               username: u.username ?? null,
-              actionsCount,
+              songGenerations: song,
+              textGenerations: text,
             });
           }
 
           outletDtos.push({
             id: outlet.id,
             name: outlet.name,
+            verified: outlet.verified,
             users: userDtos,
             userCount: userDtos.length,
-            actionsCount: outletActions,
+            songGenerations: outletSongGen,
+            textGenerations: outletTextGen,
           });
         }
 
         const partnerUserCount = outletDtos.reduce((sum, o) => sum + o.userCount, 0);
-        const partnerActionCount = outletDtos.reduce((sum, o) => sum + o.actionsCount, 0);
+        const partnerSongGen = outletDtos.reduce((sum, o) => sum + o.songGenerations, 0);
+        const partnerTextGen = outletDtos.reduce((sum, o) => sum + o.textGenerations, 0);
 
         partnerDtos.push({
           id: partner.id,
           fullName: partner.fullName,
           outlets: outletDtos,
           userCount: partnerUserCount,
-          actionsCount: partnerActionCount,
+          songGenerations: partnerSongGen,
+          textGenerations: partnerTextGen,
         });
       }
 
       const agentUserCount = partnerDtos.reduce((sum, p) => sum + p.userCount, 0);
-      const agentActionCount = partnerDtos.reduce((sum, p) => sum + p.actionsCount, 0);
+      const agentSongGen = partnerDtos.reduce((sum, p) => sum + p.songGenerations, 0);
+      const agentTextGen = partnerDtos.reduce((sum, p) => sum + p.textGenerations, 0);
 
       result.push({
         id: agent.id,
         fullName: agent.fullName,
         partners: partnerDtos,
         userCount: agentUserCount,
-        actionsCount: agentActionCount,
+        songGenerations: agentSongGen,
+        textGenerations: agentTextGen,
       });
     }
 
