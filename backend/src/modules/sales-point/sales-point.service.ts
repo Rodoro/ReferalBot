@@ -10,6 +10,7 @@ export class SalesPointService {
     constructor(private readonly prismaService: PrismaService) { }
 
     async create(data: CreateSalesPointDto): Promise<SalesPointResponseDto> {
+        const referralCode = Math.random().toString(36).slice(2, 10);
         const sp = await this.prismaService.salesPoint.create({
             data: {
                 user: { connect: { id: data.userId } },
@@ -26,7 +27,7 @@ export class SalesPointService {
                 bankDetails: data.bankDetails,
                 approved: data.approved,
                 contractSigned: data.contractSigned,
-                referralCode: data.referralCode,
+                referralCode,
             },
             include: { user: true },
         });
