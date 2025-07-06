@@ -17,7 +17,7 @@ export class SalesOutletService {
                 name: data.name,
                 description: data.description,
                 verified: data.verified,
-                referralCode: data.referralCode,
+                referralCode: Math.random().toString(36).slice(2, 10),
             },
         });
         return plainToInstance(SalesOutletResponseDto, outlet);
