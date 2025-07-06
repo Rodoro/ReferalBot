@@ -1,8 +1,14 @@
 import json
+import os
 from aiogram import Bot, types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    ReplyKeyboardRemove,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InputMediaDocument,
+)
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from newBot.config import settings
@@ -268,7 +274,7 @@ async def handle_agent_sign_contract(
 
     svc = AgentService()
     try:
-        referral_link = svc.sign_agent_contract(user_id)
+        banner_paths, qr_path, referral_link = svc.sign_agent_contract(user_id)
     except Exception as e:
         await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
         return
@@ -276,15 +282,21 @@ async def handle_agent_sign_contract(
     # Убираем кнопку «Подписать договор» под сообщением
     await callback.message.edit_reply_markup(reply_markup=None)
 
-    # Отправляем пользователю его реферальную ссылку (текстом)
+    # Отправляем пользователю баннеры и QR-код
     await bot.send_message(
         chat_id=tg_id,
         text=(
             "✅ Вы успешно подписали договор как консультант!\n\n"
             f"Ваша реферальная ссылка:\n{referral_link}\n\n"
-            "Чтобы просмотреть свой профиль, отправьте /start"
-        )
+            "Ниже два баннера с QR-кодом. Сохраните их или поделитесь ими."
+        ),
     )
+    media = [InputMediaDocument(media=types.FSInputFile(p)) for p in banner_paths]
+    if media:
+        await bot.send_media_group(chat_id=tg_id, media=media)
+    await bot.send_document(chat_id=tg_id, document=types.FSInputFile(qr_path), caption="Отдельный QR-код")
+    for p in banner_paths + [qr_path]:
+        os.remove(p)
 
     # Уведомляем админ‐канал, что договор подписан
     await bot.send_message(

@@ -349,7 +349,7 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
         text=(
             "✅ Вы успешно подписали договор как партнёр!\n\n"
             f"Ваша реферальная ссылка:\n{referral_link}\n\n"
-            "Ниже два баннера с QR-кодом. Сохраните или поделитесь ими для привлечения клиентов. (Это может занять немного больше, чем Вы думаете)"
+            "Ниже два баннера с QR-кодом. Сохраните или поделитесь ими для привлечения клиентов."
         )
     )
     media = [InputMediaDocument(media=types.FSInputFile(p)) for p in banner_paths]

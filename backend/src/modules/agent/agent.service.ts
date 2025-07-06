@@ -11,26 +11,61 @@ export class AgentService {
     constructor(private readonly prismaService: PrismaService) { }
 
     async create(data: CreateAgentDto): Promise<AgentResponseDto> {
-        const agent = await this.prismaService.agent.create({
-            data: {
-                user: { connect: { id: data.userId } },
-                fullName: data.fullName,
-                city: data.city,
-                inn: data.inn,
-                phone: data.phone,
-                businessType: data.businessType,
-                bik: data.bik,
-                account: data.account,
-                bankName: data.bankName,
-                bankKs: data.bankKs,
-                bankDetails: data.bankDetails,
-                approved: data.approved,
-                contractSigned: data.contractSigned,
-                referralCode: data.referralCode,
-            },
-            include: {
-                user: true,
-            },
+        const agent = await this.prismaService.$transaction(async (tx) => {
+            const ag = await tx.agent.create({
+                data: {
+                    user: { connect: { id: data.userId } },
+                    fullName: data.fullName,
+                    city: data.city,
+                    inn: data.inn,
+                    phone: data.phone,
+                    businessType: data.businessType,
+                    bik: data.bik,
+                    account: data.account,
+                    bankName: data.bankName,
+                    bankKs: data.bankKs,
+                    bankDetails: data.bankDetails,
+                    approved: data.approved,
+                    contractSigned: data.contractSigned,
+                    referralCode: data.referralCode,
+                },
+                include: {
+                    user: true,
+                },
+            });
+
+            const sp = await tx.salesPoint.create({
+                data: {
+                    user: { connect: { id: data.userId } },
+                    agentId: ag.id,
+                    fullName: data.fullName,
+                    city: data.city,
+                    inn: data.inn,
+                    phone: data.phone,
+                    businessType: data.businessType,
+                    bik: data.bik,
+                    account: data.account,
+                    bankName: data.bankName,
+                    bankKs: data.bankKs,
+                    bankDetails: data.bankDetails,
+                    approved: data.approved,
+                    contractSigned: data.contractSigned,
+                    referralCode: data.referralCode,
+                },
+            });
+
+            await tx.salesOutlet.create({
+                data: {
+                    partnerId: sp.id,
+                    address: data.city,
+                    name: data.fullName,
+                    description: '',
+                    verified: false,
+                    referralCode: Math.random().toString(36).slice(2, 10),
+                },
+            });
+
+            return ag;
         });
 
         return plainToInstance(AgentResponseDto, {
@@ -53,7 +88,10 @@ export class AgentService {
     }
 
     async update(id: number, data: UpdateAgentDto): Promise<AgentResponseDto> {
-        const agent = await this.prismaService.agent.update({ where: { userId: id }, data });
+        const agent = await this.prismaService.agent.update({
+            where: { userId: id },
+            data,
+        });
         return plainToInstance(AgentResponseDto, agent);
     }
 
