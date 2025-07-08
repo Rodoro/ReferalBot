@@ -97,35 +97,30 @@ class AgentService:
                 if not sp_referral_link:
                     sp_referral_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{sp_code}"
 
-                banner_service = BannerService()
-                banners = banner_service.list_banners()
+                if not sp_paths:
+                    banner_service = BannerService()
+                    banners = banner_service.list_banners()
 
-                if banners:
-                    selected = random.sample(banners, min(2, len(banners)))
-                    for idx, banner in enumerate(selected):
-                        image_url = banner.get("imageUrl") or banner.get("image_url")
-                        left = banner.get("qrLeftOffset") or banner.get("qr_left_offset") or 0
-                        top = banner.get("qrTopOffset") or banner.get("qr_top_offset") or 0
-                        size = banner.get("qrSize") or banner.get("qr_size") or settings.QR_DEFAULT_SIZE
-                        output_path = f"sp_qr_{sp_user_id}_{idx}.png"
-                        generate_banner_image(image_url, left, top, size, sp_referral_link, output_path)
+                    if banners:
+                        selected = random.sample(banners, min(2, len(banners)))
+                        for idx, banner in enumerate(selected):
+                            image_url = banner.get("imageUrl") or banner.get("image_url")
+                            left = banner.get("qrLeftOffset") or banner.get("qr_left_offset") or 0
+                            top = banner.get("qrTopOffset") or banner.get("qr_top_offset") or 0
+                            size = banner.get("qrSize") or banner.get("qr_size") or settings.QR_DEFAULT_SIZE
+                            output_path = f"sp_qr_{sp_user_id}_{idx}.png"
+                            generate_banner_image(image_url, left, top, size, sp_referral_link, output_path)
+                            sp_paths.append(output_path)
+                    else:
+                        processor = CSVImageProcessor(settings.CSV_URL)
+                        output_path = f"sp_qr_{sp_user_id}.png"
+                        processor.process_and_save_image(sp_referral_link, output_path)
                         sp_paths.append(output_path)
-                else:
-                    processor = CSVImageProcessor(settings.CSV_URL)
-                    output_path = f"sp_qr_{sp_user_id}.png"
-                    processor.process_and_save_image(sp_referral_link, output_path)
-                    sp_paths.append(output_path)
 
-                sp_qr_output = f"sp_qr_{sp_user_id}_plain.png"
-                qr_image = qr_processor.generate_qr_code(sp_referral_link, settings.QR_DEFAULT_SIZE)
-                qr_image.save(sp_qr_output)
-
-        # Fallback to agent code if we could not determine the sales point link
-        if not sp_referral_link:
-            sp_referral_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
-            sp_qr_output = f"sp_qr_{user_id}_plain.png"
-            qr_image = qr_processor.generate_qr_code(sp_referral_link, settings.QR_DEFAULT_SIZE)
-            qr_image.save(sp_qr_output)
+                if not sp_qr_output:
+                    sp_qr_output = f"sp_qr_{sp_user_id}_plain.png"
+                    qr_image = qr_processor.generate_qr_code(sp_referral_link, settings.QR_DEFAULT_SIZE)
+                    qr_image.save(sp_qr_output)
 
         return sp_paths, sp_qr_output, sp_referral_link, agent_qr, agent_link
     
