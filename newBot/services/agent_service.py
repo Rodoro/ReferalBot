@@ -63,7 +63,7 @@ class AgentService:
                     f"agent/bot/{user_id}", {"contractSigned": True, "referralCode": code}
                 )
 
-                agent_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
+                agent_link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
                 qr_processor = CSVImageProcessor(settings.CSV_URL)
                 agent_qr = f"agent_qr_{user_id}_plain.png"
                 qr_image = qr_processor.generate_qr_code(agent_link, settings.QR_DEFAULT_SIZE)
@@ -77,7 +77,10 @@ class AgentService:
             f"agent/bot/{user_id}", {"contractSigned": True, "referralCode": code}
         )
 
-        referral_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
+        sp_referral_link = (
+            f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
+        )
+        agent_link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
 
         banner_service = BannerService()
         banners = banner_service.list_banners()
@@ -95,20 +98,26 @@ class AgentService:
                     or settings.QR_DEFAULT_SIZE
                 )
                 output_path = f"agent_qr_{user_id}_{idx}.png"
-                generate_banner_image(image_url, left, top, size, referral_link, output_path)
+                generate_banner_image(
+                    image_url, left, top, size, sp_referral_link, output_path
+                )
                 paths.append(output_path)
         else:
             processor = CSVImageProcessor(settings.CSV_URL)
             output_path = f"agent_qr_{user_id}.png"
-            processor.process_and_save_image(referral_link, output_path)
+            processor.process_and_save_image(sp_referral_link, output_path)
             paths.append(output_path)
 
         qr_processor = CSVImageProcessor(settings.CSV_URL)
         agent_qr = f"agent_qr_{user_id}_plain.png"
-        qr_image = qr_processor.generate_qr_code(referral_link, settings.QR_DEFAULT_SIZE)
+        qr_image = qr_processor.generate_qr_code(agent_link, settings.QR_DEFAULT_SIZE)
         qr_image.save(agent_qr)
 
-        return paths, agent_qr, referral_link, agent_qr, referral_link
+        sp_qr_output = f"sp_qr_{user_id}_plain.png"
+        qr_image = qr_processor.generate_qr_code(sp_referral_link, settings.QR_DEFAULT_SIZE)
+        qr_image.save(sp_qr_output)
+
+        return paths, sp_qr_output, sp_referral_link, agent_qr, agent_link
     def get_agent_profile(self, user_id: int) -> dict:
         return self.client.get(f"agent/bot/{user_id}")
 
