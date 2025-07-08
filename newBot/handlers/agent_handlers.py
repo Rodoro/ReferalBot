@@ -274,7 +274,7 @@ async def handle_agent_sign_contract(
 
     svc = AgentService()
     try:
-        banner_paths, qr_path, referral_link = svc.sign_agent_contract(user_id)
+        sp_banner_paths, sp_qr_path, sp_link, agent_qr_path, agent_link = svc.sign_agent_contract(user_id)
     except Exception as e:
         await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
         return
@@ -287,15 +287,17 @@ async def handle_agent_sign_contract(
         chat_id=tg_id,
         text=(
             "✅ Вы успешно подписали договор как консультант!\n\n"
-            f"Ваша реферальная ссылка:\n{referral_link}\n\n"
-            "Ниже два баннера с QR-кодом. Сохраните их или поделитесь ими."
+            f"Ссылка для партнёров:\n{agent_link}\n\n"
+            f"Ссылка для клиентов:\n{sp_link}\n\n"
+            "Ниже два баннера с QR-кодом для клиентов. Сохраните или поделитесь ими."
         ),
     )
-    media = [InputMediaDocument(media=types.FSInputFile(p)) for p in banner_paths]
+    media = [InputMediaDocument(media=types.FSInputFile(p)) for p in sp_banner_paths]
     if media:
         await bot.send_media_group(chat_id=tg_id, media=media)
-    await bot.send_document(chat_id=tg_id, document=types.FSInputFile(qr_path), caption="Отдельный QR-код")
-    for p in banner_paths + [qr_path]:
+    await bot.send_document(chat_id=tg_id, document=types.FSInputFile(agent_qr_path), caption="QR для партнёров")
+    await bot.send_document(chat_id=tg_id, document=types.FSInputFile(sp_qr_path), caption="QR для клиентов")
+    for p in sp_banner_paths + [agent_qr_path, sp_qr_path]:
         os.remove(p)
 
     # Уведомляем админ‐канал, что договор подписан

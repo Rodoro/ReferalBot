@@ -44,20 +44,32 @@ class AgentService:
         self.client.put(f"agent/bot/{user_id}", {"approved": True})
         return True
 
-    def sign_agent_contract(self, user_id: int) -> tuple[list[str], str, str]:
+    def sign_agent_contract(
+        self, user_id: int
+    ) -> tuple[list[str], str, str, str, str]:
+        """Sign agent contract and return sales point and agent referral assets."""
         points = self.list_agent_points(user_id)
 
-        # If consultant has at least one sales point, use its referral link
+        # If consultant has at least one sales point, also sign its contract
         if points:
             sp_user_id = points[0].get("userId") or points[0].get("user_id")
             if sp_user_id:
                 sp_service = SalesPointService()
-                paths, qr_output, referral_link = sp_service.sign_sales_point_contract(sp_user_id)
-                code = referral_link.split("ref_")[-1]
+                sp_paths, sp_qr_output, sp_referral_link = sp_service.sign_sales_point_contract(
+                    sp_user_id
+                )
+                code = sp_referral_link.split("ref_")[-1]
                 self.client.put(
                     f"agent/bot/{user_id}", {"contractSigned": True, "referralCode": code}
                 )
-                return paths, qr_output, referral_link
+
+                agent_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
+                qr_processor = CSVImageProcessor(settings.CSV_URL)
+                agent_qr = f"agent_qr_{user_id}_plain.png"
+                qr_image = qr_processor.generate_qr_code(agent_link, settings.QR_DEFAULT_SIZE)
+                qr_image.save(agent_qr)
+
+                return sp_paths, sp_qr_output, sp_referral_link, agent_qr, agent_link
 
         # Fallback: generate referral link based on consultant profile
         code = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
