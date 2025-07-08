@@ -104,11 +104,11 @@ class AgentService:
             paths.append(output_path)
 
         qr_processor = CSVImageProcessor(settings.CSV_URL)
-        qr_output = f"agent_qr_{user_id}_plain.png"
+        agent_qr = f"agent_qr_{user_id}_plain.png"
         qr_image = qr_processor.generate_qr_code(referral_link, settings.QR_DEFAULT_SIZE)
-        qr_image.save(qr_output)
+        qr_image.save(agent_qr)
 
-        return paths, qr_output, referral_link
+        return paths, agent_qr, referral_link, agent_qr, referral_link
     def get_agent_profile(self, user_id: int) -> dict:
         return self.client.get(f"agent/bot/{user_id}")
 
