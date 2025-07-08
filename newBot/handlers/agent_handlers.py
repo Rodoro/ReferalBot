@@ -274,7 +274,7 @@ async def handle_agent_sign_contract(
 
     svc = AgentService()
     try:
-        sp_banner_paths, sp_qr_path, sp_link, agent_qr_path, agent_link = svc.sign_agent_contract(user_id)
+        sp_banner_paths, sp_qr_path, sp_link, agent_qr_path, agent_link = svc.sign_agent_contract(user_id)  
     except Exception as e:
         await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
         return

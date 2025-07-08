@@ -50,6 +50,10 @@ class AgentService:
         """Sign agent contract and return sales point and agent referral assets."""
         points = self.list_agent_points(user_id)
 
+        sp_paths: list[str] = []
+        sp_qr_output = ""
+        sp_referral_link = ""
+
         # If consultant has at least one sales point, also sign its contract
         if points:
             sp_user_id = points[0].get("userId") or points[0].get("user_id")
@@ -58,66 +62,30 @@ class AgentService:
                 sp_paths, sp_qr_output, sp_referral_link = sp_service.sign_sales_point_contract(
                     sp_user_id
                 )
-                code = sp_referral_link.split("ref_")[-1]
-                self.client.put(
-                    f"agent/bot/{user_id}", {"contractSigned": True, "referralCode": code}
-                )
 
-                agent_link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
-                qr_processor = CSVImageProcessor(settings.CSV_URL)
-                agent_qr = f"agent_qr_{user_id}_plain.png"
-                qr_image = qr_processor.generate_qr_code(agent_link, settings.QR_DEFAULT_SIZE)
-                qr_image.save(agent_qr)
+        profile = self.get_agent_profile(user_id)
+        code = profile.get("referralCode")
+        if not code:
+            code = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
 
-                return sp_paths, sp_qr_output, sp_referral_link, agent_qr, agent_link
-
-        # Fallback: generate referral link based on consultant profile
-        code = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
         self.client.put(
             f"agent/bot/{user_id}", {"contractSigned": True, "referralCode": code}
         )
 
-        sp_referral_link = (
-            f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
-        )
         agent_link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
-
-        banner_service = BannerService()
-        banners = banner_service.list_banners()
-
-        paths: List[str] = []
-        if banners:
-            selected = random.sample(banners, min(2, len(banners)))
-            for idx, banner in enumerate(selected):
-                image_url = banner.get("imageUrl") or banner.get("image_url")
-                left = banner.get("qrLeftOffset") or banner.get("qr_left_offset") or 0
-                top = banner.get("qrTopOffset") or banner.get("qr_top_offset") or 0
-                size = (
-                    banner.get("qrSize")
-                    or banner.get("qr_size")
-                    or settings.QR_DEFAULT_SIZE
-                )
-                output_path = f"agent_qr_{user_id}_{idx}.png"
-                generate_banner_image(
-                    image_url, left, top, size, sp_referral_link, output_path
-                )
-                paths.append(output_path)
-        else:
-            processor = CSVImageProcessor(settings.CSV_URL)
-            output_path = f"agent_qr_{user_id}.png"
-            processor.process_and_save_image(sp_referral_link, output_path)
-            paths.append(output_path)
-
         qr_processor = CSVImageProcessor(settings.CSV_URL)
         agent_qr = f"agent_qr_{user_id}_plain.png"
         qr_image = qr_processor.generate_qr_code(agent_link, settings.QR_DEFAULT_SIZE)
         qr_image.save(agent_qr)
 
-        sp_qr_output = f"sp_qr_{user_id}_plain.png"
-        qr_image = qr_processor.generate_qr_code(sp_referral_link, settings.QR_DEFAULT_SIZE)
-        qr_image.save(sp_qr_output)
+        if not sp_referral_link:
+            sp_referral_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
+            sp_qr_output = f"sp_qr_{user_id}_plain.png"
+            qr_image = qr_processor.generate_qr_code(sp_referral_link, settings.QR_DEFAULT_SIZE)
+            qr_image.save(sp_qr_output)
 
-        return paths, sp_qr_output, sp_referral_link, agent_qr, agent_link
+        return sp_paths, sp_qr_output, sp_referral_link, agent_qr, agent_link
+    
     def get_agent_profile(self, user_id: int) -> dict:
         return self.client.get(f"agent/bot/{user_id}")
 
