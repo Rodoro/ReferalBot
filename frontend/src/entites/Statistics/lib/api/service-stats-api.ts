@@ -4,6 +4,7 @@ export type DailyStat = {
     date: string;
     agentName: string;
     pointName: string;
+    outletName?: string;
     newClients: number;
     songGenerations: number;
     trialGenerations: number;
@@ -22,4 +23,8 @@ export async function getDailyStatsByAgent(id: number): Promise<DailyStat[]> {
 
 export async function getDailyStatsBySalesPoint(id: number): Promise<DailyStat[]> {
     return apiClient.get(`/statistics/sales-point/${id}/daily`);
+}
+
+export async function getDailyStatsBySalesOutlet(id: number): Promise<DailyStat[]> {
+    return apiClient.get(`/statistics/sales-outlet/${id}/daily`);
 }

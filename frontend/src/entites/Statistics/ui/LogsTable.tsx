@@ -7,6 +7,7 @@ import {
     getDailyStats,
     getDailyStatsByAgent,
     getDailyStatsBySalesPoint,
+    getDailyStatsBySalesOutlet,
     DailyStat,
 } from "../lib/api/service-stats-api";
 import {
@@ -59,7 +60,7 @@ type ServiceStatRow = {
     // payable: number; // accrued × (percent/100)
 };
 
-export type StatsMode = 'all' | 'agent' | 'salesPoint';
+export type StatsMode = 'all' | 'agent' | 'salesPoint' | 'salesOutlet';
 
 interface ServiceStatsPanelProps {
     mode?: StatsMode;
@@ -100,6 +101,8 @@ export function ServiceStatsPanel({
                     data = await getDailyStatsByAgent(id);
                 } else if (mode === 'salesPoint' && id) {
                     data = await getDailyStatsBySalesPoint(id);
+                } else if (mode === 'salesOutlet' && id) {
+                    data = await getDailyStatsBySalesOutlet(id);
                 } else {
                     data = await getDailyStats();
                 }

@@ -27,6 +27,12 @@ export class StatisticsController {
         return this.statisticsService.getDailyBySalesPoint(+id);
     }
 
+    @Get('sales-outlet/:id/daily')
+    @ApiOperation({ summary: 'Get daily statistics for sales outlet' })
+    getDailyBySalesOutlet(@Param('id') id: string): Promise<DailyStatDto[]> {
+        return this.statisticsService.getDailyBySalesOutlet(+id);
+    }
+
     @Get('architecture')
     @ApiOperation({ summary: 'Get architecture data' })
     getArchitecture(): Promise<ArchitectureAgentDto[]> {

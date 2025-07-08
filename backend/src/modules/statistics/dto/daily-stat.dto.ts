@@ -15,6 +15,11 @@ export class DailyStatDto {
     @Expose()
     pointName: string;
 
+
+    @ApiProperty({ required: false })
+    @Expose()
+    outletName?: string;
+
     @ApiProperty()
     @Expose()
     newClients: number;
