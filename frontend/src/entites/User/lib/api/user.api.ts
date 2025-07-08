@@ -36,4 +36,8 @@ export const userApi = {
     delete: async (id: number): Promise<void> => {
         return apiClient.delete(`/user/${id}`)
     },
+
+    clear: async (id: number): Promise<User> => {
+        return apiClient.delete(`/user/clear/${id}`)
+    },
 }

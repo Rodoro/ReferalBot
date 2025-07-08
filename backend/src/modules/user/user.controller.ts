@@ -70,6 +70,12 @@ export class UserController {
         return this.userService.update(+id, dto);
     }
 
+    @Delete('clear/:id')
+    @ApiOperation({ summary: 'Clear user roles by id' })
+    async clear(@Param('id') id: string): Promise<UserResponseDto> {
+        return this.userService.clear(+id);
+    }
+
     @Delete(':id')
     @ApiOperation({ summary: 'Delete user by id' })
     async remove(@Param('id') id: string): Promise<UserResponseDto> {

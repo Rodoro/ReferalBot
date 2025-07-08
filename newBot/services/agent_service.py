@@ -5,6 +5,7 @@ from newBot.lib.image_processor import CSVImageProcessor, generate_banner_image
 from typing import List
 import random
 import string
+from .sales_point_service import SalesPointService
 
 class AgentService:
     def __init__(self) -> None:
@@ -44,21 +45,27 @@ class AgentService:
         return True
 
     def sign_agent_contract(self, user_id: int) -> tuple[list[str], str, str]:
+        points = self.list_agent_points(user_id)
+
+        # If consultant has at least one sales point, use its referral link
+        if points:
+            sp_user_id = points[0].get("userId") or points[0].get("user_id")
+            if sp_user_id:
+                sp_service = SalesPointService()
+                paths, qr_output, referral_link = sp_service.sign_sales_point_contract(sp_user_id)
+                code = referral_link.split("ref_")[-1]
+                self.client.put(
+                    f"agent/bot/{user_id}", {"contractSigned": True, "referralCode": code}
+                )
+                return paths, qr_output, referral_link
+
+        # Fallback: generate referral link based on consultant profile
         code = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
         self.client.put(
             f"agent/bot/{user_id}", {"contractSigned": True, "referralCode": code}
         )
 
-        points = self.list_agent_points(user_id)
-        if points:
-            partner_id = points[0].get("id")
-            from .sales_outlet_service import SalesOutletService
-            outlet_svc = SalesOutletService()
-            outlets = outlet_svc.list_outlets(partner_id)
-            if outlets:
-                outlet_svc.update_outlet(outlets[0].get("id"), {"referralCode": code})
-
-        referral_link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
+        referral_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
 
         banner_service = BannerService()
         banners = banner_service.list_banners()
@@ -90,7 +97,6 @@ class AgentService:
         qr_image.save(qr_output)
 
         return paths, qr_output, referral_link
-
     def get_agent_profile(self, user_id: int) -> dict:
         return self.client.get(f"agent/bot/{user_id}")
 

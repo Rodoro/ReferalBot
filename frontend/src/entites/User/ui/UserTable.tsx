@@ -8,7 +8,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Input } from '@/shared/ui/form/input'
 import { Button } from '@/shared/ui/form/button'
 import { Skeleton } from '@/shared/ui/branding/skeleton'
-import { ArrowUpDown, Trash } from 'lucide-react'
+import { ArrowUpDown, Trash, Eraser } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/ui/branding/avatar'
@@ -52,6 +52,17 @@ export default function UserTable() {
             toast.error('Не удалось удалить пользователя')
         } finally {
             setDeleting(null)
+        }
+    }
+
+    const handleClear = async (id: number) => {
+        try {
+            await userApi.clear(id)
+            toast.success('Данные пользователя очищены')
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            console.error(error)
+            toast.error('Не удалось очистить данные пользователя')
         }
     }
 
@@ -113,16 +124,28 @@ export default function UserTable() {
             id: 'actions',
             header: '',
             cell: ({ row }) => (
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                        e.stopPropagation()
-                        handleDelete(row.original.id)
-                    }}
-                >
-                    <Trash className="size-4" />
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleClear(row.original.id)
+                        }}
+                    >
+                        <Eraser className="size-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(row.original.id)
+                        }}
+                    >
+                        <Trash className="size-4" />
+                    </Button>
+                </div>
             ),
         },
     ]

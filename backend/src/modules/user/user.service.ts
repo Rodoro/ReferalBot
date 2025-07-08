@@ -79,4 +79,15 @@ export class UserService {
         const user = await this.prismaService.user.delete({ where: { id } });
         return plainToInstance(UserResponseDto, user);
     }
+
+    async clear(id: number): Promise<UserResponseDto> {
+        await this.prismaService.agent.deleteMany({ where: { userId: id } });
+        await this.prismaService.salesPoint.deleteMany({ where: { userId: id } });
+
+        const user = await this.prismaService.user.findUnique({ where: { id } });
+        if (!user) {
+            throw new NotFoundException('User member not found');
+        }
+        return plainToInstance(UserResponseDto, user);
+    }
 }
