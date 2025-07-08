@@ -80,7 +80,7 @@ export class AgentService {
     }
 
     async findOne(id: number): Promise<AgentResponseDto> {
-        const agent = await this.prismaService.agent.findUnique({ where: { id } });
+        const agent = await this.prismaService.agent.findUnique({ where: { userId: id } });
         if (!agent) {
             throw new NotFoundException('Agent not found');
         }
