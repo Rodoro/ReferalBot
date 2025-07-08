@@ -69,7 +69,7 @@ class AgentService:
             code = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
 
         self.client.put(
-            f"agent/bot/{user_id}", {"contractSigned": True, "referralCode": code}
+            f"agent/user/{user_id}", {"contractSigned": True, "referralCode": code}
         )
 
         agent_link = f"https://t.me/{settings.BOT_USERNAME}?start=ref_{code}"
