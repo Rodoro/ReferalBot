@@ -85,17 +85,12 @@ class AgentService:
             qr_image.save(sp_qr_output)
 
         return sp_paths, sp_qr_output, sp_referral_link, agent_qr, agent_link
+        
     def get_agent_profile(self, user_id: int) -> dict:
-        """Return agent profile by Telegram user id."""
-        return self.client.get(f"agent/user/{user_id}")
+        return self.client.get(f"agent/bot/{user_id}")
 
     def list_agent_points(self, user_id: int) -> list[dict]:
-        """List sales points for an agent using the agent's Telegram user id."""
-        profile = self.get_agent_profile(user_id)
-        agent_id = profile.get("id")
-        if not agent_id:
-            return []
-        resp = self.client.get(f"agent/bot/{agent_id}/points")
+        resp = self.client.get(f"agent/bot/{user_id}/points")
         return resp if isinstance(resp, list) else resp.get("items", [])
 
     def remove_agent(self, user_id: int) -> bool:
