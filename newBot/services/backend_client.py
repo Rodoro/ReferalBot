@@ -4,8 +4,8 @@ from ..config import settings
 
 class BackendClient:
     def __init__(self) -> None:
-        # self.base_url = settings.BACKEND_URL.rstrip("/")
-        self.base_url = 'http://localhost:4000'
+        self.base_url = settings.BACKEND_URL.rstrip("/")
+        # self.base_url = 'http://localhost:4000'
         self.headers = {"x-bot-token": settings.BOT_SERVICE_TOKEN}
 
     def post(self, endpoint: str, data: dict) -> dict:
