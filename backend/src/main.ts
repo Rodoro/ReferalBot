@@ -8,6 +8,7 @@ import * as session from 'express-session'
 import { ms, StringValue } from './shared/utils/ms.utils';
 import { parseBoolean } from './shared/utils/parse-boolean.util';
 import { RedisStore } from 'connect-redis';
+import { IS_DEV_ENV } from './shared/utils/is-dev.utils';
 
 async function bootstrap() {
   const app = await NestFactory.create(CoreModule);
@@ -41,12 +42,14 @@ async function bootstrap() {
     exposedHeaders: ['set-cookie']
   })
 
-  const configSwager = new DocumentBuilder()
-    .setTitle('API')
-    .setVersion('1.0')
-    .build();
-  const document = SwaggerModule.createDocument(app, configSwager);
-  SwaggerModule.setup('api', app, document);
+  if (IS_DEV_ENV) {
+    const configSwager = new DocumentBuilder()
+      .setTitle('API')
+      .setVersion('1.0')
+      .build();
+    const document = SwaggerModule.createDocument(app, configSwager);
+    SwaggerModule.setup('api', app, document);
+  }
 
   await app.listen(config.getOrThrow<string>('APP_PORT'));
 }

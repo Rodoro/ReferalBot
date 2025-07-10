@@ -6,17 +6,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Главная страница</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            color: var(--tg-theme-text-color);
+            background: var(--tg-theme-bg-color);
+            padding: 20px;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--tg-theme-secondary-bg-color);
+            border-radius: 5px;
+            background: var(--tg-theme-section-bg-color);
+            color: var(--tg-theme-text-color);
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 0.8em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-error {
+            border-color: #ff4444 !important;
+        }
+    </style>
 </head>
 
 <body>
     <div class="container">
         <h1>Добро пожаловать!</h1>
-        <p>Выберите форму:</p>
-        <ul>
-            <li><a href="/agent-form">Форма консультанта</a></li>
-            <li><a href="/sales-point-form">Форма партнёра</a></li>
-            <li><a href="/poet-form">Форма поэта</a></li>
-        </ul>
+        <p>Сервис предоставляет реферальную систему. Для регистрации требуется специальная ссылка.</p>
     </div>
 </body>
 
