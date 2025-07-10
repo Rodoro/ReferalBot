@@ -84,7 +84,7 @@ async def cmd_start_sp_referral(message: types.Message, state: FSMContext):
             await message.answer("Консультант не найден по этой ссылке или ссылка уже устарела.")
             return
 
-        agent_id = agent.get("userId") or agent.get("user_id")
+        agent_id = agent.get("id") or agent.get("agentId") or agent.get("agent_id")
         agent_name = agent.get("fullName") or agent.get("full_name")
 
     finally:
