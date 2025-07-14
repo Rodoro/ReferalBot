@@ -51,6 +51,7 @@ model orders {
   actor_name String?
   created_at DateTime? @default(now()) @db.Timestamp(6)
   users      users     @relation(fields: [chat_id], references: [chat_id], onDelete: NoAction, onUpdate: NoAction)
+  payment_id String?
 }
 
 model poet_bans {
@@ -86,6 +87,11 @@ model users {
   orders                      orders[]
   first_pay_notified          Boolean
   outlet_id                   Int?
+  free_full_songs             Int?
+  name                        String?
+  perm_ban              Boolean?
+  ref_purchase_count    Int?  
+  warning_count        Int? 
 }
 
 enum RoleType {
@@ -117,6 +123,14 @@ enum roletype {
   POET
   VIDEO_EDITOR
 }
+
+enum OutletType {
+  SELLER
+  SALES_POINT
+  USER
+  INFORMATION_RESOURCE
+}
+
 
 enum tokentype {
   TELEGRAM_AUTH
@@ -298,10 +312,16 @@ model SalesOutlet {
   id           Int        @id @default(autoincrement())
   partner      SalesPoint @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   partnerId    Int        @map("partner_id")
-  address      String
-  name         String
+  type         OutletType @default(SELLER)
+  name         String     
+  telegramId   String?     @map("telegram_id")
+  address      String?
+  link         String?
+  count_users  Int?
+  count_song   Int?
   description  String?
   verified     Boolean    @default(false)
+  isTrader     Boolean    @default(false) @map("is_trader")
   referralCode String?    @map("referral_code")
   createdAt    DateTime   @default(now()) @map("created_at")
 
