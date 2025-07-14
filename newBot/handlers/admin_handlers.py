@@ -10,8 +10,8 @@ from newBot.services.video_editor_service import VideoEditorService
 pending_rejections: Dict[int, Tuple[str, int]] = {}
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-AGENT_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "agent_contract.docx")
-SP_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "sales_point_contract.docx")
+AGENT_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "consultant_contract.pdf")
+SP_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "partner_contract.pdf")
 POET_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "poet_contract.docx")
 VE_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "video_editor_contract.docx")
 
