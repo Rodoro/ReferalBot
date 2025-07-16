@@ -7,6 +7,7 @@ class PoetService:
     def register_poet(
         self,
         user_id: int,
+        telegram_id: int,
         full_name: str,
         city: str,
         inn: str,
@@ -20,6 +21,7 @@ class PoetService:
     ) -> dict:
         payload = {
             "userId": user_id,
+            "telegramId": str(telegram_id),
             "fullName": full_name,
             "city": city,
             "inn": inn,

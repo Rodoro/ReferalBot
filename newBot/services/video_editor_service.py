@@ -8,6 +8,7 @@ class VideoEditorService:
     def register_video_editor(
         self,
         user_id: int,
+        telegram_id: int,
         full_name: str,
         city: str,
         inn: str,
@@ -21,6 +22,7 @@ class VideoEditorService:
     ) -> dict:
         payload = {
             "userId": user_id,
+            "telegramId": str(telegram_id),
             "fullName": full_name,
             "city": city,
             "inn": inn,

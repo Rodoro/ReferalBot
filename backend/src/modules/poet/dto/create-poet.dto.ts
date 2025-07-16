@@ -4,6 +4,9 @@ export class CreatePoetDto {
     @ApiProperty({ description: 'User id' })
     userId: number;
 
+    @ApiProperty({ description: 'Telegram id' })
+    telegramId: string;
+
     @ApiProperty()
     fullName: string;
 

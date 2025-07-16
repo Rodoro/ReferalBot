@@ -11,6 +11,10 @@ export class PoetResponseDto {
     @Expose()
     userId: number;
 
+    @ApiProperty({ description: 'Telegram id' })
+    @Expose()
+    telegramId: string;
+
     @ApiProperty()
     @Expose()
     fullName: string;

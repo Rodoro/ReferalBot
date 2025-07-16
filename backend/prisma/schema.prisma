@@ -52,6 +52,7 @@ model orders {
   created_at DateTime? @default(now()) @db.Timestamp(6)
   users      users     @relation(fields: [chat_id], references: [chat_id], onDelete: NoAction, onUpdate: NoAction)
   payment_id String?
+  local_path String?
 }
 
 model poet_bans {
@@ -92,6 +93,7 @@ model users {
   perm_ban              Boolean?
   ref_purchase_count    Int?  
   warning_count        Int? 
+  referrer_id BigInt?
 }
 
 enum RoleType {
@@ -162,6 +164,7 @@ model Poet {
   id               Int      @id @default(autoincrement())
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int      @unique @map("user_id")
+  telegramId       String?   @map("telegram_id")
   fullName         String   @map("full_name")
   city             String
   inn              String
@@ -208,6 +211,7 @@ model VideoEditor {
   id               Int      @id @default(autoincrement())
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int      @unique @map("user_id")
+  telegramId       String?  @map("telegram_id") 
   fullName         String   @map("full_name")
   city             String
   inn              String

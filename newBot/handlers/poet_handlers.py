@@ -166,6 +166,7 @@ async def poet_confirm_data(callback: types.CallbackQuery, state: FSMContext, bo
     try:
         svc.register_poet(
             user_id=user_id,
+            telegram_id=telegram_id,
             full_name=data["full_name"],
             city=data["city"],
             inn=data["inn"],

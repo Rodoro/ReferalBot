@@ -148,6 +148,7 @@ async def ve_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
     try:
         svc.register_video_editor(
             user_id=user_id,
+            telegram_id=telegram_id,
             full_name=data["full_name"],
             city=data["city"],
             inn=data["inn"],

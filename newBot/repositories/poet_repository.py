@@ -5,11 +5,12 @@ class PoetRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, user_id: int, full_name: str, city: str, inn: str,
+    def create(self, user_id: int, telegram_id: int, full_name: str, city: str, inn: str,
                phone: str, business_type: str, bik: str, account: str,
                bank_name: str, bank_ks: str, bank_details: str) -> Poet:
         poet = Poet(
             user_id=user_id,
+            telegram_id=str(telegram_id),
             full_name=full_name,
             city=city,
             inn=inn,

@@ -13,6 +13,7 @@ export class VideoEditorService {
         const ve = await this.prismaService.videoEditor.create({
             data: {
                 user: { connect: { id: data.userId } },
+                telegramId: data.telegramId,
                 fullName: data.fullName,
                 city: data.city,
                 inn: data.inn,

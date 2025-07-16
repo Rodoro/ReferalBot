@@ -13,6 +13,7 @@ export class PoetService {
         const poet = await this.prismaService.poet.create({
             data: {
                 user: { connect: { id: data.userId } },
+                telegramId: data.telegramId,
                 fullName: data.fullName,
                 city: data.city,
                 inn: data.inn,
