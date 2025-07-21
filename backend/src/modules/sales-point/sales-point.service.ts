@@ -4,6 +4,7 @@ import { plainToInstance } from 'class-transformer';
 import { CreateSalesPointDto } from './dto/create-sales-point.dto';
 import { UpdateSalesPointDto } from './dto/update-sales-point.dto';
 import { SalesPointResponseDto } from './dto/sales-point-response.dto';
+import { SalesPointWithOutletsDto } from './dto/sales-point-with-outlets.dto';
 
 @Injectable()
 export class SalesPointService {
@@ -69,7 +70,24 @@ export class SalesPointService {
     }
 
     async findByAgent(agentId: number): Promise<SalesPointResponseDto[]> {
-        const points = await this.prismaService.salesPoint.findMany({ where: { agentId: agentId } });
+        const points = await this.prismaService.salesPoint.findMany({
+            where: { agentId: agentId },
+            orderBy: { fullName: 'asc' },
+        });
         return points.map((p) => plainToInstance(SalesPointResponseDto, p));
+    }
+
+    async findByAgentWithOutlets(agentId: number): Promise<SalesPointWithOutletsDto[]> {
+        const points = await this.prismaService.salesPoint.findMany({
+            where: { agentId: agentId },
+            include: { sales: true },
+            orderBy: { fullName: 'asc' },
+        });
+        return points.map((p) =>
+            plainToInstance(SalesPointWithOutletsDto, {
+                ...p,
+                outlets: p.sales,
+            }),
+        );
     }
 }

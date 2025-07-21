@@ -103,6 +103,7 @@ const agentTeamContent: TeamContent = {
             isActive: true,
             items: [
                 { title: "Статистика", url: "/consultant/metrics/statistics" },
+                { title: "Партнёры", url: "/consultant/partners" },
             ],
         },
     ],
@@ -119,6 +120,7 @@ const spTeamContent: TeamContent = {
             items: [
                 { title: "Статистика", url: "/sales-point/metrics/statistics" },
                 { title: "Баннеры", url: "/sales-point/metrics/banners" },
+                { title: "Точки продажи", url: "/sales-point/outlets" },
             ],
         },
     ],

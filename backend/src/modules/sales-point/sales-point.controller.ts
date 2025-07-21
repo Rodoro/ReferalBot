@@ -70,4 +70,16 @@ export class SalesPointController {
     remove(@Param('id') id: string): Promise<SalesPointResponseDto> {
         return this.spService.remove(+id);
     }
+
+    @Get('agent/:id')
+    @ApiOperation({ summary: 'Get sales points by agent id' })
+    findByAgent(@Param('id') id: string) {
+        return this.spService.findByAgent(+id);
+    }
+
+    @Get('agent/:id/outlets')
+    @ApiOperation({ summary: 'Get sales points with outlets by agent id' })
+    findByAgentWithOutlets(@Param('id') id: string) {
+        return this.spService.findByAgentWithOutlets(+id);
+    }
 }
