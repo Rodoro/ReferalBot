@@ -16,6 +16,9 @@ from newBot.services.agent_service import AgentService
 from newBot.services.sales_point_service import SalesPointService
 from newBot.services.user_service import UserService
 
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+SP_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "partner_contract.pdf")
+
 class SalesPointRegistrationStates(StatesGroup):
     waiting_for_start = State()        # после /start ref_<agent_id> мы в этот стан переходим
     waiting_for_mini_app = State()     # ждём WebAppData
@@ -259,21 +262,34 @@ async def sp_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
             bank_ks=data["bank_ks"],
             bank_details=data["bank_details"]
         )
+        sp_svc.approve_sales_point(user_id)
     except Exception as e:
         await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
         await state.clear()
         return
 
-    # Уведомляем админа в канал:
-    # составляем Inline-клавиатуру с кнопками «Одобрить» / «Отклонить»
-    admin_kb = InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text="✅ Одобрить", callback_data=f"approve_sp_{user_id}_{tg_id}"),
-        InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_sp_{user_id}_{tg_id}")
-    ]])
+    if os.path.exists(SP_CONTRACT_PATH):
+        kb = InlineKeyboardMarkup(inline_keyboard=[[
+            InlineKeyboardButton(
+                text="Подписать договор",
+                callback_data=f"sp_sign_contract_{user_id}_{tg_id}"
+            )
+        ]])
+        await bot.send_document(
+            chat_id=tg_id,
+            document=types.FSInputFile(SP_CONTRACT_PATH),
+            caption="🎉 Вы зарегистрированы!\n\n"
+                    "Пожалуйста, ознакомьтесь с договором и нажмите кнопку «Подписать договор» ниже.  (Подписания договора может занять немного больше, чем Вы думаете)",
+            reply_markup=kb
+        )
+    else:
+        await bot.send_message(
+            chat_id=tg_id,
+            text="🎉 Вы зарегистрированы! Но файл договора не найден."
+        )
 
-    # Текст админа (без подробных банковских полей, они в БД)
     admin_text = (
-        f"📄 Новая заявка ПАРТНЁРА:\n"
+        f"Зарегистрирован новый партнёр:\n"
         f"- Telegram ID: {tg_id}\n"
         f"- Agent ID: {agent_id}\n"
         f"- ФИО: {data['full_name']}\n"
@@ -284,9 +300,9 @@ async def sp_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
         f"- Банк: {data['bank_name']}\n"
         f"- Корр. счет: {data['bank_ks']}"
     )
-    await bot.send_message(chat_id='-1002806831697', message_thread_id=63, text=admin_text, reply_markup=admin_kb)
+    await bot.send_message(chat_id='-1002806831697', message_thread_id=63, text=admin_text)
 
-    await callback.message.answer("✅ Ваша заявка отправлена на рассмотрение. Ждите ответа администратора.")
+    await callback.message.answer("✅ Вы зарегистрированы. Проверьте сообщения с договором.")
     await state.clear()
     await callback.answer()
 

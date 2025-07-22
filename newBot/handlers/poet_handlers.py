@@ -1,4 +1,5 @@
 import json
+import os
 from sqlalchemy.orm import Session
 from aiogram import types
 from aiogram.fsm.context import FSMContext
@@ -10,6 +11,9 @@ from newBot.db import SessionLocal
 from newBot.lib.user_roles import get_user_roles
 from newBot.services.poet_service import PoetService
 from aiogram import Bot
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+POET_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "poet_contract.docx")
 
 from newBot.services.user_service import UserService
 
@@ -178,22 +182,37 @@ async def poet_confirm_data(callback: types.CallbackQuery, state: FSMContext, bo
             bank_ks=data["bank_ks"],
             bank_details=data["bank_details"],
         )
+        svc.approve_poet(user_id)
     except Exception as e:
         await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
         await state.clear()
         return
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Одобрить", callback_data=f"approve_poet_{user_id}_{telegram_id}"),
-            InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_poet_{user_id}_{telegram_id}"),
-        ]
-    ])
+
+    if os.path.exists(POET_CONTRACT_PATH):
+        kb = InlineKeyboardMarkup(inline_keyboard=[[
+            InlineKeyboardButton(
+                text="Подписать договор",
+                callback_data=f"poet_sign_contract_{user_id}_{telegram_id}"
+            )
+        ]])
+        await bot.send_document(
+            chat_id=telegram_id,
+            document=types.FSInputFile(POET_CONTRACT_PATH),
+            caption="🎉 Вы зарегистрированы!\n\n"
+                    "Пожалуйста, ознакомьтесь с договором и нажмите кнопку «Подписать договор» ниже.  (Подписания договора может занять немного больше, чем Вы думаете)",
+            reply_markup=kb
+        )
+    else:
+        await bot.send_message(
+            chat_id=telegram_id,
+            text="🎉 Вы зарегистрированы! Но файл договора не найден."
+        )
 
     await bot.send_message(
         chat_id='-1002806831697',
         message_thread_id=63,
         text=(
-            f"Новый кандидат в поэты:\n"
+            f"Зарегистрирован новый поэт:\n"
             f"- Telegram ID: {user_id}\n"
             f"- ФИО: {data['full_name']}\n"
             f"- Город: {data['city']}\n"
@@ -204,11 +223,10 @@ async def poet_confirm_data(callback: types.CallbackQuery, state: FSMContext, bo
             f"- Расчетный счет: {data['account']}\n"
             f"- Название банка: {data['bank_name']}\n"
             f"- Корр. счет: {data['bank_ks']}\n"
-        ),
-        reply_markup=keyboard,
+        )
     )
 
-    await callback.message.answer("✅ Ваша заявка отправлена на рассмотрение. Ждите ответа администратора.")
+    await callback.message.answer("✅ Вы зарегистрированы. Проверьте сообщения с договором.")
     await state.clear()
     await callback.answer()
 

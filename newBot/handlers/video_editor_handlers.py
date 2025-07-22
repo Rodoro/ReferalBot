@@ -10,6 +10,10 @@ from newBot.lib.user_roles import get_user_roles
 from newBot.services.user_service import UserService
 from newBot.services.video_editor_service import VideoEditorService
 from aiogram import Bot
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+VE_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "video_editor_contract.docx")
 
 class VideoEditorRegistrationStates(StatesGroup):
     waiting_for_mini_app = State()
@@ -160,23 +164,37 @@ async def ve_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
             bank_ks=data["bank_ks"],
             bank_details=data["bank_details"],
         )
+        svc.approve_video_editor(user_id)
     except Exception as e:
         await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
         await state.clear()
         return
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Одобрить", callback_data=f"approve_poet_{user_id}_{telegram_id}"),
-            InlineKeyboardButton(text="❌ Отклонить", callback_data=f"reject_poet_{user_id}_{telegram_id}"),
-        ]
-    ])
+    if os.path.exists(VE_CONTRACT_PATH):
+        kb = InlineKeyboardMarkup(inline_keyboard=[[
+            InlineKeyboardButton(
+                text="Подписать договор",
+                callback_data=f"ve_sign_contract_{user_id}_{telegram_id}"
+            )
+        ]])
+        await bot.send_document(
+            chat_id=telegram_id,
+            document=types.FSInputFile(VE_CONTRACT_PATH),
+            caption="🎉 Вы зарегистрированы!\n\n"
+                    "Пожалуйста, ознакомьтесь с договором и нажмите кнопку «Подписать договор» ниже.  (Подписания договора может занять немного больше, чем Вы думаете)",
+            reply_markup=kb
+        )
+    else:
+        await bot.send_message(
+            chat_id=telegram_id,
+            text="🎉 Вы зарегистрированы! Но файл договора не найден."
+        )
 
     await bot.send_message(
         chat_id='-1002806831697',
         message_thread_id=63,
         text=(
-            f"Новый кандидат в видеомонтажёры:\n"
+            f"Зарегистрирован новый видеомонтажёр:\n"
             f"- Telegram ID: {user_id}\n"
             f"- ФИО: {data['full_name']}\n"
             f"- Город: {data['city']}\n"
@@ -184,17 +202,16 @@ async def ve_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot:
             f"- Телефон: {data['phone']}\n"
             f"- Тип: {data['business_type']}\n"
             f"- БИК: {data['bik']}\n"
-            f"- Расчетный счет: {data['account']}\n"
+            f"- Расчетный счёт: {data['account']}\n"
             f"- Название банка: {data['bank_name']}\n"
-            f"- Корр. счет: {data['bank_ks']}\n"
-        ),
-        reply_markup=keyboard,
+            f"- Корр. счёт: {data['bank_ks']}\n"
+        )
     )
 
-    await callback.message.answer("✅ Ваша заявка отправлена на рассмотрение. Ждите ответа администратора.")
+    await callback.message.answer("✅ Вы зарегистрированы. Проверьте сообщения с договором.")
     await state.clear()
     await callback.answer()
-
+    
 async def ve_correct_data(callback: types.CallbackQuery, state: FSMContext):
     mini_app_url = f"{settings.WEBAPP_URL}/video-editor-form"
     web_app = types.WebAppInfo(url=mini_app_url)

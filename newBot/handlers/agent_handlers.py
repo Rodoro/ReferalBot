@@ -17,6 +17,9 @@ from newBot.services.agent_service import AgentService
 from newBot.services.user_service import UserService
 from newBot.db import SessionLocal
 
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+AGENT_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "consultant_contract.pdf")
+
 class AgentRegistrationStates(StatesGroup):
     waiting_for_mini_app = State()
     confirmation = State()
@@ -195,31 +198,39 @@ async def agent_confirm_data(callback: types.CallbackQuery, state: FSMContext, b
             bank_ks=data["bank_ks"],
             bank_details=data["bank_details"],
         )
+        svc.approve_agent(user_id)
     except Exception as e:
         await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
         await state.clear()
         return
 
-    # Уведомляем администратора в канал
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [
+    # Отправляем договор и кнопку "Подписать договор"
+    if os.path.exists(AGENT_CONTRACT_PATH):
+        kb = InlineKeyboardMarkup(inline_keyboard=[[
             InlineKeyboardButton(
-                text="✅ Одобрить",
-                callback_data=f"approve_agent_{user_id}_{tg_id}"
-            ),
-            InlineKeyboardButton(
-                text="❌ Отклонить",
-                callback_data=f"reject_agent_{user_id}_{tg_id}"
+                text="Подписать договор",
+                callback_data=f"agent_sign_contract_{user_id}_{tg_id}"
             )
-        ]
-    ])
+        ]])
+        await bot.send_document(
+            chat_id=tg_id,
+            document=types.FSInputFile(AGENT_CONTRACT_PATH),
+            caption="🎉 Вы зарегистрированы!\n\n"
+                    "Пожалуйста, ознакомьтесь с договором и нажмите кнопку «Подписать договор» ниже.  (Подписания договора может занять немного больше, чем Вы думаете)",
+            reply_markup=kb
+        )
+    else:
+        await bot.send_message(
+            chat_id=tg_id,
+            text="🎉 Вы зарегистрированы! Но файл договора не найден."
+        )
 
-    # Отправляем админу не просто текст, а текст + клавиатуру:
+    # Уведомляем администратора о регистрации
     await bot.send_message(
         chat_id='-1002806831697',
         message_thread_id=63,
         text=(
-            f"Новый кандидат в консультанты:\n"
+            f"Зарегистрирован новый консультант:\n"
             f"- Telegram ID: {telegram_id}\n"
             f"- ФИО: {data['full_name']}\n"
             f"- Город: {data['city']}\n"
@@ -230,11 +241,10 @@ async def agent_confirm_data(callback: types.CallbackQuery, state: FSMContext, b
             f"- Расчетный счет: {data['account']}\n"
             f"- Название банка: {data['bank_name']}\n"
             f"- Корр. счет: {data['bank_ks']}\n"
-        ),
-        reply_markup=keyboard
+        )
     )
 
-    await callback.message.answer("✅ Ваша заявка отправлена на рассмотрение. Ждите ответа администратора.")
+    await callback.message.answer("✅ Вы зарегистрированы. Проверьте сообщения с договором.")
     await state.clear()
     await callback.answer()
 
