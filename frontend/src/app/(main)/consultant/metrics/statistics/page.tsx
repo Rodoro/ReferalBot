@@ -24,7 +24,7 @@ export default function Page() {
                     { label: "Статистика", isCurrent: true }
                 ]}
             />
-            <main className="flex flex-1 flex-col pb-4 pt-0 px-8 max-w-[1440px]">
+            <main className="flex flex-1 flex-col pb-4 pt-0 px-2 sm:px-8 max-w-[1440px]">
                 <TypographyH2 text='Статистика' className='mb-4' />
                 {agentId ? (
                     <ServiceStatsPanel mode='agent' id={agentId} showAgentFilter={false} />

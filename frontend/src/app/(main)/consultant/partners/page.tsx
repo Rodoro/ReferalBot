@@ -13,7 +13,7 @@ export default function Page() {
     return (
         <>
             <Header breadcrumbs={[{ label: 'Консультант', href: '/consultant/metrics' }, { label: 'Партнёры', isCurrent: true }]} />
-            <main className="flex flex-1 flex-col pb-4 pt-0 px-8 max-w-[1440px]">
+            <main className="flex flex-1 flex-col pb-4 pt-0 px-2 sm:px-8 max-w-[1440px]">
                 <TypographyH2 text='Мои партнёры' className='mb-4' />
                 {agentId ? (
                     <AgentPartnersTable agentId={agentId} />

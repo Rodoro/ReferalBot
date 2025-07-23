@@ -20,7 +20,7 @@ export default function page() {
                     { label: "Пользователи", isCurrent: true }
                 ]}
             />
-            <main className="flex flex-1 flex-col pb-4 pt-0 px-8 max-w-7xl gap-4">
+            <main className="flex flex-1 flex-col pb-4 pt-0 px-2 sm:px-8 max-w-7xl gap-4">
                 <TypographyH2 text='Пользователи' />
                 <TypographyP className='' text='Все пользователи которые зарегистрированы в сети' />
                 <UserTable />

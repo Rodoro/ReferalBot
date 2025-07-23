@@ -12,7 +12,7 @@ export default function Page() {
     return (
         <>
             <Header breadcrumbs={[{ label: 'Администрирование', href: '/' }, { label: 'Архитектура', isCurrent: true }]} />
-            <main className='flex flex-1 flex-col pb-4 pt-0 px-8 max-w-7xl gap-4'>
+            <main className='flex flex-1 flex-col pb-4 pt-0 px-2 sm:px-8 max-w-7xl gap-4'>
                 <TypographyH2 text='Архитектура' />
                 <TypographyP text='Здесь отображается структура пользователей, включая консультантов, партнёров и точки продаж. Неверифицированные точки подсвечены красным, а прошедшие проверку — зелёным.' />
                 <ArchitectureTree />
