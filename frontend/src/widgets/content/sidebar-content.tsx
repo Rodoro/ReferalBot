@@ -104,6 +104,7 @@ const agentTeamContent: TeamContent = {
             items: [
                 { title: "Статистика", url: "/consultant/metrics/statistics" },
                 { title: "Партнёры", url: "/consultant/partners" },
+                { title: "Данные", url: "/consultant/data" },
             ],
         },
     ],

@@ -20,7 +20,7 @@ export default function Page() {
         <>
             <Header
                 breadcrumbs={[
-                    { label: "Метрики", href: "/consultant/metrics" },
+                    { label: "Консультант", href: "/consultant/metrics" },
                     { label: "Статистика", isCurrent: true }
                 ]}
             />
