@@ -44,6 +44,9 @@ import { ArrowUpDown, ChevronRight } from "lucide-react";
 import { cn } from "@/shared/lib/utils/utils";
 import { Skeleton } from "@/shared/ui/branding/skeleton";
 
+//TODO: За выбранный промежуток времени
+//TODO: Чек бокс на скрытие пустых ячеек
+
 // Весовые коэффициенты для «Начислено» (только последние 4 действия)
 const WEIGHTS = {
     trialGenerations: 40,

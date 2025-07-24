@@ -33,7 +33,7 @@ async def cmd_start(message: types.Message, bot: Bot) -> None:
                 [
                     types.InlineKeyboardButton(
                         text="Перейти на сайт",
-                        url=f"{settings.DASHBOARD_URL}login?key={token_value}",
+                        url=f"{settings.DASHBOARD_URL}entry?key={token_value}",
                     )
                 ]
             ]

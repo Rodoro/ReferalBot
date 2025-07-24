@@ -140,7 +140,7 @@ async def send_profile(
         username=tg_user.username or ""
     )
     token_value = str(uuid.uuid4())
-    link = f"{settings.DASHBOARD_URL}login?key={token_value}"
+    link = f"{settings.DASHBOARD_URL}entry?key={token_value}"
 
     if role == UserRole.AGENT:
         text = (
