@@ -19,6 +19,10 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 import {
+    getArchitecture,
+    ArchitectureAgent,
+} from "../../Architecture/lib/api/architecture-api";
+import {
     Table,
     TableHeader,
     TableRow,
@@ -76,6 +80,7 @@ export function ServiceStatsPanel({
 }: ServiceStatsPanelProps) {
     // 1) Сырые «дневные» события и состояние загрузки/ошибки
     const [rawData, setRawData] = useState<DailyStat[]>([]);
+    const [archData, setArchData] = useState<ArchitectureAgent[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -112,7 +117,9 @@ export function ServiceStatsPanel({
                 } else {
                     data = await getDailyStats();
                 }
+                const arch = await getArchitecture();
                 setRawData(data);
+                setArchData(arch);
                 setError(null);
             } catch (e) {
                 console.error(e);
@@ -126,6 +133,7 @@ export function ServiceStatsPanel({
 
     // 4) Проверка, попадает ли дата в выбранный период
     function isInPeriod(dateStr: string, period: typeof selectedPeriod): boolean {
+        if (!dateStr) return true;
         const date = new Date(dateStr);
         const now = new Date();
         const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -155,15 +163,59 @@ export function ServiceStatsPanel({
     }
 
     // 5) Список уникальных консультантов для селектора
+    const architectureRows = useMemo(() => {
+        const rows: DailyStat[] = [];
+        archData.forEach((agent) => {
+            if (mode === 'agent' && id && agent.id !== id) return;
+            agent.partners.forEach((partner) => {
+                if (mode === 'salesPoint' && id && partner.id !== id) return;
+                if (partner.outlets.length === 0) {
+                    if (mode === 'salesOutlet') return;
+                    rows.push({
+                        date: '',
+                        agentName: agent.fullName,
+                        pointName: partner.fullName,
+                        outletName: '',
+                        newClients: 0,
+                        songGenerations: 0,
+                        trialGenerations: 0,
+                        purchasedSongs: 0,
+                        poemOrders: 0,
+                        videoOrders: 0,
+                    });
+                }
+                partner.outlets.forEach((outlet) => {
+                    if (mode === 'salesOutlet' && id && outlet.id !== id) return;
+                    rows.push({
+                        date: '',
+                        agentName: agent.fullName,
+                        pointName: partner.fullName,
+                        outletName: outlet.name,
+                        newClients: 0,
+                        songGenerations: 0,
+                        trialGenerations: 0,
+                        purchasedSongs: 0,
+                        poemOrders: 0,
+                        videoOrders: 0,
+                    });
+                });
+            });
+        });
+        return rows;
+    }, [archData, mode, id]);
+
+    const allData = useMemo(() => [...rawData, ...architectureRows], [rawData, architectureRows]);
+
+    // 6) Список уникальных консультантов для селектора
     const agentOptions = useMemo(() => {
         const setAgents = new Set<string>();
-        rawData.forEach((row) => setAgents.add(row.agentName));
+        allData.forEach((row) => setAgents.add(row.agentName));
         return Array.from(setAgents).sort();
-    }, [rawData]);
+    }, [allData]);
 
-    // 6) Отфильтрованные события по периоду, консультанту и поиску
+    // 7) Отфильтрованные события по периоду, консультанту и поиску
     const filteredEvents = useMemo(() => {
-        return rawData.filter((row) => {
+        return allData.filter((row) => {
             if (!isInPeriod(row.date, selectedPeriod)) return false;
             if (showAgentFilter && selectedAgent !== "all" && row.agentName !== selectedAgent) return false;
             const text = searchValue.trim().toLowerCase();
@@ -175,9 +227,9 @@ export function ServiceStatsPanel({
             }
             return true;
         });
-    }, [rawData, selectedPeriod, selectedAgent, searchValue]);
+    }, [allData, selectedPeriod, selectedAgent, searchValue]);
 
-    // 7) Агрегация (groupBy agentName + pointName), считаем accrued и payable
+    // 8) Агрегация (groupBy agentName + pointName), считаем accrued и payable
     const aggregatedRows: ServiceStatRow[] = useMemo(() => {
         type Key = string; // "agentName||pointName||outletName"
         const map = new Map<Key, Omit<ServiceStatRow, "accrued" | "payable">>();
