@@ -1,3 +1,4 @@
+import { OutletType } from '@/entites/SalesOutlet/types/sales-outlet'
 import { apiClient } from '@/shared/lib/utils/api-client'
 
 export type ArchitectureUser = {
@@ -15,6 +16,7 @@ export type ArchitectureOutlet = {
     userCount: number
     songGenerations: number
     textGenerations: number
+    type?: OutletType
 }
 
 export type ArchitecturePartner = {

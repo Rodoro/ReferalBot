@@ -5,6 +5,7 @@ import { getPartnerOutlets, Outlet } from '../lib/api/partner-api'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/shared/ui/branding/table'
 import { Skeleton } from '@/shared/ui/branding/skeleton'
 import { cn } from '@/shared/lib/utils/utils'
+import { OutletTypeIcon } from '@/entites/SalesOutlet/ui/OutletTypeIcon'
 
 export default function PartnerOutletsTable({ partnerId, className }: { partnerId: number; className?: string }) {
     const [data, setData] = useState<Outlet[]>([])
@@ -32,7 +33,10 @@ export default function PartnerOutletsTable({ partnerId, className }: { partnerI
                 <TableBody>
                     {data.map((o) => (
                         <TableRow key={o.id} className={o.verified ? 'bg-green-50' : 'bg-red-50'}>
-                            <TableCell className="px-2">{o.name}</TableCell>
+                            <TableCell className="px-2 flex items-center gap-2">
+                                {o.type && <OutletTypeIcon type={o.type} className="h-4 w-4" />}
+                                {o.name}
+                            </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

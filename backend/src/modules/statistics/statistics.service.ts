@@ -19,6 +19,7 @@ export class StatisticsService {
         ag."full_name" AS agent_name,
         sp."full_name" AS point_name,
         so."name" AS outlet_name,
+        so."type" AS outlet_type,
         SUM(CASE WHEN a.method = 'user_registered' THEN 1 ELSE 0 END) AS new_clients,
         SUM(CASE WHEN a.method = 'song_generated' THEN 1 ELSE 0 END) AS song_generations,
         SUM(CASE WHEN a.method = 'trial_generation' THEN 1 ELSE 0 END) AS trial_generations,
@@ -29,7 +30,7 @@ export class StatisticsService {
       LEFT JOIN "Agent" ag ON ag.id = a.agent_id
       LEFT JOIN sales_points sp ON sp.id = a.sales_id
       LEFT JOIN sales_outlets so ON so.id = a.outlet_id
-      GROUP BY DATE(a."timestamp"), ag."full_name", sp."full_name", so."name"
+      GROUP BY DATE(a."timestamp"), ag."full_name", sp."full_name", so."name", so."type"
       ORDER BY DATE(a."timestamp") DESC;
     `);
 
@@ -38,6 +39,7 @@ export class StatisticsService {
       agentName: r.agent_name && r.agent_name.trim() !== '' ? r.agent_name : 'Неопределенного',
       pointName: r.point_name && r.point_name.trim() !== '' ? r.point_name : 'Неопределенного',
       outletName: r.outlet_name && r.outlet_name.trim() !== '' ? r.outlet_name : 'Неопределенного',
+      outletType: r.outlet_type ?? null,
       newClients: Number(r.new_clients ?? 0),
       songGenerations: Number(r.song_generations ?? 0),
       trialGenerations: Number(r.trial_generations ?? 0),
@@ -205,6 +207,7 @@ export class StatisticsService {
           outletDtos.push({
             id: outlet.id,
             name: outlet.name,
+            type: outlet.type,
             verified: outlet.verified,
             users: userDtos,
             userCount: userDtos.length,

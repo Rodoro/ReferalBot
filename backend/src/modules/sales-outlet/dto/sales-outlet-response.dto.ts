@@ -1,5 +1,6 @@
 import { Exclude, Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { OutletType } from '@/prisma/generated';
 
 @Exclude()
 export class SalesOutletResponseDto {
@@ -18,6 +19,10 @@ export class SalesOutletResponseDto {
     @ApiProperty()
     @Expose()
     name: string;
+
+    @ApiProperty({ enum: OutletType })
+    @Expose()
+    type: OutletType;
 
     @ApiProperty({ required: false })
     @Expose()

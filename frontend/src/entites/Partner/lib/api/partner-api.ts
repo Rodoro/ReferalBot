@@ -1,17 +1,20 @@
 import { apiClient } from '@/shared/lib/utils/api-client'
 import { Partner } from '../../types/partner'
+import { OutletType } from '@/entites/SalesOutlet/types/sales-outlet'
 
 export type Outlet = {
     id: number
     name: string
     address?: string | null
     verified: boolean
+    type?: OutletType
 }
 
 export type PartnerWithOutlets = {
     id: number
     fullName: string
     outlets: Outlet[]
+    sales: Outlet[]
 }
 
 export async function getPartnerByUser(userId: number): Promise<Partner> {

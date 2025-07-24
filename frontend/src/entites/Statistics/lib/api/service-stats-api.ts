@@ -1,3 +1,4 @@
+import { OutletType } from '@/entites/SalesOutlet/types/sales-outlet';
 import { apiClient } from '@/shared/lib/utils/api-client';
 
 export type DailyStat = {
@@ -5,6 +6,7 @@ export type DailyStat = {
     agentName: string;
     pointName: string;
     outletName?: string;
+    outletType?: OutletType;
     newClients: number;
     songGenerations: number;
     trialGenerations: number;

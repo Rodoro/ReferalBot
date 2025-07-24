@@ -22,6 +22,7 @@ import { Input } from '@/shared/ui/form/input'
 import { Button } from '@/shared/ui/form/button'
 
 import { cn } from '@/shared/lib/utils/utils'
+import { OutletTypeIcon } from '@/entites/SalesOutlet/ui/OutletTypeIcon'
 
 export function ArchitectureTree({ className }: { className?: string }) {
     const [data, setData] = useState<ArchitectureAgent[]>([])
@@ -139,7 +140,10 @@ export function ArchitectureTree({ className }: { className?: string }) {
                 <TableRow className={rowStyle}>
                     <TableCell />
                     <TableCell />
-                    <TableCell className="px-2">{outlet.name}</TableCell>
+                    <TableCell className="px-2 flex items-center gap-2">
+                        {outlet.type && <OutletTypeIcon type={outlet.type} className="h-4 w-4" />}
+                        {outlet.name}
+                    </TableCell>
                     {outletInfo}
                 </TableRow>
             )
@@ -162,6 +166,7 @@ export function ArchitectureTree({ className }: { className?: string }) {
                                 )}
                             />
                         </button>
+                        {outlet.type && <OutletTypeIcon type={outlet.type} className="h-4 w-4" />}
                         {outlet.name}
                     </TableCell>
                     {outletInfo}

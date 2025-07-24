@@ -1,3 +1,4 @@
+import { OutletType } from '@/prisma/generated';
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Exclude } from 'class-transformer';
 
@@ -19,6 +20,10 @@ export class DailyStatDto {
     @ApiProperty({ required: false })
     @Expose()
     outletName?: string;
+
+    @ApiProperty({ enum: OutletType, required: false })
+    @Expose()
+    outletType?: OutletType;
 
     @ApiProperty()
     @Expose()

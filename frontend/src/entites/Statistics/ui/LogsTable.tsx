@@ -10,7 +10,9 @@ import {
     getDailyStatsBySalesOutlet,
     DailyStat,
 } from "../lib/api/service-stats-api";
-type DailyStatWithClients = DailyStat & { totalClients?: number };
+import { OutletType } from '@/entites/SalesOutlet/types/sales-outlet';
+import { OutletTypeIcon } from '@/entites/SalesOutlet/ui/OutletTypeIcon';
+type DailyStatWithClients = DailyStat & { totalClients?: number; outletType?: OutletType };
 import {
     ColumnDef,
     flexRender,
@@ -59,6 +61,7 @@ type ServiceStatRow = {
     agentName: string;
     pointName: string;
     outletName: string;
+    outletType?: OutletType;
     totalClients: number;
     newClients: number;
     songGenerations: number;
@@ -197,6 +200,7 @@ export function ServiceStatsPanel({
                         agentName: agent.fullName,
                         pointName: partner.fullName,
                         outletName: outlet.name,
+                        outletType: outlet.type,
                         totalClients: outlet.userCount,
                         newClients: 0,
                         songGenerations: 0,
@@ -252,6 +256,7 @@ export function ServiceStatsPanel({
                     agentName: row.agentName,
                     pointName: row.pointName,
                     outletName: outlet,
+                    outletType: row.outletType,
                     totalClients: 0,
                     newClients: 0,
                     songGenerations: 0,
@@ -330,7 +335,14 @@ export function ServiceStatsPanel({
             {
                 accessorKey: "outletName",
                 header: "Точка продажи",
-                cell: (info) => <span>{info.getValue<string>()}</span>,
+                cell: (info) => (
+                    <span className="flex items-center gap-1">
+                        {info.row.original.outletType && (
+                            <OutletTypeIcon type={info.row.original.outletType} className="h-4 w-4" />
+                        )}
+                        {info.getValue<string>()}
+                    </span>
+                ),
             },
             {
                 accessorKey: "totalClients",

@@ -1,3 +1,4 @@
+import { OutletType } from '@/prisma/generated'
 import { ApiProperty } from '@nestjs/swagger'
 import { Exclude, Expose, Type } from 'class-transformer'
 
@@ -42,6 +43,10 @@ export class ArchitectureOutletDto {
     @ApiProperty()
     @Expose()
     userCount: number
+
+    @ApiProperty({ enum: OutletType })
+    @Expose()
+    type: OutletType
 
     @ApiProperty()
     @Expose()
