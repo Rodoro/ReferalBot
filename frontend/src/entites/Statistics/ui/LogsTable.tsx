@@ -593,10 +593,28 @@ export function ServiceStatsPanel({
             partnerData.outlets.push(r);
         });
 
-        return Array.from(map.values()).map((agent) => ({
+        const agents = Array.from(map.values()).map((agent) => ({
             totals: agent.totals,
             partners: Array.from(agent.partners.values()),
         }));
+
+        if (sorting.length > 0) {
+            const { id, desc } = sorting[0];
+            const compare = (a: any, b: any) => {
+                const av = a.totals[id as keyof ServiceStatRow];
+                const bv = b.totals[id as keyof ServiceStatRow];
+                if (typeof av === 'number' && typeof bv === 'number') {
+                    return desc ? bv - av : av - bv;
+                }
+                const as = String(av ?? '');
+                const bs = String(bv ?? '');
+                return desc ? bs.localeCompare(as) : as.localeCompare(bs);
+            };
+            agents.sort(compare);
+            agents.forEach((agent) => agent.partners.sort(compare));
+        }
+
+        return agents;
     }, [aggregatedRows, sorting]);
 
     // 12) Обработка загрузки / ошибки
