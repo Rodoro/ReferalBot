@@ -122,6 +122,7 @@ const spTeamContent: TeamContent = {
                 { title: "Статистика", url: "/sales-point/metrics/statistics" },
                 { title: "Баннеры", url: "/sales-point/metrics/banners" },
                 { title: "Точки продажи", url: "/sales-point/outlets" },
+                { title: "Данные", url: "/sales-point/data" },
             ],
         },
     ],
