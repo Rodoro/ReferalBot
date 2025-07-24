@@ -10,6 +10,7 @@ import {
     getDailyStatsBySalesOutlet,
     DailyStat,
 } from "../lib/api/service-stats-api";
+type DailyStatWithClients = DailyStat & { totalClients?: number };
 import {
     ColumnDef,
     flexRender,
@@ -55,6 +56,7 @@ type ServiceStatRow = {
     agentName: string;
     pointName: string;
     outletName: string;
+    totalClients: number;
     newClients: number;
     songGenerations: number;
     trialGenerations: number;
@@ -79,7 +81,7 @@ export function ServiceStatsPanel({
     showAgentFilter = mode === 'all',
 }: ServiceStatsPanelProps) {
     // 1) Сырые «дневные» события и состояние загрузки/ошибки
-    const [rawData, setRawData] = useState<DailyStat[]>([]);
+    const [rawData, setRawData] = useState<DailyStatWithClients[]>([]);
     const [archData, setArchData] = useState<ArchitectureAgent[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -107,7 +109,7 @@ export function ServiceStatsPanel({
         async function fetchAll() {
             try {
                 setLoading(true);
-                let data: DailyStat[] = [];
+                let data: DailyStatWithClients[] = [];
                 if (mode === 'agent' && id) {
                     data = await getDailyStatsByAgent(id);
                 } else if (mode === 'salesPoint' && id) {
@@ -164,7 +166,7 @@ export function ServiceStatsPanel({
 
     // 5) Список уникальных консультантов для селектора
     const architectureRows = useMemo(() => {
-        const rows: DailyStat[] = [];
+        const rows: DailyStatWithClients[] = [];
         archData.forEach((agent) => {
             if (mode === 'agent' && id && agent.id !== id) return;
             agent.partners.forEach((partner) => {
@@ -176,6 +178,7 @@ export function ServiceStatsPanel({
                         agentName: agent.fullName,
                         pointName: partner.fullName,
                         outletName: '',
+                        totalClients: partner.userCount,
                         newClients: 0,
                         songGenerations: 0,
                         trialGenerations: 0,
@@ -191,6 +194,7 @@ export function ServiceStatsPanel({
                         agentName: agent.fullName,
                         pointName: partner.fullName,
                         outletName: outlet.name,
+                        totalClients: outlet.userCount,
                         newClients: 0,
                         songGenerations: 0,
                         trialGenerations: 0,
@@ -204,7 +208,10 @@ export function ServiceStatsPanel({
         return rows;
     }, [archData, mode, id]);
 
-    const allData = useMemo(() => [...rawData, ...architectureRows], [rawData, architectureRows]);
+    const allData = useMemo<DailyStatWithClients[]>(
+        () => [...rawData, ...architectureRows],
+        [rawData, architectureRows]
+    );
 
     // 6) Список уникальных консультантов для селектора
     const agentOptions = useMemo(() => {
@@ -214,7 +221,7 @@ export function ServiceStatsPanel({
     }, [allData]);
 
     // 7) Отфильтрованные события по периоду, консультанту и поиску
-    const filteredEvents = useMemo(() => {
+    const filteredEvents = useMemo<DailyStatWithClients[]>(() => {
         return allData.filter((row) => {
             if (!isInPeriod(row.date, selectedPeriod)) return false;
             if (showAgentFilter && selectedAgent !== "all" && row.agentName !== selectedAgent) return false;
@@ -242,6 +249,7 @@ export function ServiceStatsPanel({
                     agentName: row.agentName,
                     pointName: row.pointName,
                     outletName: outlet,
+                    totalClients: 0,
                     newClients: 0,
                     songGenerations: 0,
                     trialGenerations: 0,
@@ -251,6 +259,9 @@ export function ServiceStatsPanel({
                 });
             }
             const accum = map.get(key)!;
+            if (row.totalClients) {
+                accum.totalClients = accum.totalClients + row.totalClients
+            }
             accum.newClients += row.newClients;
             accum.songGenerations += row.songGenerations;
             accum.trialGenerations += row.trialGenerations;
@@ -258,7 +269,6 @@ export function ServiceStatsPanel({
             accum.poemOrders += row.poemOrders;
             accum.videoOrders += row.videoOrders;
         });
-
         const result: ServiceStatRow[] = [];
         map.forEach((vals) => {
             // Начисления по последним 4 действиям:
@@ -282,18 +292,18 @@ export function ServiceStatsPanel({
     const totals = useMemo(() => {
         return aggregatedRows.reduce(
             (acc, row) => {
+                acc.totalClients += row.totalClients;
                 acc.newClients += row.newClients;
                 acc.songGenerations += row.songGenerations;
-                acc.trialGenerations += row.trialGenerations;
                 acc.purchasedSongs += row.purchasedSongs;
                 acc.poemOrders += row.poemOrders;
                 acc.videoOrders += row.videoOrders;
                 return acc;
             },
             {
+                totalClients: 0,
                 newClients: 0,
                 songGenerations: 0,
-                trialGenerations: 0,
                 purchasedSongs: 0,
                 poemOrders: 0,
                 videoOrders: 0,
@@ -318,6 +328,25 @@ export function ServiceStatsPanel({
                 accessorKey: "outletName",
                 header: "Точка продажи",
                 cell: (info) => <span>{info.getValue<string>()}</span>,
+            },
+            {
+                accessorKey: "totalClients",
+                header: ({ column }) => (
+                    <Button
+                        variant="ghost"
+                        onClick={() =>
+                            column.toggleSorting(column.getIsSorted() === "asc")
+                        }
+                    >
+                        Всего<br />клиентов
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                ),
+                cell: (info) => (
+                    <span className="block text-center">
+                        {info.getValue<number>()}
+                    </span>
+                ),
             },
             {
                 accessorKey: "newClients",
@@ -357,25 +386,25 @@ export function ServiceStatsPanel({
                     </span>
                 ),
             },
-            {
-                accessorKey: "trialGenerations",
-                header: ({ column }) => (
-                    <Button
-                        variant="ghost"
-                        onClick={() =>
-                            column.toggleSorting(column.getIsSorted() === "asc")
-                        }
-                    >
-                        Пробных<br />генераций
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                ),
-                cell: (info) => (
-                    <span className="block text-center">
-                        {info.getValue<number>()}
-                    </span>
-                ),
-            },
+            // {
+            //     accessorKey: "trialGenerations",
+            //     header: ({ column }) => (
+            //         <Button
+            //             variant="ghost"
+            //             onClick={() =>
+            //                 column.toggleSorting(column.getIsSorted() === "asc")
+            //             }
+            //         >
+            //             Пробных<br />генераций
+            //             <ArrowUpDown className="ml-2 h-4 w-4" />
+            //         </Button>
+            //     ),
+            //     cell: (info) => (
+            //         <span className="block text-center">
+            //             {info.getValue<number>()}
+            //         </span>
+            //     ),
+            // },
             {
                 accessorKey: "purchasedSongs",
                 header: ({ column }) => (
@@ -500,6 +529,7 @@ export function ServiceStatsPanel({
                         agentName: row.agentName,
                         pointName: '',
                         outletName: '',
+                        totalClients: 0,
                         newClients: 0,
                         songGenerations: 0,
                         trialGenerations: 0,
@@ -513,6 +543,11 @@ export function ServiceStatsPanel({
             }
 
             const agentData = map.get(row.agentName)!;
+            if (row.totalClients) {
+                agentData.totals.totalClients =
+                    agentData.totals.totalClients +
+                    row.totalClients
+            }
             agentData.totals.newClients += row.newClients;
             agentData.totals.songGenerations += row.songGenerations;
             agentData.totals.trialGenerations += row.trialGenerations;
@@ -527,6 +562,7 @@ export function ServiceStatsPanel({
                         agentName: row.agentName,
                         pointName: row.pointName,
                         outletName: '',
+                        totalClients: 0,
                         newClients: 0,
                         songGenerations: 0,
                         trialGenerations: 0,
@@ -540,6 +576,12 @@ export function ServiceStatsPanel({
             }
 
             const partnerData = agentData.partners.get(row.pointName)!;
+            if (row.totalClients) {
+                partnerData.totals.totalClients =
+                    partnerData.totals.totalClients +
+                    row.totalClients
+
+            }
             partnerData.totals.newClients += row.newClients;
             partnerData.totals.songGenerations += row.songGenerations;
             partnerData.totals.trialGenerations += row.trialGenerations;
@@ -632,6 +674,19 @@ export function ServiceStatsPanel({
                                 <Button
                                     variant="ghost"
                                     onClick={() =>
+                                        table.getColumn("totalClients")?.toggleSorting(
+                                            table.getColumn("totalClients")?.getIsSorted() === "asc"
+                                        )
+                                    }
+                                >
+                                    Всего<br />клиентов
+                                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                                </Button>
+                            </TableHead>
+                            <TableHead className="text-center">
+                                <Button
+                                    variant="ghost"
+                                    onClick={() =>
                                         table.getColumn("newClients")?.toggleSorting(
                                             table.getColumn("newClients")?.getIsSorted() === "asc"
                                         )
@@ -654,7 +709,7 @@ export function ServiceStatsPanel({
                                     <ArrowUpDown className="ml-2 h-4 w-4" />
                                 </Button>
                             </TableHead>
-                            <TableHead className="text-center">
+                            {/* <TableHead className="text-center">
                                 <Button
                                     variant="ghost"
                                     onClick={() =>
@@ -666,7 +721,7 @@ export function ServiceStatsPanel({
                                     Пробных<br />генераций
                                     <ArrowUpDown className="ml-2 h-4 w-4" />
                                 </Button>
-                            </TableHead>
+                            </TableHead> */}
                             <TableHead className="text-center">
                                 <Button
                                     variant="ghost"
@@ -739,9 +794,9 @@ export function ServiceStatsPanel({
                             <TableCell>ИТОГО:</TableCell>
                             <TableCell></TableCell>
                             <TableCell></TableCell>
+                            <TableCell className="text-center">{totals.totalClients}</TableCell>
                             <TableCell className="text-center">{totals.newClients}</TableCell>
                             <TableCell className="text-center">{totals.songGenerations}</TableCell>
-                            <TableCell className="text-center">{totals.trialGenerations}</TableCell>
                             <TableCell className="text-center">{totals.purchasedSongs}</TableCell>
                             <TableCell className="text-center">{totals.poemOrders}</TableCell>
                             <TableCell className="text-center">{totals.videoOrders}</TableCell>
@@ -767,9 +822,9 @@ export function ServiceStatsPanel({
                                         </TableCell>
                                         <TableCell className="italic text-muted-foreground">Всего</TableCell>
                                         <TableCell></TableCell>
+                                        <TableCell className="text-center">{agent.totals.totalClients}</TableCell>
                                         <TableCell className="text-center">{agent.totals.newClients}</TableCell>
                                         <TableCell className="text-center">{agent.totals.songGenerations}</TableCell>
-                                        <TableCell className="text-center">{agent.totals.trialGenerations}</TableCell>
                                         <TableCell className="text-center">{agent.totals.purchasedSongs}</TableCell>
                                         <TableCell className="text-center">{agent.totals.poemOrders}</TableCell>
                                         <TableCell className="text-center">{agent.totals.videoOrders}</TableCell>
@@ -797,9 +852,9 @@ export function ServiceStatsPanel({
                                                             {partner.totals.pointName}
                                                         </TableCell>
                                                         <TableCell className="italic text-muted-foreground">Всего</TableCell>
+                                                        <TableCell className="text-center">{partner.totals.totalClients}</TableCell>
                                                         <TableCell className="text-center">{partner.totals.newClients}</TableCell>
                                                         <TableCell className="text-center">{partner.totals.songGenerations}</TableCell>
-                                                        <TableCell className="text-center">{partner.totals.trialGenerations}</TableCell>
                                                         <TableCell className="text-center">{partner.totals.purchasedSongs}</TableCell>
                                                         <TableCell className="text-center">{partner.totals.poemOrders}</TableCell>
                                                         <TableCell className="text-center">{partner.totals.videoOrders}</TableCell>
