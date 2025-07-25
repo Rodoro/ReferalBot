@@ -15,4 +15,7 @@ export const salesOutletApi = {
     create(data: CreateSalesOutletDto): Promise<SalesOutlet> {
         return apiClient.post('/sales-outlet', data)
     },
+    delete(id: number): Promise<void> {
+        return apiClient.delete(`/sales-outlet/${id}`)
+    },
 }
