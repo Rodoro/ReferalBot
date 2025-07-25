@@ -3,6 +3,9 @@ export interface SalesOutlet {
     partnerId: number
     address: string | null
     name: string
+    type: OutletType
+    telegramId?: string | null
+    link?: string | null
     description?: string | null
     verified: boolean
     referralCode?: string | null

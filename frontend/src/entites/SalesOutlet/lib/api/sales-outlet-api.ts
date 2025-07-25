@@ -3,7 +3,7 @@ import { OutletType, SalesOutlet } from '../../types/sales-outlet'
 
 export interface CreateSalesOutletDto {
     partnerId: number
-    type: OutletType
+    type?: OutletType
     name?: string
     telegramId?: string
     address?: string

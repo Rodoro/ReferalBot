@@ -4,6 +4,7 @@ import { plainToInstance } from 'class-transformer';
 import { CreateSalesOutletDto } from './dto/create-sales-outlet.dto';
 import { UpdateSalesOutletDto } from './dto/update-sales-outlet.dto';
 import { SalesOutletResponseDto } from './dto/sales-outlet-response.dto';
+import { OutletType } from '@/prisma/generated';
 
 @Injectable()
 export class SalesOutletService {
@@ -15,6 +16,9 @@ export class SalesOutletService {
                 partnerId: data.partnerId,
                 address: data.address,
                 name: data.name,
+                type: data.type ?? OutletType.SELLER,
+                telegramId: data.telegramId,
+                link: data.link,
                 description: data.description,
                 verified: data.verified,
                 referralCode: Math.random().toString(36).slice(2, 10),
