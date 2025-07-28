@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SalesPointService } from './sales-point.service';
 import { CreateSalesPointDto } from './dto/create-sales-point.dto';
 import { UpdateSalesPointDto } from './dto/update-sales-point.dto';
 import { SalesPointResponseDto } from './dto/sales-point-response.dto';
 import { BotAuthorization } from '@/src/shared/decorators/bot-auth.decorator';
+import { Authorized } from '@/src/shared/decorators/authorized.decorator';
+import { Authorization } from '@/src/shared/decorators/auth.decorator';
 
 @ApiTags('SalesPoint')
 @Controller('sales-point')
@@ -53,8 +55,16 @@ export class SalesPointController {
     }
 
     @Put('user/:id')
+    @Authorization()
     @ApiOperation({ summary: 'Update sales point by id' })
-    update(@Param('id') id: string, @Body() dto: UpdateSalesPointDto): Promise<SalesPointResponseDto> {
+    update(
+        @Authorized('id') userId: number,
+        @Param('id') id: string,
+        @Body() dto: UpdateSalesPointDto,
+    ): Promise<SalesPointResponseDto> {
+        if (userId !== +id) {
+            throw new ForbiddenException('Cannot edit another user sales point');
+        }
         return this.spService.update(+id, dto);
     }
 

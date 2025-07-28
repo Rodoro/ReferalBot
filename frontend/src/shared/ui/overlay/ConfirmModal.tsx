@@ -25,8 +25,17 @@ export function ConfirmModal({
 					<AlertDialogDescription>{message}</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
-					<AlertDialogCancel>Отмена</AlertDialogCancel>
-					<AlertDialogAction onClick={onConfirm}>
+					<AlertDialogCancel
+						onClick={(e) => e.stopPropagation()}
+					>
+						Отмена
+					</AlertDialogCancel>
+					<AlertDialogAction
+						onClick={(e) => {
+							e.stopPropagation()
+							onConfirm()
+						}}
+					>
 						Продолжить
 					</AlertDialogAction>
 				</AlertDialogFooter>

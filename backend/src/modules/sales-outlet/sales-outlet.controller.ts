@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SalesOutletService } from './sales-outlet.service';
 import { CreateSalesOutletDto } from './dto/create-sales-outlet.dto';
 import { UpdateSalesOutletDto } from './dto/update-sales-outlet.dto';
 import { SalesOutletResponseDto } from './dto/sales-outlet-response.dto';
+import { Authorization } from '@/src/shared/decorators/auth.decorator';
+import { Authorized } from '@/src/shared/decorators/authorized.decorator';
 
 @ApiTags('SalesOutlet')
 @Controller('sales-outlet')
@@ -36,12 +38,18 @@ export class SalesOutletController {
     }
 
     @Put(':id')
+    @Authorization()
     @ApiOperation({ summary: 'Update sales outlet by id' })
-    update(
+    async update(
+        @Authorized('id') userId: number,
         @Param('id') id: string,
         @Body() dto: UpdateSalesOutletDto,
     ): Promise<SalesOutletResponseDto> {
-        return this.outletService.update(+id, dto);
+        const outlet = await this.outletService.findOneWithPartner(+id)
+        if (outlet.partner.userId !== userId) {
+            throw new ForbiddenException('Cannot edit another user sales outlet')
+        }
+        return this.outletService.update(+id, dto)
     }
 
     @Delete(':id')

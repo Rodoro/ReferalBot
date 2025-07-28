@@ -40,6 +40,17 @@ export class SalesOutletService {
         return plainToInstance(SalesOutletResponseDto, outlet);
     }
 
+    async findOneWithPartner(id: number) {
+        const outlet = await this.prismaService.salesOutlet.findUnique({
+            where: { id },
+            include: { partner: true },
+        })
+        if (!outlet) {
+            throw new NotFoundException('SalesOutlet not found')
+        }
+        return outlet
+    }
+
     async update(id: number, data: UpdateSalesOutletDto): Promise<SalesOutletResponseDto> {
         const outlet = await this.prismaService.salesOutlet.update({ where: { id }, data });
         return plainToInstance(SalesOutletResponseDto, outlet);

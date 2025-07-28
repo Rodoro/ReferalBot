@@ -27,7 +27,7 @@ export const apiClient = {
             }
             return response.json()
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'Unknown error')
+            toast(error instanceof Error ? error.message : 'Unknown error')
             throw error
         }
     },

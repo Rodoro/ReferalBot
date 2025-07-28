@@ -30,6 +30,14 @@ export class SalesOutletResponseDto {
 
     @ApiProperty()
     @Expose()
+    link?: string;
+
+    @ApiProperty()
+    @Expose()
+    telegramId?: string;
+
+    @ApiProperty()
+    @Expose()
     verified: boolean;
 
     @ApiProperty({ required: false })

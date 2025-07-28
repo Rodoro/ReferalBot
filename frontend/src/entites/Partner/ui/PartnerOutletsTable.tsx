@@ -11,11 +11,13 @@ import { Button } from '@/shared/ui/form/button'
 import { Trash2 } from 'lucide-react'
 import { ConfirmModal } from '@/shared/ui/overlay/ConfirmModal'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 export default function PartnerOutletsTable({ partnerId, className }: { partnerId: number; className?: string }) {
     const [data, setData] = useState<Outlet[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const router = useRouter()
 
     useEffect(() => {
         getPartnerOutlets(partnerId)
@@ -49,7 +51,11 @@ export default function PartnerOutletsTable({ partnerId, className }: { partnerI
                 </TableHeader>
                 <TableBody>
                     {data.map((o) => (
-                        <TableRow key={o.id} className={o.verified ? 'bg-green-50' : 'bg-red-50'}>
+                        <TableRow
+                            key={o.id}
+                            className={cn(o.verified ? 'bg-green-50' : 'bg-red-50', 'cursor-pointer hover:bg-muted/50')}
+                            onClick={() => router.push(`/sales-point/outlets/${o.id}`)}
+                        >
                             <TableCell className="px-2 flex items-center gap-2 p-4">
                                 {o.type && <OutletTypeIcon type={o.type} className="h-4 w-4" />}
                                 {o.name}
@@ -60,7 +66,11 @@ export default function PartnerOutletsTable({ partnerId, className }: { partnerI
                                     message="Это действие нельзя отменить"
                                     onConfirm={() => handleDelete(o.id)}
                                 >
-                                    <Button variant="ghost" size="icon">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
                                         <Trash2 className="size-4" />
                                     </Button>
                                 </ConfirmModal>

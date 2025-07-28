@@ -8,15 +8,21 @@ import { Input } from '@/shared/ui/form/input'
 import { Button } from '@/shared/ui/form/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/form/select'
 import { OutletType } from '../types/sales-outlet'
-import { salesOutletApi } from '../lib/api/sales-outlet-api'
+import { salesOutletApi, UpdateSalesOutletDto } from '../lib/api/sales-outlet-api'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
-export default function SalesOutletForm({ partnerId }: { partnerId: number }) {
+interface Props {
+    partnerId?: number
+    outletId?: number
+    initialValues?: SalesOutletFormValues
+}
+
+export default function SalesOutletForm({ partnerId, outletId, initialValues }: Props) {
     const router = useRouter()
     const form = useForm<SalesOutletFormValues>({
         resolver: zodResolver(salesOutletSchema),
-        defaultValues: {
+        defaultValues: initialValues ?? {
             type: OutletType.SELLER,
             name: '',
             telegramId: '',
@@ -29,8 +35,14 @@ export default function SalesOutletForm({ partnerId }: { partnerId: number }) {
     const type = form.watch('type')
 
     async function onSubmit(values: SalesOutletFormValues) {
-        await salesOutletApi.create({ partnerId, ...values })
-        toast.success('Точка продажи создана')
+        if (outletId) {
+            const data: UpdateSalesOutletDto = { ...values }
+            await salesOutletApi.update(outletId, data)
+            toast.success('Точка продажи обновлена')
+        } else if (partnerId) {
+            await salesOutletApi.create({ partnerId, ...values })
+            toast.success('Точка продажи создана')
+        }
         router.push('/sales-point/outlets')
     }
 
@@ -144,7 +156,7 @@ export default function SalesOutletForm({ partnerId }: { partnerId: number }) {
                     </FormItem>
                 )} />
 
-                <Button type="submit" className="mt-2">Создать</Button>
+                <Button type="submit" className="mt-2">{outletId ? 'Сохранить' : 'Создать'}</Button>
             </form>
         </Form>
     )
