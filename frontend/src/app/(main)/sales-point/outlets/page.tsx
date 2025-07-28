@@ -20,7 +20,7 @@ export default function Page() {
                 <TypographyH2 text='Мои точки продажи' className='mb-4' />
                 {partnerId ? (
                     <>
-                        <Link href="/sales-point/outlets/new" className='mb-4'><Button><Plus className='mr-2' />Добавить</Button></Link>
+                        <Link href="/sales-point/outlets/new" className='mb-4 max-w-32'><Button><Plus className='mr-2' />Добавить</Button></Link>
                         <PartnerOutletsTable partnerId={partnerId} />
                     </>
                 ) : (

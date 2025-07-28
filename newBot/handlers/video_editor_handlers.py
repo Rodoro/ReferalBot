@@ -13,7 +13,7 @@ from aiogram import Bot
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-VE_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "video_editor_contract.docx")
+VE_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "video_editor_contract.pdf")
 
 class VideoEditorRegistrationStates(StatesGroup):
     waiting_for_mini_app = State()

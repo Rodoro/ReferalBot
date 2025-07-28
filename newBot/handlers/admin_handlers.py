@@ -13,7 +13,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 AGENT_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "consultant_contract.pdf")
 SP_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "partner_contract.pdf")
 POET_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "poet_contract.docx")
-VE_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "video_editor_contract.docx")
+VE_CONTRACT_PATH = os.path.join(BASE_DIR, "files", "video_editor_contract.pdf")
 
 
 async def handle_approve_user(
