@@ -139,6 +139,29 @@ export function ServiceStatsPanel({
         fetchAll();
     }, [mode, id]);
 
+
+    useEffect(() => {
+        if (!archData.length) return;
+
+        if (mode === 'all') {
+            setExpandedAgents({});
+            setExpandedPartners({});
+            return;
+        }
+
+        const agentState: Record<string, boolean> = {};
+        const partnerState: Record<string, boolean> = {};
+        archData.forEach(agent => {
+            agentState[agent.fullName] = true;
+            agent.partners.forEach(partner => {
+                const key = `${agent.fullName}||${partner.fullName}`;
+                partnerState[key] = true;
+            });
+        });
+        setExpandedAgents(agentState);
+        setExpandedPartners(partnerState);
+    }, [archData]);
+
     // 4) Проверка, попадает ли дата в выбранный период
     function isInPeriod(dateStr: string, period: typeof selectedPeriod): boolean {
         if (!dateStr) return true;
