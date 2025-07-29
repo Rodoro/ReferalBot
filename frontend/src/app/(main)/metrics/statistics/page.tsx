@@ -18,7 +18,7 @@ export default function page() {
                     { label: "Статистика", isCurrent: true }
                 ]}
             />
-            <main className="flex flex-1 flex-col pb-4 pt-0 px-2 sm:px-8 max-w-[1640px]">
+            <main className="flex flex-1 flex-col pb-4 pt-0 px-2 sm:px-8 max-w-[1860px]">
                 <TypographyH2 text='Статистика' className='mb-4' />
                 <ServiceStatsPanel />
             </main>

@@ -13,6 +13,7 @@ export type DailyStat = {
     purchasedSongs: number;
     poemOrders: number;
     videoOrders: number;
+    toPay: number;
 };
 
 export async function getDailyStats(): Promise<DailyStat[]> {

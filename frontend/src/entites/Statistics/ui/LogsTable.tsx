@@ -69,8 +69,8 @@ type ServiceStatRow = {
     purchasedSongs: number;
     poemOrders: number;
     videoOrders: number;
-    accrued: number; // Сумма начислений (по последним 4 действиям)
-    // payable: number; // accrued × (percent/100)
+    accrued: number;
+    payable: number;
 };
 
 export type StatsMode = 'all' | 'agent' | 'salesPoint' | 'salesOutlet';
@@ -214,6 +214,7 @@ export function ServiceStatsPanel({
                         purchasedSongs: 0,
                         poemOrders: 0,
                         videoOrders: 0,
+                        toPay: 0,
                     });
                 }
                 partner.outlets.forEach((outlet) => {
@@ -231,6 +232,7 @@ export function ServiceStatsPanel({
                         purchasedSongs: 0,
                         poemOrders: 0,
                         videoOrders: 0,
+                        toPay: 0,
                     });
                 });
             });
@@ -269,7 +271,7 @@ export function ServiceStatsPanel({
     // 8) Агрегация (groupBy agentName + pointName), считаем accrued и payable
     const aggregatedRows: ServiceStatRow[] = useMemo(() => {
         type Key = string; // "agentName||pointName||outletName"
-        const map = new Map<Key, Omit<ServiceStatRow, "accrued" | "payable">>();
+        const map = new Map<Key, ServiceStatRow>();
 
         filteredEvents.forEach((row) => {
             const outlet = row.outletName ?? 'Неопределенного';
@@ -287,6 +289,8 @@ export function ServiceStatsPanel({
                     purchasedSongs: 0,
                     poemOrders: 0,
                     videoOrders: 0,
+                    accrued: 0,
+                    payable: 0,
                 });
             }
             const accum = map.get(key)!;
@@ -299,6 +303,7 @@ export function ServiceStatsPanel({
             accum.purchasedSongs += row.purchasedSongs;
             accum.poemOrders += row.poemOrders;
             accum.videoOrders += row.videoOrders;
+            accum.payable += row.toPay;
         });
         const result: ServiceStatRow[] = [];
         map.forEach((vals) => {
@@ -312,7 +317,7 @@ export function ServiceStatsPanel({
 
             result.push({
                 ...vals,
-                accrued
+                accrued,
             });
         });
 
@@ -329,6 +334,7 @@ export function ServiceStatsPanel({
                 acc.purchasedSongs += row.purchasedSongs;
                 acc.poemOrders += row.poemOrders;
                 acc.videoOrders += row.videoOrders;
+                acc.payable += row.payable;
                 return acc;
             },
             {
@@ -338,6 +344,7 @@ export function ServiceStatsPanel({
                 purchasedSongs: 0,
                 poemOrders: 0,
                 videoOrders: 0,
+                payable: 0,
             }
         );
     }, [aggregatedRows]);
@@ -519,25 +526,25 @@ export function ServiceStatsPanel({
             //         </span>
             //     ),
             // },
-            // {
-            //     accessorKey: "payable",
-            //     header: ({ column }) => (
-            //         <Button
-            //             variant="ghost"
-            //             onClick={() =>
-            //                 column.toggleSorting(column.getIsSorted() === "asc")
-            //             }
-            //         >
-            //             К выплате
-            //             <ArrowUpDown className="ml-2 h-4 w-4" />
-            //         </Button>
-            //     ),
-            //     cell: (info) => (
-            //         <span className="block text-center">
-            //             {info.getValue<number>().toFixed(2)}
-            //         </span>
-            //     ),
-            // },
+            {
+                accessorKey: "payable",
+                header: ({ column }) => (
+                    <Button
+                        variant="ghost"
+                        onClick={() =>
+                            column.toggleSorting(column.getIsSorted() === "asc")
+                        }
+                    >
+                        К выплате
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                ),
+                cell: (info) => (
+                    <span className="block text-center">
+                        {info.getValue<number>()}
+                    </span>
+                ),
+            },
         ],
         []
     );
@@ -575,6 +582,7 @@ export function ServiceStatsPanel({
                         poemOrders: 0,
                         videoOrders: 0,
                         accrued: 0,
+                        payable: 0,
                     },
                     partners: new Map(),
                 });
@@ -593,6 +601,7 @@ export function ServiceStatsPanel({
             agentData.totals.poemOrders += row.poemOrders;
             agentData.totals.videoOrders += row.videoOrders;
             agentData.totals.accrued += row.accrued;
+            agentData.totals.payable += row.payable;
 
             if (!agentData.partners.has(row.pointName)) {
                 agentData.partners.set(row.pointName, {
@@ -608,6 +617,7 @@ export function ServiceStatsPanel({
                         poemOrders: 0,
                         videoOrders: 0,
                         accrued: 0,
+                        payable: 0,
                     },
                     outlets: [],
                 });
@@ -627,6 +637,7 @@ export function ServiceStatsPanel({
             partnerData.totals.poemOrders += row.poemOrders;
             partnerData.totals.videoOrders += row.videoOrders;
             partnerData.totals.accrued += row.accrued;
+            partnerData.totals.payable += row.payable;
 
             partnerData.outlets.push(r);
         });
@@ -724,8 +735,8 @@ export function ServiceStatsPanel({
                     <TableHeader>
                         <TableRow className="h-16">
                             <TableHead>Консультант</TableHead>
-                            <TableHead className="min-w-[220px]">Партнёр</TableHead>
-                            <TableHead className="min-w-[220px]">Точка продажи</TableHead>
+                            <TableHead className="min-w-[160px]">Партнёр</TableHead>
+                            <TableHead className="min-w-[160px]">Точка продажи</TableHead>
                             <TableHead className="text-center">
                                 <Button
                                     variant="ghost"
@@ -829,7 +840,7 @@ export function ServiceStatsPanel({
                                     Начислено
                                     <ArrowUpDown className="ml-2 h-4 w-4" />
                                 </Button>
-                            </TableHead>
+                            </TableHead> */}
                             <TableHead className="text-center">
                                 <Button
                                     variant="ghost"
@@ -839,10 +850,10 @@ export function ServiceStatsPanel({
                                         )
                                     }
                                 >
-                                    К выплате
+                                    Выплота
                                     <ArrowUpDown className="ml-2 h-4 w-4" />
                                 </Button>
-                            </TableHead> */}
+                            </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -856,6 +867,7 @@ export function ServiceStatsPanel({
                             <TableCell className="text-center">{totals.purchasedSongs}</TableCell>
                             <TableCell className="text-center">{totals.poemOrders}</TableCell>
                             <TableCell className="text-center">{totals.videoOrders}</TableCell>
+                            <TableCell className="text-center">{totals.payable * 2}</TableCell>
                         </TableRow>
                         {groupedByAgent.length > 0 ? (
                             groupedByAgent.map((agent, index) => (
@@ -884,6 +896,7 @@ export function ServiceStatsPanel({
                                         <TableCell className="text-center">{agent.totals.purchasedSongs}</TableCell>
                                         <TableCell className="text-center">{agent.totals.poemOrders}</TableCell>
                                         <TableCell className="text-center">{agent.totals.videoOrders}</TableCell>
+                                        <TableCell className="text-center">{agent.totals.payable}</TableCell>
                                     </TableRow>
                                     {expandedAgents[agent.totals.agentName] &&
                                         agent.partners.map((partner, pIndex) => {
@@ -914,6 +927,7 @@ export function ServiceStatsPanel({
                                                         <TableCell className="text-center">{partner.totals.purchasedSongs}</TableCell>
                                                         <TableCell className="text-center">{partner.totals.poemOrders}</TableCell>
                                                         <TableCell className="text-center">{partner.totals.videoOrders}</TableCell>
+                                                        <TableCell className="text-center">{partner.totals.payable}</TableCell>
                                                     </TableRow>
                                                     {expandedPartners[key] &&
                                                         partner.outlets.map((row) => (

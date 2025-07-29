@@ -48,4 +48,8 @@ export class DailyStatDto {
     @ApiProperty()
     @Expose()
     videoOrders: number;
+
+    @ApiProperty()
+    @Expose()
+    toPay: number;
 }

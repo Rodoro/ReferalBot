@@ -8,6 +8,8 @@ import {
   ArchitectureUserDto,
 } from './dto/architecture.dto';
 import { OutletType } from '@/prisma/generated';
+import { PURCHASED_SONG_RATE, POEM_ORDER_RATE, VIDEO_ORDER_RATE } from '@/src/shared/consts/rate';
+
 
 @Injectable()
 export class StatisticsService {
@@ -35,19 +37,42 @@ export class StatisticsService {
       ORDER BY DATE(a."timestamp") DESC;
     `);
 
-    return rows.map((r) => ({
-      date: r.date,
-      agentName: r.agent_name && r.agent_name.trim() !== '' ? r.agent_name : 'Неопределенного',
-      pointName: r.point_name && r.point_name.trim() !== '' ? r.point_name : 'Неопределенного',
-      outletName: r.outlet_name && r.outlet_name.trim() !== '' ? r.outlet_name : 'Неопределенного',
-      outletType: r.outlet_type ?? null,
-      newClients: Number(r.new_clients ?? 0),
-      songGenerations: Number(r.song_generations ?? 0),
-      trialGenerations: Number(r.trial_generations ?? 0),
-      purchasedSongs: Number(r.purchased_songs ?? 0),
-      poemOrders: Number(r.poem_orders ?? 0),
-      videoOrders: Number(r.video_orders ?? 0),
-    }));
+    return rows.map((r) => {
+      const purchasedSongs = Number(r.purchased_songs ?? 0);
+      const poemOrders = Number(r.poem_orders ?? 0);
+      const videoOrders = Number(r.video_orders ?? 0);
+
+      const agentName =
+        r.agent_name && r.agent_name.trim() !== '' ? r.agent_name : 'Неопределенного';
+      const pointName =
+        r.point_name && r.point_name.trim() !== '' ? r.point_name : 'Неопределенного';
+      const outletName =
+        r.outlet_name && r.outlet_name.trim() !== '' ? r.outlet_name : 'Неопределенного';
+
+      const shouldPay =
+        agentName !== 'Неопределенного' &&
+        pointName !== 'Неопределенного' &&
+        outletName !== 'Неопределенного';
+
+      return {
+        date: r.date,
+        agentName,
+        pointName,
+        outletName,
+        outletType: r.outlet_type ?? null,
+        newClients: Number(r.new_clients ?? 0),
+        songGenerations: Number(r.song_generations ?? 0),
+        trialGenerations: Number(r.trial_generations ?? 0),
+        purchasedSongs,
+        poemOrders,
+        videoOrders,
+        toPay: shouldPay
+          ? purchasedSongs * PURCHASED_SONG_RATE +
+          poemOrders * POEM_ORDER_RATE +
+          videoOrders * VIDEO_ORDER_RATE
+          : 0,
+      };
+    });
   }
   async getDailyByAgent(agentId: number): Promise<DailyStatDto[]> {
     const rows = await this.prisma.$queryRawUnsafe<any[]>(`
@@ -71,18 +96,41 @@ export class StatisticsService {
       ORDER BY DATE(a."timestamp") DESC;
     `);
 
-    return rows.map((r) => ({
-      date: r.date,
-      agentName: r.agent_name && r.agent_name.trim() !== '' ? r.agent_name : 'Неопределенного',
-      pointName: r.point_name && r.point_name.trim() !== '' ? r.point_name : 'Неопределенного',
-      outletName: r.outlet_name && r.outlet_name.trim() !== '' ? r.outlet_name : 'Неопределенного',
-      newClients: Number(r.new_clients ?? 0),
-      songGenerations: Number(r.song_generations ?? 0),
-      trialGenerations: Number(r.trial_generations ?? 0),
-      purchasedSongs: Number(r.purchased_songs ?? 0),
-      poemOrders: Number(r.poem_orders ?? 0),
-      videoOrders: Number(r.video_orders ?? 0),
-    }));
+    return rows.map((r) => {
+      const purchasedSongs = Number(r.purchased_songs ?? 0);
+      const poemOrders = Number(r.poem_orders ?? 0);
+      const videoOrders = Number(r.video_orders ?? 0);
+
+      const agentName =
+        r.agent_name && r.agent_name.trim() !== '' ? r.agent_name : 'Неопределенного';
+      const pointName =
+        r.point_name && r.point_name.trim() !== '' ? r.point_name : 'Неопределенного';
+      const outletName =
+        r.outlet_name && r.outlet_name.trim() !== '' ? r.outlet_name : 'Неопределенного';
+
+      const shouldPay =
+        agentName !== 'Неопределенного' &&
+        pointName !== 'Неопределенного' &&
+        outletName !== 'Неопределенного';
+
+      return {
+        date: r.date,
+        agentName,
+        pointName,
+        outletName,
+        newClients: Number(r.new_clients ?? 0),
+        songGenerations: Number(r.song_generations ?? 0),
+        trialGenerations: Number(r.trial_generations ?? 0),
+        purchasedSongs,
+        poemOrders,
+        videoOrders,
+        toPay: shouldPay
+          ? purchasedSongs * PURCHASED_SONG_RATE +
+          poemOrders * POEM_ORDER_RATE +
+          videoOrders * VIDEO_ORDER_RATE
+          : 0,
+      };
+    });
   }
 
   async getDailyBySalesPoint(salesId: number): Promise<DailyStatDto[]> {
@@ -107,19 +155,44 @@ export class StatisticsService {
       ORDER BY DATE(a."timestamp") DESC;
     `);
 
-    return rows.map((r) => ({
-      date: r.date,
-      agentName: r.agent_name && r.agent_name.trim() !== '' ? r.agent_name : 'Неопределенного',
-      pointName: r.point_name && r.point_name.trim() !== '' ? r.point_name : 'Неопределенного',
-      outletName: r.outlet_name && r.outlet_name.trim() !== '' ? r.outlet_name : 'Неопределенного',
-      newClients: Number(r.new_clients ?? 0),
-      songGenerations: Number(r.song_generations ?? 0),
-      trialGenerations: Number(r.trial_generations ?? 0),
-      purchasedSongs: Number(r.purchased_songs ?? 0),
-      poemOrders: Number(r.poem_orders ?? 0),
-      videoOrders: Number(r.video_orders ?? 0),
-    }));
+    return rows.map((r) => {
+      const purchasedSongs = Number(r.purchased_songs ?? 0);
+      const poemOrders = Number(r.poem_orders ?? 0);
+      const videoOrders = Number(r.video_orders ?? 0);
+
+
+      const agentName =
+        r.agent_name && r.agent_name.trim() !== '' ? r.agent_name : 'Неопределенного';
+      const pointName =
+        r.point_name && r.point_name.trim() !== '' ? r.point_name : 'Неопределенного';
+      const outletName =
+        r.outlet_name && r.outlet_name.trim() !== '' ? r.outlet_name : 'Неопределенного';
+
+      const shouldPay =
+        agentName !== 'Неопределенного' &&
+        pointName !== 'Неопределенного' &&
+        outletName !== 'Неопределенного';
+
+      return {
+        date: r.date,
+        agentName,
+        pointName,
+        outletName,
+        newClients: Number(r.new_clients ?? 0),
+        songGenerations: Number(r.song_generations ?? 0),
+        trialGenerations: Number(r.trial_generations ?? 0),
+        purchasedSongs,
+        poemOrders,
+        videoOrders,
+        toPay: shouldPay
+          ? purchasedSongs * PURCHASED_SONG_RATE +
+          poemOrders * POEM_ORDER_RATE +
+          videoOrders * VIDEO_ORDER_RATE
+          : 0,
+      };
+    });
   }
+
 
   async getDailyBySalesOutlet(outletId: number): Promise<DailyStatDto[]> {
     const rows = await this.prisma.$queryRawUnsafe<any[]>(`
@@ -143,18 +216,42 @@ export class StatisticsService {
       ORDER BY DATE(a."timestamp") DESC;
     `);
 
-    return rows.map((r) => ({
-      date: r.date,
-      agentName: r.agent_name && r.agent_name.trim() !== '' ? r.agent_name : 'Неопределенного',
-      pointName: r.point_name && r.point_name.trim() !== '' ? r.point_name : 'Неопределенного',
-      outletName: r.outlet_name && r.outlet_name.trim() !== '' ? r.outlet_name : 'Неопределенного',
-      newClients: Number(r.new_clients ?? 0),
-      songGenerations: Number(r.song_generations ?? 0),
-      trialGenerations: Number(r.trial_generations ?? 0),
-      purchasedSongs: Number(r.purchased_songs ?? 0),
-      poemOrders: Number(r.poem_orders ?? 0),
-      videoOrders: Number(r.video_orders ?? 0),
-    }));
+    return rows.map((r) => {
+      const purchasedSongs = Number(r.purchased_songs ?? 0);
+      const poemOrders = Number(r.poem_orders ?? 0);
+      const videoOrders = Number(r.video_orders ?? 0);
+
+
+      const agentName =
+        r.agent_name && r.agent_name.trim() !== '' ? r.agent_name : 'Неопределенного';
+      const pointName =
+        r.point_name && r.point_name.trim() !== '' ? r.point_name : 'Неопределенного';
+      const outletName =
+        r.outlet_name && r.outlet_name.trim() !== '' ? r.outlet_name : 'Неопределенного';
+
+      const shouldPay =
+        agentName !== 'Неопределенного' &&
+        pointName !== 'Неопределенного' &&
+        outletName !== 'Неопределенного';
+
+      return {
+        date: r.date,
+        agentName,
+        pointName,
+        outletName,
+        newClients: Number(r.new_clients ?? 0),
+        songGenerations: Number(r.song_generations ?? 0),
+        trialGenerations: Number(r.trial_generations ?? 0),
+        purchasedSongs,
+        poemOrders,
+        videoOrders,
+        toPay: shouldPay
+          ? purchasedSongs * PURCHASED_SONG_RATE +
+          poemOrders * POEM_ORDER_RATE +
+          videoOrders * VIDEO_ORDER_RATE
+          : 0,
+      };
+    });
   }
 
   async getArchitecture(includeUnknown = false): Promise<ArchitectureAgentDto[]> {
