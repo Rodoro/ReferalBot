@@ -42,9 +42,24 @@ import {
     SelectItem,
 } from "@/shared/ui/form/select";
 import { Button } from "@/shared/ui/form/button";
-import { ArrowUpDown, ChevronRight } from "lucide-react";
+import {
+    ArrowUpDown,
+    ChevronRight,
+    TrendingUp,
+    TrendingDown
+} from "lucide-react";
 import { cn } from "@/shared/lib/utils/utils";
+import {
+    Card,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+    CardAction,
+} from "@/shared/ui/overlay/card";
 import { Skeleton } from "@/shared/ui/branding/skeleton";
+import { PAYOUT_MULTIPLIER } from "@/widgets/content/rate";
+import { Badge } from "@/shared/ui/branding/badge";
 
 //TODO: За выбранный промежуток времени
 //TODO: Чек бокс на скрытие пустых ячеек
@@ -192,6 +207,74 @@ export function ServiceStatsPanel({
         }
         return false;
     }
+
+    // Расчётный период с 10-го по 10-е число следующего месяца
+    function getAccountingPeriod() {
+        const now = new Date();
+        let startYear = now.getFullYear();
+        let startMonth = now.getMonth();
+        if (now.getDate() < 10) {
+            if (startMonth === 0) {
+                startYear -= 1;
+                startMonth = 11;
+            } else {
+                startMonth -= 1;
+            }
+        }
+        const start = new Date(startYear, startMonth, 10);
+        const end = new Date(start.getFullYear(), start.getMonth() + 1, 10);
+        return { start, end };
+    }
+
+    const { start: accStart, end: accEnd } = useMemo(getAccountingPeriod, []);
+
+    const currentPayable = useMemo(() => {
+        const from = accStart.getTime();
+        const to = accEnd.getTime();
+        return rawData.reduce((sum, row) => {
+            if (!row.date) return sum;
+            const t = new Date(row.date).getTime();
+            if (t >= from && t < to) {
+                return sum + row.toPay;
+            }
+            return sum;
+        }, 0);
+    }, [rawData, accStart, accEnd]);
+
+    const periodLabel = useMemo(() => {
+        const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
+        return `${accStart.toLocaleDateString('ru-RU', opts)} – ${accEnd.toLocaleDateString('ru-RU', opts)}`;
+    }, [accStart, accEnd]);
+
+    function getPrevPeriod() {
+        const end = new Date(accStart.getFullYear(), accStart.getMonth(), 10);
+        const start = new Date(end.getFullYear(), end.getMonth() - 1, 10);
+        return { start, end };
+    }
+
+    const { start: prevStart, end: prevEnd } = useMemo(getPrevPeriod, [accStart]);
+
+    const prevPayable = useMemo(() => {
+        const from = prevStart.getTime();
+        const to = prevEnd.getTime();
+        return rawData.reduce((sum, row) => {
+            if (!row.date) return sum;
+            const t = new Date(row.date).getTime();
+            if (t >= from && t < to) {
+                return sum + row.toPay;
+            }
+            return sum;
+        }, 0);
+    }, [rawData, prevStart, prevEnd]);
+
+    const consultantPayable = currentPayable;
+    const partnerPayable = currentPayable;
+
+    const prevConsultantPayable = prevPayable / PAYOUT_MULTIPLIER;
+    const prevPartnerPayable = prevPayable - prevConsultantPayable;
+
+    const consultantDelta = consultantPayable - prevConsultantPayable;
+    const partnerDelta = partnerPayable - prevPartnerPayable;
 
     // 5) Список уникальных консультантов для селектора
     const architectureRows = useMemo(() => {
@@ -672,6 +755,93 @@ export function ServiceStatsPanel({
 
     return (
         <>
+            <div
+                className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card grid grid-cols-1 sm:grid-cols-3 gap-4 *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 mb-6"
+            >
+                {mode === 'all' ? (
+                    <>
+                        <Card className="@container/card">
+                            <CardHeader>
+                                <CardDescription>Выплаты консультантам</CardDescription>
+                                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                                    {consultantPayable.toLocaleString('ru-RU')} ₽
+                                </CardTitle>
+                                <CardAction>
+                                    <Badge variant="outline">
+                                        {consultantDelta >= 0 ? <TrendingUp /> : <TrendingDown />}
+                                        {consultantDelta >= 0 ? '+' : ''}
+                                        {consultantDelta.toLocaleString('ru-RU')} ₽
+                                    </Badge>
+                                </CardAction>
+                            </CardHeader>
+                            <CardFooter className="flex-col items-start gap-1.5 text-sm">
+                                <div className="line-clamp-1 flex gap-2 font-medium">
+                                    {consultantDelta >= 0 ? 'Рост за период' : 'Снижение за период'}
+                                    {consultantDelta >= 0 ? (
+                                        <TrendingUp className="size-4" />
+                                    ) : (
+                                        <TrendingDown className="size-4" />
+                                    )}
+                                </div>
+                                <div className="text-muted-foreground">Период {periodLabel}</div>
+                            </CardFooter>
+                        </Card>
+                        <Card className="@container/card">
+                            <CardHeader>
+                                <CardDescription>Выплаты партнёрам</CardDescription>
+                                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                                    {partnerPayable.toLocaleString('ru-RU')} ₽
+                                </CardTitle>
+                                <CardAction>
+                                    <Badge variant="outline">
+                                        {partnerDelta >= 0 ? <TrendingUp /> : <TrendingDown />}
+                                        {partnerDelta >= 0 ? '+' : ''}
+                                        {partnerDelta.toLocaleString('ru-RU')} ₽
+                                    </Badge>
+                                </CardAction>
+                            </CardHeader>
+                            <CardFooter className="flex-col items-start gap-1.5 text-sm">
+                                <div className="line-clamp-1 flex gap-2 font-medium">
+                                    {partnerDelta >= 0 ? 'Рост за период' : 'Снижение за период'}
+                                    {partnerDelta >= 0 ? (
+                                        <TrendingUp className="size-4" />
+                                    ) : (
+                                        <TrendingDown className="size-4" />
+                                    )}
+                                </div>
+                                <div className="text-muted-foreground">Период {periodLabel}</div>
+                            </CardFooter>
+                        </Card>
+                    </>
+                ) : (
+                    <Card className="@container/card">
+                        <CardHeader>
+                            <CardDescription>Моя выплата</CardDescription>
+                            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                                {partnerPayable.toLocaleString('ru-RU')} ₽
+                            </CardTitle>
+                            <CardAction>
+                                <Badge variant="outline">
+                                    {partnerDelta >= 0 ? <TrendingUp /> : <TrendingDown />}
+                                    {partnerDelta >= 0 ? '+' : ''}
+                                    {partnerDelta.toLocaleString('ru-RU')} ₽
+                                </Badge>
+                            </CardAction>
+                        </CardHeader>
+                        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+                            <div className="line-clamp-1 flex gap-2 font-medium">
+                                {partnerDelta >= 0 ? 'Рост за период' : 'Снижение за период'}
+                                {partnerDelta >= 0 ? (
+                                    <TrendingUp className="size-4" />
+                                ) : (
+                                    <TrendingDown className="size-4" />
+                                )}
+                            </div>
+                            <div className="text-muted-foreground">Период {periodLabel}</div>
+                        </CardFooter>
+                    </Card>
+                )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
                 {/* Период */}
                 <Select
@@ -867,7 +1037,7 @@ export function ServiceStatsPanel({
                             <TableCell className="text-center">{totals.purchasedSongs}</TableCell>
                             <TableCell className="text-center">{totals.poemOrders}</TableCell>
                             <TableCell className="text-center">{totals.videoOrders}</TableCell>
-                            <TableCell className="text-center">{totals.payable * 2}</TableCell>
+                            <TableCell className="text-center">{(totals.payable * 2).toLocaleString('ru-RU')}</TableCell>
                         </TableRow>
                         {groupedByAgent.length > 0 ? (
                             groupedByAgent.map((agent, index) => (
@@ -896,7 +1066,7 @@ export function ServiceStatsPanel({
                                         <TableCell className="text-center">{agent.totals.purchasedSongs}</TableCell>
                                         <TableCell className="text-center">{agent.totals.poemOrders}</TableCell>
                                         <TableCell className="text-center">{agent.totals.videoOrders}</TableCell>
-                                        <TableCell className="text-center">{agent.totals.payable}</TableCell>
+                                        <TableCell className="text-center">{agent.totals.payable.toLocaleString('ru-RU')}</TableCell>
                                     </TableRow>
                                     {expandedAgents[agent.totals.agentName] &&
                                         agent.partners.map((partner, pIndex) => {
