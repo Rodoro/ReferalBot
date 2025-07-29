@@ -147,7 +147,7 @@ async def outlet_confirm_data(callback: types.CallbackQuery, state: FSMContext):
             name=data.get("name"),
             address=data.get("address"),
             description=data.get("description", ""),
-            type=data.get("type", "SELLER"),
+            outlet_type=data.get("type", "SELLER"),
             telegram_id=data.get("telegram_id"),
             link=data.get("link"),
         )

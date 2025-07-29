@@ -15,7 +15,7 @@ class SalesOutletService:
         address: str | None,
         description: str = "",
         *,
-        type: str = "SELLER",
+        outlet_type: str = "SELLER",
         telegram_id: str | None = None,
         link: str | None = None,
     ) -> dict:
@@ -25,7 +25,7 @@ class SalesOutletService:
             "name": name,
             "address": address,
             "description": description,
-            "type": type,
+            "type": outlet_type,
             "telegramId": telegram_id,
             "link": link,
         }
