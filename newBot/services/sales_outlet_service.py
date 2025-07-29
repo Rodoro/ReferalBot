@@ -9,13 +9,25 @@ class SalesOutletService:
         return resp if isinstance(resp, list) else resp.get("items", [])
 
     def create_outlet(
-        self, partner_id: int, name: str, address: str, description: str = ""
+        self,
+        partner_id: int,
+        name: str,
+        address: str | None,
+        description: str = "",
+        *,
+        type: str = "SELLER",
+        telegram_id: str | None = None,
+        link: str | None = None,
     ) -> dict:
+        """Create a sales outlet with extended data."""
         payload = {
             "partnerId": partner_id,
             "name": name,
             "address": address,
             "description": description,
+            "type": type,
+            "telegramId": telegram_id,
+            "link": link,
         }
         return self.client.post("sales-outlet", payload)
 

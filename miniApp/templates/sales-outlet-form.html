@@ -40,7 +40,8 @@
         }
 
         input,
-        textarea {
+        textarea,
+        select {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--tg-theme-secondary-bg-color);
@@ -76,27 +77,61 @@
         .input-error {
             border-color: #ff4444 !important;
         }
+
+        .info-text {
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 
 <body>
     <div class="form-container">
         <h1>Новая точка продажи</h1>
+        <p class="info-text">Тип <b>«Продавец»</b> предназначен для отдельных продавцов: укажите их Telegram ID, ФИО и
+            адрес. <b>«Точка продажи»</b> подходит для физических торговых точек — требуется название и точный адрес.
+            <b>«Информационный ресурс»</b> используется для сайтов и каналов — укажите ссылку и название.
+        </p>
         <form id="outletForm">
             <div class="input-group">
-                <label for="name">Название:</label>
-                <input type="text" id="name" name="name" required>
-                <div id="name_error" class="error-message">Введите название (минимум 3 символа)</div>
+                <label for="type">Тип точки:</label>
+                <select id="type" name="type" required>
+                    <option value="SELLER">Продавец</option>
+                    <option value="SALES_POINT">Точка продажи</option>
+                    <option value="INFORMATION_RESOURCE">Информационный ресурс</option>
+                </select>
+                <div id="type_error" class="error-message">Выберите тип</div>
             </div>
-            <div class="input-group">
+
+            <div class="input-group" id="telegramId_group">
+                <label for="telegramId">Telegram ID:</label>
+                <input type="text" id="telegramId" name="telegramId">
+                <div id="telegramId_error" class="error-message">Введите Telegram ID</div>
+            </div>
+
+            <div class="input-group" id="name_group">
+                <label for="name" id="name_label">Название</label>
+                <input type="text" id="name" name="name">
+                <div id="name_error" class="error-message">Введите значение (минимум 3 символа)</div>
+            </div>
+
+            <div class="input-group" id="address_group">
                 <label for="address">Адрес:</label>
-                <input type="text" id="address" name="address" required>
+                <input type="text" id="address" name="address">
                 <div id="address_error" class="error-message">Введите адрес</div>
             </div>
+
+            <div class="input-group" id="link_group">
+                <label for="link">Ссылка:</label>
+                <input type="text" id="link" name="link">
+                <div id="link_error" class="error-message">Введите ссылку</div>
+            </div>
+
             <div class="input-group">
                 <label for="description">Описание:</label>
                 <textarea id="description" name="description"></textarea>
             </div>
+
             <button type="submit">Отправить данные</button>
         </form>
     </div>
@@ -104,6 +139,21 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
+
+        const typeSelect = document.getElementById('type');
+        const telegramIdGroup = document.getElementById('telegramId_group');
+        const nameGroup = document.getElementById('name_group');
+        const nameLabel = document.getElementById('name_label');
+        const addressGroup = document.getElementById('address_group');
+        const linkGroup = document.getElementById('link_group');
+
+        function updateVisibility() {
+            const type = typeSelect.value;
+            telegramIdGroup.style.display = type === 'SELLER' ? 'block' : 'none';
+            addressGroup.style.display = type === 'SELLER' || type === 'SALES_POINT' ? 'block' : 'none';
+            linkGroup.style.display = type === 'INFORMATION_RESOURCE' ? 'block' : 'none';
+            nameLabel.textContent = type === 'SELLER' ? 'ФИО' : 'Название';
+        }
 
         function showError(id, show) {
             const input = document.getElementById(id);
@@ -117,17 +167,39 @@
             }
         }
 
+        updateVisibility();
+        typeSelect.addEventListener('change', updateVisibility);
+
         document.getElementById('outletForm').addEventListener('submit', function (e) {
             e.preventDefault();
+
+            const type = typeSelect.value;
+            const telegramId = document.getElementById('telegramId').value.trim();
             const name = document.getElementById('name').value.trim();
             const address = document.getElementById('address').value.trim();
+            const link = document.getElementById('link').value.trim();
             const description = document.getElementById('description').value.trim();
-            const validName = name.length >= 3;
-            const validAddress = address.length > 0;
-            showError('name', !validName);
-            showError('address', !validAddress);
-            if (!validName || !validAddress) return;
-            const data = { name, address, description, form_type: 'sales_outlet' };
+
+            let valid = true;
+
+            if (type === 'SELLER') {
+                showError('telegramId', telegramId === '');
+                showError('name', name.length < 3);
+                showError('address', address === '');
+                valid = type !== '' && telegramId !== '' && name.length >= 3 && address !== '';
+            } else if (type === 'SALES_POINT') {
+                showError('name', name.length < 3);
+                showError('address', address === '');
+                valid = type !== '' && name.length >= 3 && address !== '';
+            } else if (type === 'INFORMATION_RESOURCE') {
+                showError('name', name.length < 3);
+                showError('link', link === '');
+                valid = type !== '' && name.length >= 3 && link !== '';
+            }
+
+            if (!valid) return;
+
+            const data = { type, name, telegramId, address, link, description, form_type: 'sales_outlet' };
             tg.sendData(JSON.stringify(data));
         });
     </script>

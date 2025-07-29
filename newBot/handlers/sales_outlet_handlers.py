@@ -60,25 +60,58 @@ async def handle_outlet_webapp_data(message: types.Message, state: FSMContext):
         await message.answer("Ошибка: некорректные данные от формы.")
         return
 
-    required = ["name", "address"]
-    if not all(field in data and str(data[field]).strip() for field in required):
+    outlet_type = data.get("type", "SELLER").strip()
+    name = data.get("name", "").strip()
+    telegram_id = data.get("telegramId", "").strip()
+    address = data.get("address", "").strip()
+    link = data.get("link", "").strip()
+    description = data.get("description", "").strip()
+
+    if not name:
+        await message.answer(
+            "Не все поля заполнены. Пожалуйста, заполните форму полностью."
+        )
+        return
+
+    if outlet_type == "SELLER" and (not telegram_id or not address):
+        await message.answer(
+            "Не все поля заполнены. Пожалуйста, заполните форму полностью."
+        )
+        return
+    if outlet_type == "SALES_POINT" and not address:
+        await message.answer(
+            "Не все поля заполнены. Пожалуйста, заполните форму полностью."
+        )
+        return
+    if outlet_type == "INFORMATION_RESOURCE" and not link:
         await message.answer(
             "Не все поля заполнены. Пожалуйста, заполните форму полностью."
         )
         return
 
     await state.update_data(
-        name=data["name"],
-        address=data["address"],
-        description=data.get("description", ""),
+        type=outlet_type,
+        name=name,
+        telegram_id=telegram_id,
+        address=address,
+        link=link,
+        description=description,
     )
 
-    confirmation_text = (
-        "<b>Проверьте введённые данные (Точка продажи):</b>\n\n"
-        f"Название: {data['name']}\n"
-        f"Адрес: {data['address']}\n"
-        f"Описание: {data.get('description', '')}"
+    header = "Продавец" if outlet_type == "SELLER" else (
+        "Точка продажи" if outlet_type == "SALES_POINT" else "Информационный ресурс"
     )
+    parts = [f"<b>Проверьте введённые данные ({header}):</b>"]
+    if telegram_id:
+        parts.append(f"Telegram ID: {telegram_id}")
+    parts.append(f"Название: {name}")
+    if address:
+        parts.append(f"Адрес: {address}")
+    if link:
+        parts.append(f"Ссылка: {link}")
+    if description:
+        parts.append(f"Описание: {description}")
+    confirmation_text = "\n".join(parts)
     await message.answer(
         "Данные получены:", reply_markup=ReplyKeyboardRemove(), parse_mode="HTML"
     )
@@ -110,7 +143,13 @@ async def outlet_confirm_data(callback: types.CallbackQuery, state: FSMContext):
     svc = SalesOutletService()
     try:
         svc.create_outlet(
-            partner_id, data["name"], data["address"], data.get("description", "")
+            partner_id,
+            name=data.get("name"),
+            address=data.get("address"),
+            description=data.get("description", ""),
+            type=data.get("type", "SELLER"),
+            telegram_id=data.get("telegram_id"),
+            link=data.get("link"),
         )
     except Exception as e:
         await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
