@@ -27,6 +27,7 @@ async def cmd_start(message: types.Message, bot: Bot) -> None:
 
         if roles:
             text = build_referral_links(roles)
+            text += "\n\nСсылка для перехода на сайт является одноразовой."
             token_value = user_svc.generate_token(user)
 
             buttons = [
@@ -43,6 +44,14 @@ async def cmd_start(message: types.Message, bot: Bot) -> None:
                         types.InlineKeyboardButton(
                             text="Зарегистрировать точку продажи",
                             callback_data="start_sales_outlet",
+                        )
+                    ]
+                )
+                buttons.append(
+                    [
+                        types.InlineKeyboardButton(
+                            text="Точки продаж",
+                            callback_data="list_sales_outlets",
                         )
                     ]
                 )

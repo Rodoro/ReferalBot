@@ -46,6 +46,7 @@ export default function PartnerOutletsTable({ partnerId, className }: { partnerI
                 <TableHeader className="sticky top-0 z-10 bg-background">
                     <TableRow className="bg-muted font-medium">
                         <TableHead>Точка продажи</TableHead>
+                        <TableHead>Адрес/ссылка</TableHead>
                         <TableHead className="w-10" />
                     </TableRow>
                 </TableHeader>
@@ -59,6 +60,9 @@ export default function PartnerOutletsTable({ partnerId, className }: { partnerI
                             <TableCell className="px-2 flex items-center gap-2 p-4">
                                 {o.type && <OutletTypeIcon type={o.type} className="h-4 w-4" />}
                                 {o.name}
+                            </TableCell>
+                            <TableCell className="px-2 max-w-[300px] truncate">
+                                {o.address || o.link || '-'}
                             </TableCell>
                             <TableCell className="px-2 text-right">
                                 <ConfirmModal

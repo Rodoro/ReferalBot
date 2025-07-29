@@ -199,3 +199,117 @@ async def outlet_correct_data(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer("Исправьте данные, пожалуйста:", reply_markup=kb)
     await state.set_state(SalesOutletStates.waiting_for_mini_app)
     await callback.answer()
+
+async def list_sales_outlets(callback: types.CallbackQuery, bot: Bot) -> None:
+    """Send list of sales outlets and buttons to get banners/QRs."""
+    db = SessionLocal()
+    try:
+        user_svc = UserService(db)
+        user = user_svc.get_or_create_user(
+            telegram_id=callback.from_user.id,
+            full_name=callback.from_user.full_name or "",
+            username=callback.from_user.username or "",
+        )
+        user_id = user.get("id")
+
+        sp_service = SalesPointService()
+        profile = sp_service.get_sales_point_profile(user_id)
+        partner_id = profile.get("id") or profile.get("partnerId")
+    finally:
+        db.close()
+
+    svc = SalesOutletService()
+    outlets = svc.list_outlets(partner_id)
+
+    if not outlets:
+        await callback.message.answer("У вас нет точек продаж.")
+        await callback.answer()
+        return
+
+    lines: list[str] = []
+    buttons: list[list[InlineKeyboardButton]] = []
+    for o in outlets:
+        name = o.get("name") or "Точка"
+        address = o.get("address") or o.get("link") or ""
+        code = o.get("referralCode") or o.get("referral_code")
+        link = (
+            f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}" if code else "ссылка недоступна"
+        )
+        parts = [f"<b>{name}</b>"]
+        if address:
+            parts.append(address)
+        parts.append(link)
+        lines.append("\n".join(parts))
+        buttons.append(
+            [InlineKeyboardButton(text=name, callback_data=f"outlet_assets_{o.get('id')}")]
+        )
+
+    text = (
+        "Нажмите на название точки продажи, чтобы получить баннеры и QR-код."
+        "\n\n" + "\n\n".join(lines)
+    )
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await callback.message.answer(text, reply_markup=keyboard, parse_mode="HTML")
+    await callback.answer()
+
+
+async def send_outlet_assets(callback: types.CallbackQuery, bot: Bot) -> None:
+    """Send QR code and banners for the selected outlet."""
+    try:
+        _, _, outlet_id = callback.data.partition("outlet_assets_")
+        outlet_id = int(outlet_id)
+    except ValueError:
+        await callback.answer("Неверный идентификатор точки.", show_alert=True)
+        return
+
+    db = SessionLocal()
+    try:
+        user_svc = UserService(db)
+        user = user_svc.get_or_create_user(
+            telegram_id=callback.from_user.id,
+            full_name=callback.from_user.full_name or "",
+            username=callback.from_user.username or "",
+        )
+        user_id = user.get("id")
+
+        sp_service = SalesPointService()
+        profile = sp_service.get_sales_point_profile(user_id)
+        partner_id = profile.get("id") or profile.get("partnerId")
+    finally:
+        db.close()
+
+    svc = SalesOutletService()
+    outlets = svc.list_outlets(partner_id)
+    outlet = next((o for o in outlets if o.get("id") == outlet_id), None)
+    if not outlet:
+        await callback.answer("Точка не найдена.", show_alert=True)
+        return
+
+    code = outlet.get("referralCode") or outlet.get("referral_code")
+    if not code:
+        await callback.message.answer("Для этой точки нет реферальной ссылки.")
+        await callback.answer()
+        return
+
+    referral_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{code}"
+    banners, qr_path = svc.generate_referral_assets(outlet.get("name", "outlet"), referral_link)
+
+    await callback.message.answer(
+        (
+            f"Материалы для точки \"{outlet.get('name', 'Точка')}\".\n\n"
+            f"Ваша ссылка:\n{referral_link}\n\n"
+            "Ниже QR-код и баннеры."
+        )
+    )
+    media = [InputMediaDocument(media=types.FSInputFile(p)) for p in banners]
+    if media:
+        await bot.send_media_group(chat_id=callback.from_user.id, media=media)
+    await bot.send_document(
+        chat_id=callback.from_user.id,
+        document=types.FSInputFile(qr_path),
+        caption="Отдельный QR-код",
+    )
+    for p in banners + [qr_path]:
+        os.remove(p)
+    await callback.answer()

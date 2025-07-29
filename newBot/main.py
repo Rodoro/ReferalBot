@@ -20,6 +20,8 @@ from newBot.handlers.sales_outlet_handlers import (
     handle_outlet_webapp_data,
     outlet_confirm_data,
     outlet_correct_data,
+    list_sales_outlets,
+    send_outlet_assets,
     SalesOutletStates,
 )
 from newBot.handlers.poet_handlers import (
@@ -71,6 +73,12 @@ async def main():
     )
     dp.callback_query.register(
         outlet_correct_data, lambda c: c.data == "outlet_correct_data"
+    )
+    dp.callback_query.register(
+        list_sales_outlets, lambda c: c.data == "list_sales_outlets"
+    )
+    dp.callback_query.register(
+        send_outlet_assets, lambda c: c.data and c.data.startswith("outlet_assets_")
     )
 
     # --- Консультант ---

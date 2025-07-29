@@ -6,6 +6,7 @@ export type Outlet = {
     id: number
     name: string
     address?: string | null
+    link?: string | null
     verified: boolean
     type?: OutletType
 }
