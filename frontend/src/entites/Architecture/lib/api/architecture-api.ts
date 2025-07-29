@@ -37,6 +37,7 @@ export type ArchitectureAgent = {
     textGenerations: number
 }
 
-export async function getArchitecture(): Promise<ArchitectureAgent[]> {
-    return apiClient.get('/statistics/architecture')
+export async function getArchitecture(includeUnknown = false): Promise<ArchitectureAgent[]> {
+    const query = includeUnknown ? '?includeUnknown=true' : ''
+    return apiClient.get(`/statistics/architecture${query}`)
 }

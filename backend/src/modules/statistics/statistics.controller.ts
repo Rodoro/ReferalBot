@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { StatisticsService } from './statistics.service';
 import { DailyStatDto } from './dto/daily-stat.dto';
@@ -35,7 +35,7 @@ export class StatisticsController {
 
     @Get('architecture')
     @ApiOperation({ summary: 'Get architecture data' })
-    getArchitecture(): Promise<ArchitectureAgentDto[]> {
-        return this.statisticsService.getArchitecture();
+    getArchitecture(@Query('includeUnknown') includeUnknown = 'false'): Promise<ArchitectureAgentDto[]> {
+        return this.statisticsService.getArchitecture(includeUnknown === 'true');
     }
 }

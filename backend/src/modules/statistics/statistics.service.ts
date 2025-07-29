@@ -7,6 +7,7 @@ import {
   ArchitectureOutletDto,
   ArchitectureUserDto,
 } from './dto/architecture.dto';
+import { OutletType } from '@/prisma/generated';
 
 @Injectable()
 export class StatisticsService {
@@ -156,7 +157,7 @@ export class StatisticsService {
     }));
   }
 
-  async getArchitecture(): Promise<ArchitectureAgentDto[]> {
+  async getArchitecture(includeUnknown = false): Promise<ArchitectureAgentDto[]> {
     const agents = await this.prisma.agent.findMany({ orderBy: { fullName: 'asc' } });
 
     const result: ArchitectureAgentDto[] = [];
@@ -242,6 +243,65 @@ export class StatisticsService {
         songGenerations: agentSongGen,
         textGenerations: agentTextGen,
       });
+    }
+    if (includeUnknown) {
+      const unknownUsers = await this.prisma.users.findMany({
+        where: { agent_id: null },
+        select: {
+          chat_id: true,
+          username: true,
+          count_trys_generate_song: true,
+          count_trys_generate_chatgpt: true,
+        },
+        orderBy: { chat_id: 'asc' },
+      });
+
+      if (unknownUsers.length > 0) {
+        const userDtos: ArchitectureUserDto[] = [];
+        let songGen = 0;
+        let textGen = 0;
+        for (const u of unknownUsers) {
+          const song = u.count_trys_generate_song ?? 0;
+          const text = u.count_trys_generate_chatgpt ?? 0;
+          songGen += song;
+          textGen += text;
+          userDtos.push({
+            chatId: u.chat_id.toString(),
+            username: u.username ?? null,
+            songGenerations: song,
+            textGenerations: text,
+          });
+        }
+
+        const outlet: ArchitectureOutletDto = {
+          id: 0,
+          name: 'Неопределенного',
+          verified: false,
+          users: userDtos,
+          userCount: userDtos.length,
+          songGenerations: songGen,
+          textGenerations: textGen,
+          type: OutletType.SELLER,
+        };
+
+        const partner: ArchitecturePartnerDto = {
+          id: 0,
+          fullName: 'Неопределенного',
+          outlets: [outlet],
+          userCount: userDtos.length,
+          songGenerations: songGen,
+          textGenerations: textGen,
+        };
+
+        result.push({
+          id: 0,
+          fullName: 'Неопределенного',
+          partners: [partner],
+          userCount: userDtos.length,
+          songGenerations: songGen,
+          textGenerations: textGen,
+        });
+      }
     }
 
     return result;

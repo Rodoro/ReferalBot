@@ -125,7 +125,7 @@ export function ServiceStatsPanel({
                 } else {
                     data = await getDailyStats();
                 }
-                const arch = await getArchitecture();
+                const arch = await getArchitecture(true);
                 setRawData(data);
                 setArchData(arch);
                 setError(null);
