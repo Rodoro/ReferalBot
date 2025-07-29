@@ -170,11 +170,11 @@ type RoleSidebar = {
 }
 
 export const sidebarContentByRole: Record<RoleType, RoleSidebar> = {
-    [RoleType.STAFF]: { plan: "Админ панель", content: staffTeamContent },
-    [RoleType.AGENT]: { plan: "Консультант", content: agentTeamContent },
-    [RoleType.SALES_POINT]: { plan: "Партнёр", content: spTeamContent },
-    [RoleType.POET]: { plan: "Консультант", content: poetTeamContent },
-    [RoleType.VIDEO_EDITOR]: { plan: "Консультант", content: veTeamContent },
+    [RoleType.STAFF]: { plan: "Панель управления", content: staffTeamContent },
+    [RoleType.AGENT]: { plan: "Панель управления", content: agentTeamContent },
+    [RoleType.SALES_POINT]: { plan: "Панель управления", content: spTeamContent },
+    [RoleType.POET]: { plan: "Панель управления", content: poetTeamContent },
+    [RoleType.VIDEO_EDITOR]: { plan: "Панель управления", content: veTeamContent },
 }
 
 function mergeContent(target: TeamContent, source: TeamContent) {

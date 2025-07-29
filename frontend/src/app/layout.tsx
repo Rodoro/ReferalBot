@@ -6,7 +6,10 @@ import { Toaster } from "@/shared/ui/overlay/sonner";
 // TODO: SEO
 
 export const metadata: Metadata = {
-  title: "Подари Песню!",
+  title: {
+    template: '%s | Подари Песню!',
+    default: 'Подари Песню! - панель управления',
+  },
 };
 
 export default function RootLayout({
