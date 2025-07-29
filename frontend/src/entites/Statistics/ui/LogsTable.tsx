@@ -93,13 +93,11 @@ export type StatsMode = 'all' | 'agent' | 'salesPoint' | 'salesOutlet';
 interface ServiceStatsPanelProps {
     mode?: StatsMode;
     id?: number;
-    showAgentFilter?: boolean;
 }
 
 export function ServiceStatsPanel({
     mode = 'all',
     id,
-    showAgentFilter = mode === 'all',
 }: ServiceStatsPanelProps) {
     // 1) Сырые «дневные» события и состояние загрузки/ошибки
     const [rawData, setRawData] = useState<DailyStatWithClients[]>([]);
@@ -109,9 +107,10 @@ export function ServiceStatsPanel({
 
     // 2) Состояния фильтров и процента
     const [selectedPeriod, setSelectedPeriod] = useState<
-        "today" | "yesterday" | "thisMonth" | "lastMonth"
+        "today" | "yesterday" | "thisWeek" | "lastWeek" | "thisMonth" | "lastMonth"
     >("thisMonth");
-    const [selectedAgent, setSelectedAgent] = useState<string>("all");
+    const [dateFrom, setDateFrom] = useState<string>("");
+    const [dateTo, setDateTo] = useState<string>("");
     const [searchValue, setSearchValue] = useState<string>("");
     // const [percent, setPercent] = useState<number>(10);
     const [expandedAgents, setExpandedAgents] = useState<Record<string, boolean>>({});
@@ -191,6 +190,18 @@ export function ServiceStatsPanel({
         if (period === "yesterday") {
             const yesterday = new Date(todayOnly.getTime() - 24 * 60 * 60 * 1000);
             return dateOnly.getTime() === yesterday.getTime();
+        }
+        if (period === "thisWeek") {
+            const day = now.getDay() === 0 ? 6 : now.getDay() - 1;
+            const weekStart = new Date(todayOnly.getTime() - day * 24 * 60 * 60 * 1000);
+            const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+            return dateOnly.getTime() >= weekStart.getTime() && dateOnly.getTime() < weekEnd.getTime();
+        }
+        if (period === "lastWeek") {
+            const day = now.getDay() === 0 ? 6 : now.getDay() - 1;
+            const weekEnd = new Date(todayOnly.getTime() - day * 24 * 60 * 60 * 1000);
+            const weekStart = new Date(weekEnd.getTime() - 7 * 24 * 60 * 60 * 1000);
+            return dateOnly.getTime() >= weekStart.getTime() && dateOnly.getTime() < weekEnd.getTime();
         }
         if (period === "thisMonth") {
             return (
@@ -327,19 +338,15 @@ export function ServiceStatsPanel({
         () => [...rawData, ...architectureRows],
         [rawData, architectureRows]
     );
-
-    // 6) Список уникальных консультантов для селектора
-    const agentOptions = useMemo(() => {
-        const setAgents = new Set<string>();
-        allData.forEach((row) => setAgents.add(row.agentName));
-        return Array.from(setAgents).sort();
-    }, [allData]);
-
     // 7) Отфильтрованные события по периоду, консультанту и поиску
     const filteredEvents = useMemo<DailyStatWithClients[]>(() => {
         return allData.filter((row) => {
-            if (!isInPeriod(row.date, selectedPeriod)) return false;
-            if (showAgentFilter && selectedAgent !== "all" && row.agentName !== selectedAgent) return false;
+            if (dateFrom || dateTo) {
+                if (dateFrom && new Date(row.date) < new Date(dateFrom)) return false;
+                if (dateTo && new Date(row.date) > new Date(dateTo)) return false;
+            } else {
+                if (!isInPeriod(row.date, selectedPeriod)) return false;
+            }
             const text = searchValue.trim().toLowerCase();
             if (text) {
                 const a = row.agentName.toLowerCase();
@@ -349,7 +356,7 @@ export function ServiceStatsPanel({
             }
             return true;
         });
-    }, [allData, selectedPeriod, selectedAgent, searchValue]);
+    }, [allData, selectedPeriod, dateFrom, dateTo, searchValue]);
 
     // 8) Агрегация (groupBy agentName + pointName), считаем accrued и payable
     const aggregatedRows: ServiceStatRow[] = useMemo(() => {
@@ -854,30 +861,26 @@ export function ServiceStatsPanel({
                     <SelectContent className="rounded-xl">
                         <SelectItem value="today">За сегодня</SelectItem>
                         <SelectItem value="yesterday">За вчера</SelectItem>
+                        <SelectItem value="thisWeek">За текущую неделю</SelectItem>
+                        <SelectItem value="lastWeek">За прошлую неделю</SelectItem>
                         <SelectItem value="thisMonth">За текущий месяц</SelectItem>
                         <SelectItem value="lastMonth">За прошлый месяц</SelectItem>
                     </SelectContent>
                 </Select>
 
-                {/* Консультант */}
-                {showAgentFilter && (
-                    <Select
-                        value={selectedAgent}
-                        onValueChange={(v) => setSelectedAgent(v)}
-                    >
-                        <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Консультант" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                            <SelectItem value="all">Все консультанты</SelectItem>
-                            {agentOptions.map((agent, index) => (
-                                <SelectItem key={index} value={agent}>
-                                    {agent}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                )}
+                {/* Диапазон дат */}
+                <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full"
+                />
+                <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full"
+                />
 
                 {/* Поиск */}
                 <Input

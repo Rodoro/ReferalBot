@@ -27,7 +27,7 @@ export default function Page() {
             <main className="flex flex-1 flex-col pb-4 pt-0 px-2 sm:px-8 max-w-[1640px]">
                 <TypographyH2 text='Статистика' className='mb-4' />
                 {salesId ? (
-                    <ServiceStatsPanel mode='salesPoint' id={salesId} showAgentFilter={false} />
+                    <ServiceStatsPanel mode='salesPoint' id={salesId} />
                 ) : (
                     <div className='p-4 text-red-500'>Нет данных</div>
                 )}
