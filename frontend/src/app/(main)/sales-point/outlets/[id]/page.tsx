@@ -2,6 +2,7 @@ import Header from '@/widgets/ui/layouts/Header/Header'
 import { TypographyH2 } from '@/shared/ui/typography/TypographyH2'
 import { salesOutletApi } from '@/entites/SalesOutlet/lib/api/sales-outlet-api'
 import SalesOutletForm from '@/entites/SalesOutlet/ui/SalesOutletForm'
+import OutletPromo from '@/entites/SalesOutlet/ui/OutletPromo'
 
 // export const metadata = { title: 'Редактировать точку продажи' }
 
@@ -22,6 +23,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                     link: outlet.link ?? '',
                     description: outlet.description ?? '',
                 }} />
+                <OutletPromo
+                    referralLink={`${process.env.NEXT_PUBLIC_REFBOT}?start=ref_${outlet.referralCode}`}
+                    outletName={outlet.name}
+                />
             </main>
         </>
     )
