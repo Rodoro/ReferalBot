@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
 } from "@/shared/ui/layout/sidebar"
 import { JSX } from "react"
+import Link from "next/link"
 
 export function NavProjects({
   projects,
@@ -31,10 +32,10 @@ export function NavProjects({
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
+              <Link href={item.url}>
                 {item.icon}
                 <span>{item.name}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
             <SidebarMenuAction showOnHover className="cursor-pointer" onClick={() => {
               navigator.clipboard.writeText(item.url)

@@ -1,10 +1,15 @@
 // content/sidebar-content.ts
 import {
-    BookOpen,
-    SquareTerminal,
-    Send,
-    AreaChart,
-    Music2
+    Files,
+    Settings,
+    BarChart2,
+    Music2,
+    Bot,
+    Gift,
+    Users,
+    Briefcase,
+    PenLine,
+    Video
 } from "lucide-react"
 import { Team, TeamContent } from "../types/sidebar"
 import { FaBookBookmark, FaUserSecret } from "react-icons/fa6";
@@ -17,12 +22,12 @@ export const commonSidebarContent = {
         {
             title: "Рефиральный Bot",
             url: process.env.NEXT_PUBLIC_REFBOT || '',
-            icon: Send,
+            icon: Bot,
         },
         {
             title: "Подари песню Bot",
             url: "https://t.me/podaripesnyu_bot",
-            icon: Send,
+            icon: Gift,
         },
     ],
 }
@@ -32,8 +37,8 @@ const adminchikContent: TeamContent = {
         {
             title: "Администрирование",
             url: "/",
-            icon: SquareTerminal,
-            isActive: true,
+            icon: Settings,
+            isActive: false,
             items: [
                 { title: "Сотрудники", url: "/staff" },
                 { title: "Консультанты", url: "/agent" },
@@ -48,7 +53,7 @@ const adminchikContent: TeamContent = {
         {
             title: "Метрики",
             url: "/metrics",
-            icon: AreaChart,
+            icon: BarChart2,
             isActive: true,
             items: [
                 { title: "Статистика", url: "/metrics/statistics" },
@@ -57,8 +62,8 @@ const adminchikContent: TeamContent = {
         {
             title: "Файлы",
             url: "/files",
-            icon: BookOpen,
-            isActive: true,
+            icon: Files,
+            isActive: false,
             items: [
                 { title: "Баннеры", url: "/files/banners" },
                 { title: "QR коды", url: "/files/qr-codes" },
@@ -99,7 +104,7 @@ const agentTeamContent: TeamContent = {
         {
             title: "Консультант",
             url: "/consultant/metrics",
-            icon: AreaChart,
+            icon: Users,
             isActive: true,
             items: [
                 { title: "Статистика", url: "/consultant/metrics/statistics" },
@@ -116,7 +121,7 @@ const spTeamContent: TeamContent = {
         {
             title: "Партнёр",
             url: "/sales-point/metrics",
-            icon: AreaChart,
+            icon: Briefcase,
             isActive: true,
             items: [
                 { title: "Статистика", url: "/sales-point/metrics/statistics" },
@@ -134,7 +139,7 @@ const poetTeamContent: TeamContent = {
         {
             title: "Поэт",
             url: "/poet/metrics",
-            icon: AreaChart,
+            icon: PenLine,
             isActive: true,
             items: [
                 { title: "Чаты", url: "/poet/metrics/statistics" },
@@ -149,7 +154,7 @@ const veTeamContent: TeamContent = {
         {
             title: "Видеомантажер",
             url: "/video-editor/metrics",
-            icon: AreaChart,
+            icon: Video,
             isActive: true,
             items: [
                 { title: "Чаты", url: "/video-editor/metrics/statistics" },
