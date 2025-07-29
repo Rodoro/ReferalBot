@@ -1,4 +1,5 @@
 import json
+import os
 from aiogram import types, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -6,6 +7,7 @@ from aiogram.types import (
     ReplyKeyboardRemove,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    InputMediaDocument,
 )
 
 from newBot.config import settings
@@ -123,7 +125,7 @@ async def handle_outlet_webapp_data(message: types.Message, state: FSMContext):
     await state.set_state(SalesOutletStates.confirmation)
 
 
-async def outlet_confirm_data(callback: types.CallbackQuery, state: FSMContext):
+async def outlet_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
     data = await state.get_data()
     db = SessionLocal()
     try:
@@ -142,7 +144,7 @@ async def outlet_confirm_data(callback: types.CallbackQuery, state: FSMContext):
 
     svc = SalesOutletService()
     try:
-        svc.create_outlet(
+        outlet = svc.create_outlet(
             partner_id,
             name=data.get("name"),
             address=data.get("address"),
@@ -156,9 +158,32 @@ async def outlet_confirm_data(callback: types.CallbackQuery, state: FSMContext):
         await state.clear()
         return
 
-    await callback.message.answer("✅ Точка продажи зарегистрирована.")
+    referral_code = outlet.get("referralCode") or outlet.get("referral_code")
+    if referral_code:
+        referral_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{referral_code}"
+        banners, qr_path = svc.generate_referral_assets(data.get("name", "outlet"), referral_link)
+        await callback.message.answer(
+            (
+                "✅ Точка продажи зарегистрирована.\n\n"
+                f"Ваша ссылка:\n{referral_link}\n\n"
+                "Ниже QR-код и баннеры."
+            )
+        )
+        media = [InputMediaDocument(media=types.FSInputFile(p)) for p in banners]
+        if media:
+            await bot.send_media_group(chat_id=callback.from_user.id, media=media)
+        await bot.send_document(
+            chat_id=callback.from_user.id,
+            document=types.FSInputFile(qr_path),
+            caption="Отдельный QR-код",
+        )
+        for p in banners + [qr_path]:
+            os.remove(p)
+    else:
+        await callback.message.answer("✅ Точка продажи зарегистрирована.")
     await state.clear()
     await callback.answer()
+
 
 
 async def outlet_correct_data(callback: types.CallbackQuery, state: FSMContext):
