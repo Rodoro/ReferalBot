@@ -24,7 +24,7 @@ export function TeamSwitcher({
   }
 
   return (
-    <div className="group flex w-full items-center gap-2 rounded-lg p-2 text-sm font-medium transition-colors hover:bg-muted/50">
+    <div className="group flex w-full items-center gap-2 pt-2 rounded-lg text-sm font-medium transition-colors hover:bg-muted/50">
       <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
         <activeTeam.logo className="size-4" />
       </div>
