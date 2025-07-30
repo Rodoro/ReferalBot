@@ -24,7 +24,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                     description: outlet.description ?? '',
                 }} />
                 <OutletPromo
-                    referralLink={`${process.env.NEXT_PUBLIC_REFBOT}?start=ref_${outlet.referralCode}`}
+                    referralLink={`https://t.me/podaripesnyu_bot?start=ref_${outlet.referralCode}`}
                     outletName={outlet.name}
                 />
             </main>
