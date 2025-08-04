@@ -410,24 +410,34 @@ export class StatisticsService {
     let start: Date;
     let end: Date;
     if (month !== undefined && year !== undefined) {
-      const daysInMonth = new Date(year, month, 0).getDate();
-      start = new Date(year, month - 1, PAYOUT_START_DAY);
-      if (PAYOUT_END_DAY >= daysInMonth) {
-        end = new Date(year, month, 1);
-      } else {
-        end = new Date(year, month - 1, PAYOUT_END_DAY + 1);
-      }
+      const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+      start = new Date(Date.UTC(year, month - 1, PAYOUT_START_DAY));
+      end = new Date(
+        Date.UTC(
+          year,
+          month - 1,
+          Math.min(PAYOUT_END_DAY, daysInMonth) + 1,
+        ),
+      );
     } else {
       const now = new Date();
-      const period = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const daysInMonth = new Date(period.getFullYear(), period.getMonth() + 1, 0).getDate();
-      start = new Date(period.getFullYear(), period.getMonth(), PAYOUT_START_DAY);
-      if (PAYOUT_END_DAY >= daysInMonth) {
-        end = new Date(period.getFullYear(), period.getMonth() + 1, 1);
-      } else {
-        end = new Date(period.getFullYear(), period.getMonth(), PAYOUT_END_DAY + 1);
-      }
+      const period = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+      const daysInMonth = new Date(
+        Date.UTC(period.getUTCFullYear(), period.getUTCMonth() + 1, 0),
+      ).getUTCDate();
+      start = new Date(
+        Date.UTC(period.getUTCFullYear(), period.getUTCMonth(), PAYOUT_START_DAY),
+      );
+      end = new Date(
+        Date.UTC(
+          period.getUTCFullYear(),
+          period.getUTCMonth(),
+          Math.min(PAYOUT_END_DAY, daysInMonth) + 1,
+        ),
+      );
     }
+
+    // console.log(start, ' ', end)
 
     const agentRows = await this.prisma.$queryRawUnsafe<any[]>(`
       SELECT
@@ -474,6 +484,9 @@ export class StatisticsService {
         AND so."name" IS NOT NULL AND TRIM(so."name") <> ''
       GROUP BY sp.user_id, sp."full_name", sp.bik, sp."bank_name", sp.inn, sp.account;
     `);
+
+    // console.log(agentRows)
+    // console.log(partnerRows)
 
     const payoutsMap = new Map<number, any>();
 
