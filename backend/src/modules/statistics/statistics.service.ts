@@ -9,6 +9,8 @@ import {
 } from './dto/architecture.dto';
 import { OutletType } from '@/prisma/generated';
 import { PURCHASED_SONG_RATE, POEM_ORDER_RATE, VIDEO_ORDER_RATE } from '@/src/shared/consts/rate';
+import { PayoutDto } from './dto/payout.dto';
+import { PAYOUT_END_DAY, PAYOUT_START_DAY } from '@/src/shared/consts/payout-period';
 
 
 @Injectable()
@@ -402,6 +404,119 @@ export class StatisticsService {
     }
 
     return result;
+  }
+
+  async getPayouts(month?: number, year?: number): Promise<PayoutDto[]> {
+    let start: Date;
+    let end: Date;
+    if (month !== undefined && year !== undefined) {
+      const daysInMonth = new Date(year, month, 0).getDate();
+      start = new Date(year, month - 1, PAYOUT_START_DAY);
+      if (PAYOUT_END_DAY >= daysInMonth) {
+        end = new Date(year, month, 1);
+      } else {
+        end = new Date(year, month - 1, PAYOUT_END_DAY + 1);
+      }
+    } else {
+      const now = new Date();
+      const period = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const daysInMonth = new Date(period.getFullYear(), period.getMonth() + 1, 0).getDate();
+      start = new Date(period.getFullYear(), period.getMonth(), PAYOUT_START_DAY);
+      if (PAYOUT_END_DAY >= daysInMonth) {
+        end = new Date(period.getFullYear(), period.getMonth() + 1, 1);
+      } else {
+        end = new Date(period.getFullYear(), period.getMonth(), PAYOUT_END_DAY + 1);
+      }
+    }
+
+    const agentRows = await this.prisma.$queryRawUnsafe<any[]>(`
+      SELECT
+        ag.user_id AS user_id,
+        ag."full_name" AS full_name,
+        ag.bik AS bik,
+        ag."bank_name" AS bank_name,
+        ag.inn,
+        ag.account,
+        SUM(CASE WHEN a.method = 'purchased_generation' THEN 1 ELSE 0 END) * ${PURCHASED_SONG_RATE} +
+        SUM(CASE WHEN a.method = 'poet_order' THEN 1 ELSE 0 END) * ${POEM_ORDER_RATE} +
+        SUM(CASE WHEN a.method = 'video_order' THEN 1 ELSE 0 END) * ${VIDEO_ORDER_RATE} AS amount
+      FROM actions a
+      JOIN "Agent" ag ON ag.id = a.agent_id
+      JOIN sales_points sp ON sp.id = a.sales_id
+      JOIN sales_outlets so ON so.id = a.outlet_id
+      WHERE a."timestamp" >= '${start.toISOString()}'
+        AND a."timestamp" < '${end.toISOString()}'
+        AND ag."full_name" IS NOT NULL AND TRIM(ag."full_name") <> ''
+        AND sp."full_name" IS NOT NULL AND TRIM(sp."full_name") <> ''
+        AND so."name" IS NOT NULL AND TRIM(so."name") <> ''
+      GROUP BY ag.user_id, ag."full_name", ag.bik, ag."bank_name", ag.inn, ag.account;
+    `);
+
+    const partnerRows = await this.prisma.$queryRawUnsafe<any[]>(`
+      SELECT
+        sp.user_id AS user_id,
+        sp."full_name" AS full_name,
+        sp.bik AS bik,
+        sp."bank_name" AS bank_name,
+        sp.inn,
+        sp.account,
+        SUM(CASE WHEN a.method = 'purchased_generation' THEN 1 ELSE 0 END) * ${PURCHASED_SONG_RATE} +
+        SUM(CASE WHEN a.method = 'poet_order' THEN 1 ELSE 0 END) * ${POEM_ORDER_RATE} +
+        SUM(CASE WHEN a.method = 'video_order' THEN 1 ELSE 0 END) * ${VIDEO_ORDER_RATE} AS amount
+      FROM actions a
+      JOIN sales_points sp ON sp.id = a.sales_id
+      JOIN "Agent" ag ON ag.id = a.agent_id
+      JOIN sales_outlets so ON so.id = a.outlet_id
+      WHERE a."timestamp" >= '${start.toISOString()}'
+        AND a."timestamp" < '${end.toISOString()}'
+        AND ag."full_name" IS NOT NULL AND TRIM(ag."full_name") <> ''
+        AND sp."full_name" IS NOT NULL AND TRIM(sp."full_name") <> ''
+        AND so."name" IS NOT NULL AND TRIM(so."name") <> ''
+      GROUP BY sp.user_id, sp."full_name", sp.bik, sp."bank_name", sp.inn, sp.account;
+    `);
+
+    const payoutsMap = new Map<number, any>();
+
+    for (const r of agentRows) {
+      payoutsMap.set(r.user_id, {
+        type: 'Консультант',
+        fullName: r.full_name,
+        inn: r.inn,
+        bik: r.bik ?? null,
+        bankName: r.bank_name ?? null,
+        account: r.account ?? null,
+        amount: Number(r.amount ?? 0),
+      });
+    }
+
+    for (const r of partnerRows) {
+      const existing = payoutsMap.get(r.user_id);
+      if (existing) {
+        existing.amount += Number(r.amount ?? 0);
+      } else {
+        payoutsMap.set(r.user_id, {
+          type: 'Партнер',
+          fullName: r.full_name,
+          inn: r.inn,
+          bik: r.bik ?? null,
+          bankName: r.bank_name ?? null,
+          account: r.account ?? null,
+          amount: Number(r.amount ?? 0),
+        });
+      }
+    }
+
+    return Array.from(payoutsMap.values())
+      .sort((a, b) => b.amount - a.amount)
+      .map((r) => ({
+        type: r.type,
+        fullName: r.fullName,
+        inn: r.inn,
+        bik: r.bik,
+        bankName: r.bankName,
+        account: r.account,
+        paymentPurpose: r.amount.toString(),
+      }));
   }
 
 }

@@ -57,6 +57,7 @@ const adminchikContent: TeamContent = {
             isActive: true,
             items: [
                 { title: "Статистика", url: "/metrics/statistics" },
+                { title: "Выплаты", url: "/metrics/payouts" },
             ],
         },
         {
