@@ -25,6 +25,10 @@ async def sales_point_form(request: Request):
 async def sales_outlet_form(request: Request):
     return FileResponse("miniApp/templates/sales-outlet-form.html")
 
+@app.get("/seller-form", response_class=HTMLResponse)
+async def seller_form(request: Request):
+    return FileResponse("miniApp/templates/seller-form.html")
+
 @app.get("/poet-form", response_class=HTMLResponse)
 async def poet_form(request: Request):
     return FileResponse("miniApp/templates/poet-form.html")

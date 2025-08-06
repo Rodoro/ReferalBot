@@ -41,6 +41,12 @@ export class SalesPointController {
         return this.spService.findOne(+id);
     }
 
+    @Get('ref/:code')
+    @ApiOperation({ summary: 'Get sales point by referral code' })
+    findByCode(@Param('code') code: string): Promise<SalesPointResponseDto> {
+        return this.spService.findByReferralCode(code);
+    }
+
     @Get('user/:id')
     @ApiOperation({ summary: 'Get sales point by id' })
     findOne(@Param('id') id: string): Promise<SalesPointResponseDto> {

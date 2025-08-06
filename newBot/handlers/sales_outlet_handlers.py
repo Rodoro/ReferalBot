@@ -21,6 +21,12 @@ class SalesOutletStates(StatesGroup):
     waiting_for_mini_app = State()
     confirmation = State()
 
+class SellerRegistrationStates(StatesGroup):
+    """States for seller self-registration via referral link."""
+
+    waiting_for_mini_app = State()
+    confirmation = State()
+
 
 def outlet_confirmation_keyboard() -> InlineKeyboardMarkup:
     kb = InlineKeyboardMarkup(
@@ -32,6 +38,35 @@ def outlet_confirmation_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="Все верно", callback_data="outlet_confirm_data"
                 ),
+            ]
+        ]
+    )
+    return kb
+
+def seller_confirmation_keyboard() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Исправить", callback_data="seller_correct_data"
+                ),
+                InlineKeyboardButton(
+                    text="Все верно", callback_data="seller_confirm_data"
+                ),
+            ]
+        ]
+    )
+    return kb
+
+
+def outlet_start_inline_keyboard() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Старт регистрации продавца",
+                    callback_data="start_seller_registration",
+                )
             ]
         ]
     )
@@ -198,6 +233,167 @@ async def outlet_correct_data(callback: types.CallbackQuery, state: FSMContext):
     )
     await callback.message.answer("Исправьте данные, пожалуйста:", reply_markup=kb)
     await state.set_state(SalesOutletStates.waiting_for_mini_app)
+
+
+async def cmd_start_outlet_referral(message: types.Message, state: FSMContext):
+    """Entry point for sellers via partner referral link."""
+
+    text = message.text or ""
+    if not text.startswith("/start outlet_"):
+        return
+
+    try:
+        _, code = text.split("outlet_", maxsplit=1)
+        code = code.strip()
+    except Exception:
+        await message.answer("Неверная ссылка регистрации продавца.")
+        return
+
+    svc = SalesPointService()
+    try:
+        partner = svc.get_sales_point_by_code(code)
+    except Exception:
+        await message.answer("Партнёр не найден по этой ссылке или ссылка устарела.")
+        return
+
+    partner_id = partner.get("id") or partner.get("partnerId")
+    partner_name = partner.get("fullName") or partner.get("full_name")
+
+    await state.update_data(partner_id=partner_id, partner_name=partner_name)
+    await message.answer(
+        (
+            f"Здравствуйте! Вы пришли по приглашению партнёра \"{partner_name}\".\n\n"
+            "Чтобы продолжить регистрацию продавца, нажмите кнопку ниже."
+        ),
+        reply_markup=outlet_start_inline_keyboard(),
+    )
+
+
+async def start_seller_registration(callback: types.CallbackQuery, state: FSMContext):
+    """Send seller mini-app to the user."""
+
+    mini_app_url = f"{settings.WEBAPP_URL}/seller-form"
+    web_app = types.WebAppInfo(url=mini_app_url)
+    kb = types.ReplyKeyboardMarkup(
+        keyboard=[[types.KeyboardButton(text="Заполнить форму продавца", web_app=web_app)]],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+    await callback.message.answer("Пожалуйста, заполните форму продавца:", reply_markup=kb)
+    await state.set_state(SellerRegistrationStates.waiting_for_mini_app)
+    await callback.answer()
+
+
+async def handle_seller_webapp_data(message: types.Message, state: FSMContext):
+    """Process data submitted from seller mini-app."""
+
+    try:
+        data = json.loads(message.web_app_data.data)
+    except Exception:
+        await message.answer("Ошибка: некорректные данные от формы.")
+        return
+
+    name = data.get("name", "").strip()
+    address = data.get("address", "").strip()
+    description = data.get("description", "").strip()
+
+    if not name or not address:
+        await message.answer("Не все поля заполнены. Пожалуйста, заполните форму полностью.")
+        return
+
+    await state.update_data(name=name, address=address, description=description)
+
+    parts = ["<b>Проверьте введённые данные (Продавец):</b>"]
+    parts.append(f"ФИО: {name}")
+    parts.append(f"Адрес: {address}")
+    if description:
+        parts.append(f"Описание: {description}")
+    confirmation_text = "\n".join(parts)
+    await message.answer("Данные получены:", reply_markup=ReplyKeyboardRemove(), parse_mode="HTML")
+    await message.answer(
+        confirmation_text,
+        reply_markup=seller_confirmation_keyboard(),
+        parse_mode="HTML",
+    )
+    await state.set_state(SellerRegistrationStates.confirmation)
+
+
+async def seller_confirm_data(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
+    """Create seller outlet and send referral assets."""
+
+    data = await state.get_data()
+    partner_id = data.get("partner_id")
+    if not partner_id:
+        db = SessionLocal()
+        try:
+            user_svc = UserService(db)
+            user = user_svc.get_or_create_user(
+                telegram_id=callback.from_user.id,
+                full_name=callback.from_user.full_name or "",
+                username=callback.from_user.username or "",
+            )
+            user_id = user.get("id")
+            sp_service = SalesPointService()
+            profile = sp_service.get_sales_point_profile(user_id)
+            partner_id = profile.get("id") or profile.get("partnerId")
+        finally:
+            db.close()
+        await state.update_data(partner_id=partner_id)
+
+    svc = SalesOutletService()
+    try:
+        outlet = svc.create_outlet(
+            partner_id,
+            name=data.get("name"),
+            address=data.get("address"),
+            description=data.get("description", ""),
+            outlet_type="SELLER",
+            telegram_id=callback.from_user.id,
+        )
+    except Exception as e:
+        await callback.message.answer(f"Ошибка при регистрации: {e}", show_alert=True)
+        await state.clear()
+        return
+
+    referral_code = outlet.get("referralCode") or outlet.get("referral_code")
+    if referral_code:
+        referral_link = f"https://t.me/{settings.MAIN_BOT_USERNAME}?start=ref_{referral_code}"
+        banners, qr_path = svc.generate_referral_assets(data.get("name", "outlet"), referral_link)
+        await callback.message.answer(
+            (
+                "✅ Продавец зарегистрирован.\n\n"
+                f"Ваша ссылка:\n{referral_link}\n\n"
+                "Ниже QR-код и баннеры."
+            )
+        )
+        media = [InputMediaDocument(media=types.FSInputFile(p)) for p in banners]
+        if media:
+            await bot.send_media_group(chat_id=callback.from_user.id, media=media)
+        await bot.send_document(
+            chat_id=callback.from_user.id,
+            document=types.FSInputFile(qr_path),
+            caption="Отдельный QR-код",
+        )
+        for p in banners + [qr_path]:
+            os.remove(p)
+    else:
+        await callback.message.answer("✅ Продавец зарегистрирован.")
+    await state.clear()
+    await callback.answer()
+
+
+async def seller_correct_data(callback: types.CallbackQuery, state: FSMContext):
+    """Allow seller to resubmit the form."""
+
+    mini_app_url = f"{settings.WEBAPP_URL}/seller-form"
+    web_app = types.WebAppInfo(url=mini_app_url)
+    kb = types.ReplyKeyboardMarkup(
+        keyboard=[[types.KeyboardButton(text="Повторно заполнить форму", web_app=web_app)]],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+    await callback.message.answer("Исправьте данные, пожалуйста:", reply_markup=kb)
+    await state.set_state(SellerRegistrationStates.waiting_for_mini_app)
     await callback.answer()
 
 async def list_sales_outlets(callback: types.CallbackQuery, bot: Bot) -> None:

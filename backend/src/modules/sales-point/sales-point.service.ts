@@ -51,6 +51,16 @@ export class SalesPointService {
         return points.map((p) => plainToInstance(SalesPointResponseDto, p));
     }
 
+    async findByReferralCode(code: string): Promise<SalesPointResponseDto> {
+        const point = await this.prismaService.salesPoint.findFirst({
+            where: { referralCode: code },
+        });
+        if (!point) {
+            throw new NotFoundException('SalesPoint not found');
+        }
+        return plainToInstance(SalesPointResponseDto, point);
+    }
+
     async findOne(id: number): Promise<SalesPointResponseDto> {
         const point = await this.prismaService.salesPoint.findUnique({ where: { userId: id } });
         if (!point) {

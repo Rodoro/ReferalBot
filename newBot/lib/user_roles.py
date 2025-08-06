@@ -74,8 +74,11 @@ def build_referral_links(roles: list[tuple[str, dict]]) -> str:
 
         if role == UserRole.SALES_POINT:
             partner_id = profile.get("id") or profile.get("partnerId")
+            partner_code = profile.get("referralCode") or profile.get("referral_code")
             outlets = outlet_service.list_outlets(partner_id)
             outlet_lines = []
+            reg_link = f"https://t.me/{settings.BOT_USERNAME}?start=outlet_{partner_code}"
+            outlet_lines.append(f"Регистрация точки: {reg_link}")
             for o in outlets:
                 name = o.get("name") or "Точка"
                 o_code = o.get("referralCode") or o.get("referral_code")

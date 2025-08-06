@@ -16,6 +16,11 @@ from newBot.handlers.sales_point_handlers import (
     sp_confirm_data, sp_correct_data, handle_sp_sign_contract
 )
 from newBot.handlers.sales_outlet_handlers import (
+    cmd_start_outlet_referral,
+    start_seller_registration,
+    handle_seller_webapp_data,
+    seller_confirm_data,
+    seller_correct_data,
     start_outlet_registration,
     handle_outlet_webapp_data,
     outlet_confirm_data,
@@ -23,6 +28,7 @@ from newBot.handlers.sales_outlet_handlers import (
     list_sales_outlets,
     send_outlet_assets,
     SalesOutletStates,
+    SellerRegistrationStates,
 )
 from newBot.handlers.poet_handlers import (
     cmd_start_poet_secret, start_poet_registration, handle_poet_webapp_data,
@@ -58,6 +64,26 @@ async def main():
     dp.callback_query.register(sp_confirm_data, lambda c: c.data == "sp_confirm_data")
     dp.callback_query.register(sp_correct_data, lambda c: c.data == "sp_correct_data")
     dp.callback_query.register(handle_sp_sign_contract,lambda c: c.data and c.data.startswith("sp_sign_contract_"))
+
+    dp.message.register(
+        cmd_start_outlet_referral,
+        lambda msg: msg.text and msg.text.startswith("/start outlet_"),
+    )
+    dp.callback_query.register(
+        start_seller_registration, lambda c: c.data == "start_seller_registration"
+    )
+    dp.message.register(
+        handle_seller_webapp_data,
+        StateFilter(SellerRegistrationStates.waiting_for_mini_app),
+        lambda msg: msg.web_app_data
+        and payload_form_type(msg.web_app_data.data) == "seller",
+    )
+    dp.callback_query.register(
+        seller_confirm_data, lambda c: c.data == "seller_confirm_data"
+    )
+    dp.callback_query.register(
+        seller_correct_data, lambda c: c.data == "seller_correct_data"
+    )
 
     dp.callback_query.register(
         start_outlet_registration, lambda c: c.data == "start_sales_outlet"

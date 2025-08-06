@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Регистрация продавца</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            color: var(--tg-theme-text-color);
+            background: var(--tg-theme-bg-color);
+            padding: 20px;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--tg-theme-secondary-bg-color);
+            border-radius: 5px;
+            background: var(--tg-theme-section-bg-color);
+            color: var(--tg-theme-text-color);
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 0.8em;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-error {
+            border-color: #ff4444 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h1>Новый продавец</h1>
+        <form id="sellerForm">
+            <div class="input-group">
+                <label for="name">ФИО</label>
+                <input type="text" id="name" name="name" />
+                <div id="name_error" class="error-message">Введите ФИО (минимум 3 символа)</div>
+            </div>
+            <div class="input-group">
+                <label for="address">Адрес</label>
+                <input type="text" id="address" name="address" />
+                <div id="address_error" class="error-message">Введите адрес</div>
+            </div>
+            <div class="input-group">
+                <label for="description">Описание</label>
+                <textarea id="description" name="description"></textarea>
+            </div>
+            <button type="submit">Отправить данные</button>
+        </form>
+    </div>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        const tg = window.Telegram.WebApp;
+        function showError(id, show) {
+            const input = document.getElementById(id);
+            const error = document.getElementById(id + '_error');
+            if (show) {
+                input.classList.add('input-error');
+                if (error) error.style.display = 'block';
+            } else {
+                input.classList.remove('input-error');
+                if (error) error.style.display = 'none';
+            }
+        }
+        document.getElementById('sellerForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const description = document.getElementById('description').value.trim();
+            let valid = true;
+            showError('name', name.length < 3);
+            showError('address', address === '');
+            valid = name.length >= 3 && address !== '';
+            if (!valid) return;
+            const data = { name, address, description, form_type: 'seller' };
+            tg.sendData(JSON.stringify(data));
+        });
+    </script>
+</body>
+
+</html>

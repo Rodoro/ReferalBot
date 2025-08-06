@@ -103,3 +103,6 @@ class SalesPointService:
     def remove_sales_point(self, user_id: int) -> bool:
         self.client.delete(f"sales-point/bot/{user_id}")
         return True
+
+    def get_sales_point_by_code(self, code: str) -> dict:
+        return self.client.get(f"sales-point/ref/{code}")
