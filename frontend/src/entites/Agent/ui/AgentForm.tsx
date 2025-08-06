@@ -94,7 +94,7 @@ export default function AgentForm({ userId }: { userId?: number }) {
                     <FormItem>
                         <FormLabel>Тип бизнеса</FormLabel>
                         <FormControl>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Выберите тип" />
                                 </SelectTrigger>
