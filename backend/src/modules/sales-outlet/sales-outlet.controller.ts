@@ -37,6 +37,15 @@ export class SalesOutletController {
         return this.outletService.findOne(+id);
     }
 
+    @Put('bot/:id')
+    @ApiOperation({ summary: 'Update sales outlet by id' })
+    async updateBot(
+        @Param('id') id: string,
+        @Body() dto: UpdateSalesOutletDto,
+    ): Promise<SalesOutletResponseDto> {
+        return this.outletService.update(+id, dto);
+    }
+
     @Put(':id')
     @Authorization()
     @ApiOperation({ summary: 'Update sales outlet by id' })

@@ -364,14 +364,14 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
         chat_id=tg_id,
         text=(
             "✅ Вы успешно подписали договор как партнёр!\n\n"
-            f"Ваша реферальная ссылка:\n{referral_link}\n\n"
+            f"2. Ваша ссылка точки продаж (для приглашения клиентов в бот создания песен):\n{referral_link}\n\n"
             "Ниже два баннера с QR-кодом. Сохраните или поделитесь ими для привлечения клиентов."
         )
     )
     media = [InputMediaDocument(media=types.FSInputFile(p)) for p in banner_paths]
     if media:
         await bot.send_media_group(chat_id=tg_id, media=media)
-    await bot.send_document(chat_id=tg_id, document=types.FSInputFile(qr_path), caption="Отдельный QR-код")
+    await bot.send_document(chat_id=tg_id, document=types.FSInputFile(qr_path), caption="Ваш QR-код точки продажи (для приглашения клиентов в бота создания песен)")
     for path in banner_paths + [qr_path]:
         os.remove(path)
 

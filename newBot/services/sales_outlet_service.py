@@ -38,7 +38,7 @@ class SalesOutletService:
         return self.client.post("sales-outlet", payload)
 
     def update_outlet(self, outlet_id: int, data: dict) -> None:
-        self.client.put(f"sales-outlet/{outlet_id}", data)
+        self.client.put(f"sales-outlet/bot/{outlet_id}", data)
 
     def generate_referral_assets(self, name: str, referral_link: str) -> tuple[list[str], str]:
         """Generate QR code and up to two banners for the outlet."""
