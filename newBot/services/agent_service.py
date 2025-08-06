@@ -81,6 +81,7 @@ class AgentService:
 
             sp_service = SalesPointService()
             sp_profile = sp_service.get_sales_point_profile(sp_user_id)
+            print(sp_profile)
             sp_code = sp_profile.get("referralCode") if isinstance(sp_profile, dict) else None
 
             # If referral code exists, just generate images; otherwise try to sign the point
@@ -91,7 +92,8 @@ class AgentService:
                     )
                     sp_code = sp_referral_link.split("ref_")[-1]
                 except Exception:
-                    sp_code = None
+                    sp_profile = sp_service.get_sales_point_profile(sp_user_id)
+                    sp_code = sp_profile.get("referralCode") if isinstance(sp_profile, dict) else None
 
             if sp_code:
                 if not sp_referral_link:

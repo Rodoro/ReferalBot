@@ -297,18 +297,35 @@ async def handle_agent_sign_contract(
         chat_id=tg_id,
         text=(
             "✅ Вы успешно подписали договор как консультант!\n\n"
-            f"Ссылка для партнёров:\n{agent_link}\n\n"
-            f"Ссылка для клиентов:\n{sp_link}\n\n"
-            "Ниже два баннера с QR-кодом для клиентов. Сохраните или поделитесь ими."
+            f"1. Ваша ссылка консультанта (для регистрации партнеров):\n{agent_link}\n\n"
+            f"3. Ваша ссылка точки продаж (для приглашения клиентов в бот создания песен):\n{sp_link}\n\n"
+            "Ниже два баннера с QR-кодом для клиентов и партнеров. Сохраните или поделитесь ими."
         ),
     )
-    media = [InputMediaDocument(media=types.FSInputFile(p)) for p in sp_banner_paths]
+
+    media = [
+        InputMediaDocument(media=types.FSInputFile(p))
+        for p in sp_banner_paths
+        if p and os.path.exists(p)
+    ]
+
     if media:
         await bot.send_media_group(chat_id=tg_id, media=media)
-    await bot.send_document(chat_id=tg_id, document=types.FSInputFile(agent_qr_path), caption="QR для партнёров")
-    await bot.send_document(chat_id=tg_id, document=types.FSInputFile(sp_qr_path), caption="QR для клиентов")
+    if agent_qr_path and os.path.exists(agent_qr_path):
+        await bot.send_document(
+            chat_id=tg_id,
+            document=types.FSInputFile(agent_qr_path),
+            caption="Ваш QR-код консультанта (для регистрации партнеров)",
+        )
+    if sp_qr_path and os.path.exists(sp_qr_path):
+        await bot.send_document(
+            chat_id=tg_id,
+            document=types.FSInputFile(sp_qr_path),
+            caption="Ваш QR-код точки продажи (для приглашения клиентов в бота создания песен)",
+        )
     for p in sp_banner_paths + [agent_qr_path, sp_qr_path]:
-        os.remove(p)
+        if p and os.path.exists(p):
+            os.remove(p)
 
     # Уведомляем админ‐канал, что договор подписан
     await bot.send_message(
