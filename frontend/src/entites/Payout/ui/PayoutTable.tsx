@@ -5,6 +5,7 @@ import { getPayouts, Payout } from '../lib/api/payout-api';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/shared/ui/branding/table';
 import { Skeleton } from '@/shared/ui/branding/skeleton';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/shared/ui/form/select';
+import ButtonExport from './ButtonExport';
 
 interface Period {
     month: number;
@@ -53,24 +54,27 @@ export function PayoutTable() {
 
     return (
         <div className="space-y-4">
-            <Select
-                value={`${period.year}-${period.month}`}
-                onValueChange={(val) => {
-                    const [y, m] = val.split('-').map(Number);
-                    setPeriod({ month: m, year: y });
-                }}
-            >
-                <SelectTrigger className="w-48">
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    {periods.map((p) => (
-                        <SelectItem key={`${p.year}-${p.month}`} value={`${p.year}-${p.month}`}>
-                            {p.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+                <Select
+                    value={`${period.year}-${period.month}`}
+                    onValueChange={(val) => {
+                        const [y, m] = val.split('-').map(Number);
+                        setPeriod({ month: m, year: y });
+                    }}
+                >
+                    <SelectTrigger className="w-48">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {periods.map((p) => (
+                            <SelectItem key={`${p.year}-${p.month}`} value={`${p.year}-${p.month}`}>
+                                {p.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <ButtonExport month={period.month} year={period.year} />
+            </div>
             {loading ? (
                 <Skeleton className="h-32 w-full" />
             ) : (
@@ -101,8 +105,8 @@ export function PayoutTable() {
                         {data.map((p, idx) => (
                             <TableRow key={idx}>
                                 <TableCell>{idx + 1}</TableCell>
-                                <TableCell>{p.type}</TableCell>
-                                <TableCell>{`ИП ${p.fullName}`}</TableCell>
+                                <TableCell>{p.businessType}</TableCell>
+                                <TableCell>{p.fullName}</TableCell>
                                 <TableCell>{p.inn}</TableCell>
                                 <TableCell>{p.bik ?? '-'}</TableCell>
                                 <TableCell>{p.bankName ?? '-'}</TableCell>

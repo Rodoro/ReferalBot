@@ -55,7 +55,6 @@ import {
     CardFooter,
     CardHeader,
     CardTitle,
-    CardAction,
 } from "@/shared/ui/overlay/card";
 import { Skeleton } from "@/shared/ui/branding/skeleton";
 import { PAYOUT_MULTIPLIER } from "@/widgets/content/rate";
@@ -219,21 +218,11 @@ export function ServiceStatsPanel({
         return false;
     }
 
-    // Расчётный период с 10-го по 10-е число следующего месяца
+    // Расчётный период с 1-го по 1-е число следующего месяца
     function getAccountingPeriod() {
         const now = new Date();
-        let startYear = now.getFullYear();
-        let startMonth = now.getMonth();
-        if (now.getDate() < 10) {
-            if (startMonth === 0) {
-                startYear -= 1;
-                startMonth = 11;
-            } else {
-                startMonth -= 1;
-            }
-        }
-        const start = new Date(startYear, startMonth, 10);
-        const end = new Date(start.getFullYear(), start.getMonth() + 1, 10);
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(start.getFullYear(), start.getMonth() + 1, 1);
         return { start, end };
     }
 
@@ -254,7 +243,8 @@ export function ServiceStatsPanel({
 
     const periodLabel = useMemo(() => {
         const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
-        return `${accStart.toLocaleDateString('ru-RU', opts)} – ${accEnd.toLocaleDateString('ru-RU', opts)}`;
+        const endDisplay = new Date(accEnd.getTime() - 1);
+        return `${accStart.toLocaleDateString('ru-RU', opts)} – ${endDisplay.toLocaleDateString('ru-RU', opts)}`;
     }, [accStart, accEnd]);
 
     function getPrevPeriod() {
@@ -773,22 +763,27 @@ export function ServiceStatsPanel({
                                 <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
                                     {consultantPayable.toLocaleString('ru-RU')} ₽
                                 </CardTitle>
-                                <CardAction>
+                                {/* <CardAction>
                                     <Badge variant="outline">
                                         {consultantDelta >= 0 ? <TrendingUp /> : <TrendingDown />}
                                         {consultantDelta >= 0 ? '+' : ''}
                                         {consultantDelta.toLocaleString('ru-RU')} ₽
                                     </Badge>
-                                </CardAction>
+                                </CardAction> */}
                             </CardHeader>
                             <CardFooter className="flex-col items-start gap-1.5 text-sm">
                                 <div className="line-clamp-1 flex gap-2 font-medium">
                                     {consultantDelta >= 0 ? 'Рост за период' : 'Снижение за период'}
-                                    {consultantDelta >= 0 ? (
+                                    {/* {consultantDelta >= 0 ? (
                                         <TrendingUp className="size-4" />
                                     ) : (
                                         <TrendingDown className="size-4" />
-                                    )}
+                                    )} */}
+                                    <Badge variant="outline">
+                                        {consultantDelta >= 0 ? <TrendingUp /> : <TrendingDown />}
+                                        {consultantDelta >= 0 ? '+' : ''}
+                                        {consultantDelta.toLocaleString('ru-RU')} ₽
+                                    </Badge>
                                 </div>
                                 <div className="text-muted-foreground">Период {periodLabel}</div>
                             </CardFooter>
@@ -799,22 +794,27 @@ export function ServiceStatsPanel({
                                 <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
                                     {partnerPayable.toLocaleString('ru-RU')} ₽
                                 </CardTitle>
-                                <CardAction>
+                                {/* <CardAction>
                                     <Badge variant="outline">
                                         {partnerDelta >= 0 ? <TrendingUp /> : <TrendingDown />}
                                         {partnerDelta >= 0 ? '+' : ''}
                                         {partnerDelta.toLocaleString('ru-RU')} ₽
                                     </Badge>
-                                </CardAction>
+                                </CardAction> */}
                             </CardHeader>
                             <CardFooter className="flex-col items-start gap-1.5 text-sm">
                                 <div className="line-clamp-1 flex gap-2 font-medium">
                                     {partnerDelta >= 0 ? 'Рост за период' : 'Снижение за период'}
-                                    {partnerDelta >= 0 ? (
+                                    {/* {partnerDelta >= 0 ? (
                                         <TrendingUp className="size-4" />
                                     ) : (
                                         <TrendingDown className="size-4" />
-                                    )}
+                                    )} */}
+                                    <Badge variant="outline">
+                                        {partnerDelta >= 0 ? <TrendingUp /> : <TrendingDown />}
+                                        {partnerDelta >= 0 ? '+' : ''}
+                                        {partnerDelta.toLocaleString('ru-RU')} ₽
+                                    </Badge>
                                 </div>
                                 <div className="text-muted-foreground">Период {periodLabel}</div>
                             </CardFooter>
@@ -827,22 +827,27 @@ export function ServiceStatsPanel({
                             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
                                 {partnerPayable.toLocaleString('ru-RU')} ₽
                             </CardTitle>
-                            <CardAction>
+                            {/* <CardAction>
                                 <Badge variant="outline">
                                     {partnerDelta >= 0 ? <TrendingUp /> : <TrendingDown />}
                                     {partnerDelta >= 0 ? '+' : ''}
                                     {partnerDelta.toLocaleString('ru-RU')} ₽
                                 </Badge>
-                            </CardAction>
+                            </CardAction> */}
                         </CardHeader>
                         <CardFooter className="flex-col items-start gap-1.5 text-sm">
                             <div className="line-clamp-1 flex gap-2 font-medium">
                                 {partnerDelta >= 0 ? 'Рост за период' : 'Снижение за период'}
-                                {partnerDelta >= 0 ? (
+                                {/* {partnerDelta >= 0 ? (
                                     <TrendingUp className="size-4" />
                                 ) : (
                                     <TrendingDown className="size-4" />
-                                )}
+                                )} */}
+                                <Badge variant="outline">
+                                    {partnerDelta >= 0 ? <TrendingUp /> : <TrendingDown />}
+                                    {partnerDelta >= 0 ? '+' : ''}
+                                    {partnerDelta.toLocaleString('ru-RU')} ₽
+                                </Badge>
                             </div>
                             <div className="text-muted-foreground">Период {periodLabel}</div>
                         </CardFooter>
@@ -869,18 +874,28 @@ export function ServiceStatsPanel({
                 </Select>
 
                 {/* Диапазон дат */}
-                <Input
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                    className="w-full"
-                />
-                <Input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                    className="w-full"
-                />
+                <div className="grid grid-cols-3 items-center">
+                    Начало периода
+                    <Input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        placeholder="Начало периода"
+                        className="w-full col-span-2"
+                    />
+                </div>
+                <div className="grid grid-cols-3 items-center">
+                    Конец периода
+                    <Input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        placeholder="Конец периода"
+                        className="w-full col-span-2"
+                    />
+                </div>
+
+
 
                 {/* Поиск */}
                 <Input
@@ -901,7 +916,7 @@ export function ServiceStatsPanel({
                     }}
                     className="w-full"
                 /> */}
-            </div>
+            </div >
 
             <div className="rounded-md border">
                 <Table>
@@ -1023,7 +1038,7 @@ export function ServiceStatsPanel({
                                         )
                                     }
                                 >
-                                    Выплота
+                                    Выплата
                                     <ArrowUpDown className="ml-2 h-4 w-4" />
                                 </Button>
                             </TableHead>

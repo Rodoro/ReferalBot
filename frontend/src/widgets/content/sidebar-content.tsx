@@ -20,7 +20,7 @@ import { RoleType } from "@/entites/User/types/user.types";
 export const commonSidebarContent = {
     navSecondary: [
         {
-            title: "Рефиральный Bot",
+            title: "Реферальный Bot",
             url: process.env.NEXT_PUBLIC_REFBOT || '',
             icon: Bot,
         },
@@ -84,7 +84,7 @@ const adminchikContent: TeamContent = {
             icon: <FaBookBookmark />,
         },
         {
-            name: "Видеомантажер",
+            name: "Видеомонтажер",
             url: process.env.NEXT_PUBLIC_REFBOT + "?start=ve_6A3C3AAA",
             icon: <IoIosMusicalNotes />,
         },
@@ -153,7 +153,7 @@ const poetTeamContent: TeamContent = {
 const veTeamContent: TeamContent = {
     navMain: [
         {
-            title: "Видеомантажер",
+            title: "Видеомонтажер",
             url: "/video-editor/metrics",
             icon: Video,
             isActive: true,

@@ -58,7 +58,7 @@ export default function SalesOutletForm({ partnerId, outletId, initialValues }: 
                                     <SelectValue placeholder="Выберите тип" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={OutletType.SELLER}>Продовец</SelectItem>
+                                    <SelectItem value={OutletType.SELLER}>Продавец</SelectItem>
                                     <SelectItem value={OutletType.SALES_POINT}>Точка продажи</SelectItem>
                                     <SelectItem value={OutletType.INFORMATION_RESOURCE}>Информационный ресурс</SelectItem>
                                 </SelectContent>

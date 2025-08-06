@@ -5,7 +5,7 @@ import { Exclude, Expose } from 'class-transformer';
 export class PayoutDto {
     @ApiProperty()
     @Expose()
-    type: string;
+    businessType: string;
 
     @ApiProperty()
     @Expose()

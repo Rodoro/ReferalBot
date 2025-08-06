@@ -43,7 +43,7 @@ export default function LoginForm() {
         <AuthWrapper
         // heading="Вход"
         >
-            <TypographyH3 className='text-center' text={'Перейдите в телеграмм для подверждения регистрации. Вы должны сперва зарегитрироватся по данной Вам ссылке от сотрудника'} />
+            <TypographyH3 className='text-center' text={'Перейдите в Telegram для подтверждения регистрации. Сначала зарегистрируйтесь по ссылке, выданной вам сотрудником'} />
             <a target="_blank" href={process.env.NEXT_PUBLIC_REFBOT + '?start'} rel="noopener noreferrer">
                 <Button
                     type="submit"
