@@ -1045,18 +1045,21 @@ export function ServiceStatsPanel({
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow className="font-medium">
-                            <TableCell>ИТОГО:</TableCell>
-                            <TableCell></TableCell>
-                            <TableCell></TableCell>
-                            <TableCell className="text-center">{totals.totalClients}</TableCell>
-                            <TableCell className="text-center">{totals.newClients}</TableCell>
-                            <TableCell className="text-center">{totals.songGenerations}</TableCell>
-                            <TableCell className="text-center">{totals.purchasedSongs}</TableCell>
-                            <TableCell className="text-center">{totals.poemOrders}</TableCell>
-                            <TableCell className="text-center">{totals.videoOrders}</TableCell>
-                            <TableCell className="text-center">{(totals.payable * 2).toLocaleString('ru-RU')}</TableCell>
-                        </TableRow>
+                        {mode !== 'all' || (
+                            <TableRow className="font-medium">
+                                <TableCell>ИТОГО:</TableCell>
+                                <TableCell></TableCell>
+                                <TableCell></TableCell>
+                                <TableCell className="text-center">{totals.totalClients}</TableCell>
+                                <TableCell className="text-center">{totals.newClients}</TableCell>
+                                <TableCell className="text-center">{totals.songGenerations}</TableCell>
+                                <TableCell className="text-center">{totals.purchasedSongs}</TableCell>
+                                <TableCell className="text-center">{totals.poemOrders}</TableCell>
+                                <TableCell className="text-center">{totals.videoOrders}</TableCell>
+                                <TableCell className="text-center">{(totals.payable * 2).toLocaleString('ru-RU')}</TableCell>
+                            </TableRow>
+                        )}
+
                         {groupedByAgent.length > 0 ? (
                             groupedByAgent.map((agent, index) => (
                                 <Fragment key={index}>
