@@ -9,7 +9,8 @@ import {
     Users,
     Briefcase,
     PenLine,
-    Video
+    Video,
+    Wallet
 } from "lucide-react"
 import { Team, TeamContent } from "../types/sidebar"
 import { FaBookBookmark, FaUserSecret } from "react-icons/fa6";
@@ -113,6 +114,15 @@ const agentTeamContent: TeamContent = {
                 { title: "Данные", url: "/consultant/data" },
             ],
         },
+        {
+            title: "Выплаты",
+            url: "/payouts",
+            icon: Wallet,
+            isActive: true,
+            items: [
+                { title: "История", url: "/payouts" },
+            ],
+        },
     ],
     projects: [],
 }
@@ -129,6 +139,15 @@ const spTeamContent: TeamContent = {
                 // { title: "Баннеры", url: "/sales-point/metrics/banners" },
                 { title: "Точки продажи", url: "/sales-point/outlets" },
                 { title: "Данные", url: "/sales-point/data" },
+            ],
+        },
+        {
+            title: "Выплаты",
+            url: "/payouts",
+            icon: Wallet,
+            isActive: true,
+            items: [
+                { title: "История", url: "/payouts" },
             ],
         },
     ],

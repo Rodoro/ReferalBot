@@ -406,7 +406,7 @@ export class StatisticsService {
     return result;
   }
 
-  async getPayouts(month?: number, year?: number): Promise<PayoutDto[]> {
+  async getPayouts(month?: number, year?: number, userId?: number): Promise<PayoutDto[]> {
     let start: Date;
     let end: Date;
     if (month !== undefined && year !== undefined) {
@@ -447,7 +447,6 @@ export class StatisticsService {
         ag."bank_name" AS bank_name,
         ag.inn,
         ag.account,
-        ag."business_type" AS business_type,
         SUM(CASE WHEN a.method = 'purchased_generation' THEN 1 ELSE 0 END) * ${PURCHASED_SONG_RATE} +
         SUM(CASE WHEN a.method = 'poet_order' THEN 1 ELSE 0 END) * ${POEM_ORDER_RATE} +
         SUM(CASE WHEN a.method = 'video_order' THEN 1 ELSE 0 END) * ${VIDEO_ORDER_RATE} AS amount
@@ -460,7 +459,8 @@ export class StatisticsService {
         AND ag."full_name" IS NOT NULL AND TRIM(ag."full_name") <> ''
         AND sp."full_name" IS NOT NULL AND TRIM(sp."full_name") <> ''
         AND so."name" IS NOT NULL AND TRIM(so."name") <> ''
-      GROUP BY ag.user_id, ag."full_name", ag.bik, ag."bank_name", ag.inn, ag.account, ag."business_type";
+        ${userId ? `AND ag.user_id = ${userId}` : ''}
+      GROUP BY ag.user_id, ag."full_name", ag.bik, ag."bank_name", ag.inn, ag.account;
     `);
 
     const partnerRows = await this.prisma.$queryRawUnsafe<any[]>(`
@@ -471,7 +471,6 @@ export class StatisticsService {
         sp."bank_name" AS bank_name,
         sp.inn,
         sp.account,
-        sp."business_type" AS business_type,
         SUM(CASE WHEN a.method = 'purchased_generation' THEN 1 ELSE 0 END) * ${PURCHASED_SONG_RATE} +
         SUM(CASE WHEN a.method = 'poet_order' THEN 1 ELSE 0 END) * ${POEM_ORDER_RATE} +
         SUM(CASE WHEN a.method = 'video_order' THEN 1 ELSE 0 END) * ${VIDEO_ORDER_RATE} AS amount
@@ -484,7 +483,8 @@ export class StatisticsService {
         AND ag."full_name" IS NOT NULL AND TRIM(ag."full_name") <> ''
         AND sp."full_name" IS NOT NULL AND TRIM(sp."full_name") <> ''
         AND so."name" IS NOT NULL AND TRIM(so."name") <> ''
-      GROUP BY sp.user_id, sp."full_name", sp.bik, sp."bank_name", sp.inn, sp.account, sp."business_type";
+        ${userId ? `AND sp.user_id = ${userId}` : ''}
+      GROUP BY sp.user_id, sp."full_name", sp.bik, sp."bank_name", sp.inn, sp.account;
     `);
 
     // console.log(agentRows)

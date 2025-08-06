@@ -23,3 +23,8 @@ export async function exportPayouts(
     const params = `?month=${month}&year=${year}&format=${format}`;
     return apiClient.download(`/statistics/payouts/export${params}`);
 }
+
+export async function getMyPayouts(month?: number, year?: number): Promise<Payout[]> {
+    const params = month && year ? `?month=${month}&year=${year}` : '';
+    return apiClient.get(`/statistics/payouts/me${params}`);
+}

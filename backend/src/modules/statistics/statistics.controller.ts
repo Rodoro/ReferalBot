@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Res } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, Res } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { StatisticsService } from './statistics.service';
 import { DailyStatDto } from './dto/daily-stat.dto';
@@ -6,6 +6,7 @@ import { ArchitectureAgentDto } from './dto/architecture.dto';
 import { PayoutDto } from './dto/payout.dto';
 import { Response } from 'express';
 import * as XLSX from 'xlsx';
+import { Authorization } from '@/src/shared/decorators/auth.decorator';
 
 @ApiTags('Statistics')
 @Controller('statistics')
@@ -51,6 +52,19 @@ export class StatisticsController {
         const m = month ? parseInt(month, 10) : undefined;
         const y = year ? parseInt(year, 10) : undefined;
         return this.statisticsService.getPayouts(m, y);
+    }
+
+    @Authorization()
+    @Get('payouts/me')
+    @ApiOperation({ summary: 'Get payouts for current user' })
+    getMyPayouts(
+        @Req() req: Request,
+        @Query('month') month?: string,
+        @Query('year') year?: string,
+    ): Promise<PayoutDto[]> {
+        const m = month ? parseInt(month, 10) : undefined;
+        const y = year ? parseInt(year, 10) : undefined;
+        return this.statisticsService.getPayouts(m, y, (req as any).user.id);
     }
 
     @Get('payouts/export')
