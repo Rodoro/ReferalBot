@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 function extractToken(html: string): string | null {
-    const m = html.match(/confirm=([a-zA-Z0-9_-]+)/)
+    const m = html.match(/confirm=([a-zA-ZА-Яа-я0-9_-]+)/)
     return m ? m[1] : null
 }
 

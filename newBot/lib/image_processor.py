@@ -19,7 +19,7 @@ QR_BACK_COLOR = settings.QR_BACK_COLOR
 def convert_google_drive_link(url):
     """Преобразует ссылку Google Drive в прямую ссылку для скачивания"""
     # Регулярное выражение для извлечения ID файла
-    pattern = r'https://drive\.google\.com/file/d/([a-zA-Z0-9_-]+)'
+    pattern = r'https://drive\.google\.com/file/d/([a-zA-ZА-Яа-я0-9_-]+)'
     match = re.search(pattern, url)
     
     if match:
@@ -71,7 +71,7 @@ class CSVImageProcessor:
             # Если получили HTML (страница подтверждения)
             if 'text/html' in response.headers.get('Content-Type', ''):
                 # Парсим страницу для получения подтверждающей ссылки
-                confirm_match = re.search(r'confirm=([a-zA-Z0-9_-]+)', response.text)
+                confirm_match = re.search(r'confirm=([a-zA-ZА-Яа-я0-9_-]+)', response.text)
                 if confirm_match:
                     confirm_token = confirm_match.group(1)
                     download_url = f"{direct_url}&confirm={confirm_token}"

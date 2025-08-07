@@ -1,5 +1,6 @@
 import random
 import re
+import requests
 from .backend_client import BackendClient
 from .banner_service import BannerService
 from newBot.lib.image_processor import CSVImageProcessor, generate_banner_image
@@ -13,6 +14,14 @@ class SalesOutletService:
     def list_outlets(self, partner_id: int) -> list[dict]:
         resp = self.client.get(f"sales-outlet/partner/{partner_id}")
         return resp if isinstance(resp, list) else resp.get("items", [])
+
+    def get_by_telegram_id(self, telegram_id: int) -> dict | None:
+        try:
+            return self.client.get(f"sales-outlet/telegram/{telegram_id}")
+        except requests.HTTPError as e:
+            if e.response.status_code == 404:
+                return None
+            raise
 
     def create_outlet(
         self,
@@ -42,7 +51,7 @@ class SalesOutletService:
 
     def generate_referral_assets(self, name: str, referral_link: str) -> tuple[list[str], str]:
         """Generate QR code and up to two banners for the outlet."""
-        safe = re.sub(r"[^A-Za-z0-9_]+", "_", name) or "outlet"
+        safe = re.sub(r"[^A-Za-zА-Яа-я0-9_]+", "_", name) or "outlet"
 
         banner_service = BannerService()
         banners = banner_service.list_banners()

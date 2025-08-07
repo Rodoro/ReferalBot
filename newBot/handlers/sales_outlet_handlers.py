@@ -271,6 +271,12 @@ async def cmd_start_outlet_referral(message: types.Message, state: FSMContext):
 
 async def start_seller_registration(callback: types.CallbackQuery, state: FSMContext):
     """Send seller mini-app to the user."""
+    svc = SalesOutletService()
+    existing = svc.get_by_telegram_id(callback.from_user.id)
+    if existing:
+        await callback.message.answer("Вы уже зарегистрированы как продавец.")
+        await callback.answer()
+        return
 
     mini_app_url = f"{settings.WEBAPP_URL}/seller-form"
     web_app = types.WebAppInfo(url=mini_app_url)

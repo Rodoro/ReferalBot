@@ -284,10 +284,15 @@ async def handle_agent_sign_contract(
 
     svc = AgentService()
     try:
-        sp_banner_paths, sp_qr_path, sp_link, agent_qr_path, agent_link = svc.sign_agent_contract(user_id)  
+        sp_banner_paths, sp_qr_path, sp_link, agent_qr_path, agent_link = svc.sign_agent_contract(user_id)
     except Exception as e:
         await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
         return
+
+    sp_code = sp_link.split("ref_")[-1] if sp_link else ""
+    outlet_link = (
+        f"https://t.me/{settings.BOT_USERNAME}?start=outlet_{sp_code}" if sp_code else "ссылка недоступна"
+    )
 
     # Убираем кнопку «Подписать договор» под сообщением
     await callback.message.edit_reply_markup(reply_markup=None)
@@ -298,6 +303,7 @@ async def handle_agent_sign_contract(
         text=(
             "✅ Вы успешно подписали договор как консультант!\n\n"
             f"1. Ваша ссылка консультанта (для регистрации партнеров):\n{agent_link}\n\n"
+            f"2. Ваша ссылка для регистрации точек продаж:\n{outlet_link}\n\n"
             f"3. Ваша ссылка точки продаж (для приглашения клиентов в бот создания песен):\n{sp_link}\n\n"
             "Ниже два баннера с QR-кодом для клиентов и партнеров. Сохраните или поделитесь ими."
         ),

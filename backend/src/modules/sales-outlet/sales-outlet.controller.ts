@@ -31,6 +31,14 @@ export class SalesOutletController {
         return this.outletService.findByPartner(+id);
     }
 
+    @Get('telegram/:telegramId')
+    @ApiOperation({ summary: 'Get seller by telegram id' })
+    findByTelegram(
+        @Param('telegramId') telegramId: string,
+    ): Promise<SalesOutletResponseDto> {
+        return this.outletService.findByTelegramId(telegramId);
+    }
+
     @Get(':id')
     @ApiOperation({ summary: 'Get sales outlet by id' })
     findOne(@Param('id') id: string): Promise<SalesOutletResponseDto> {

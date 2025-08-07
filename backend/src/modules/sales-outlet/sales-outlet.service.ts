@@ -13,15 +13,19 @@ export class SalesOutletService {
     async create(data: CreateSalesOutletDto): Promise<SalesOutletResponseDto> {
         const outlet = await this.prismaService.salesOutlet.create({
             data: {
-                partnerId: data.partnerId,
                 address: data.address,
                 name: data.name,
                 type: data.type ?? OutletType.SELLER,
-                telegramId: data.telegramId,
+                telegramId: String(data.telegramId),
                 link: data.link,
                 description: data.description,
                 verified: data.verified,
                 referralCode: Math.random().toString(36).slice(2, 10),
+                partner: {
+                    connect: {
+                        id: data.partnerId,
+                    },
+                },
             },
         });
         return plainToInstance(SalesOutletResponseDto, outlet);
@@ -30,6 +34,16 @@ export class SalesOutletService {
     async findAll(): Promise<SalesOutletResponseDto[]> {
         const outlets = await this.prismaService.salesOutlet.findMany();
         return outlets.map((o) => plainToInstance(SalesOutletResponseDto, o));
+    }
+
+    async findByTelegramId(telegramId: string): Promise<SalesOutletResponseDto> {
+        const outlet = await this.prismaService.salesOutlet.findFirst({
+            where: { telegramId, type: OutletType.SELLER },
+        });
+        if (!outlet) {
+            throw new NotFoundException('SalesOutlet not found');
+        }
+        return plainToInstance(SalesOutletResponseDto, outlet);
     }
 
     async findOne(id: number): Promise<SalesOutletResponseDto> {

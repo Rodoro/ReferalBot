@@ -356,6 +356,11 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
         await callback.answer(f"Ошибка при подписи договора: {e}", show_alert=True)
         return
 
+    code = referral_link.split("ref_")[-1] if referral_link else ""
+    outlet_link = (
+        f"https://t.me/{settings.BOT_USERNAME}?start=outlet_{code}" if code else "ссылка недоступна"
+    )
+
     # Убираем кнопку «Подписать договор»
     await callback.message.edit_reply_markup(reply_markup=None)
 
@@ -364,6 +369,7 @@ async def handle_sp_sign_contract(callback: types.CallbackQuery, bot: Bot):
         chat_id=tg_id,
         text=(
             "✅ Вы успешно подписали договор как партнёр!\n\n"
+            f"1. Ваша ссылка для регистрации точек:\n{outlet_link}\n\n"
             f"2. Ваша ссылка точки продаж (для приглашения клиентов в бот создания песен):\n{referral_link}\n\n"
             "Ниже два баннера с QR-кодом. Сохраните или поделитесь ими для привлечения клиентов."
         )
